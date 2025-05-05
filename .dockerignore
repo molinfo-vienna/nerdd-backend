@@ -16,3 +16,6 @@
 **/*.pyc
 dist
 *.egg-info
+
+data/
+outputs/
