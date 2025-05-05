@@ -1,17 +1,20 @@
+import logging
 import math
 from typing import Optional
 from uuid import uuid4
 
 from fastapi import APIRouter, Body, Header, HTTPException, Request
 from fastapi.responses import FileResponse
-from nerdd_link import FileSystem, JobMessage
+from nerdd_link import Channel, FileSystem, JobMessage, Tombstone
 
 from ..data import RecordNotFoundError, Repository
-from ..models import Job, JobCreate, JobInternal, JobPublic, OutputFile
+from ..models import JobCreate, JobInternal, JobPublic, OutputFile
 from ..util import CompressedSet
 from .users import check_quota, get_user
 
 __all__ = ["jobs_router"]
+
+logger = logging.getLogger(__name__)
 
 jobs_router = APIRouter(prefix="/jobs")
 
@@ -63,6 +66,7 @@ async def create_job(
     repository: Repository = app.state.repository
     channel = app.state.channel
 
+    # create a job id
     job_id = uuid4()
 
     # get user from request and check quota
@@ -132,14 +136,18 @@ async def create_job(
 @jobs_router.delete("/{job_id}")
 async def delete_job(job_id: str, request: Request):
     app = request.app
-    repository = app.state.repository
+    repository: Repository = app.state.repository
+    channel: Channel = app.state.channel
 
     try:
-        await repository.get_job_by_id(job_id)
+        job = await repository.get_job_by_id(job_id)
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail="Job not found") from e
 
+    await repository.delete_results_by_job_id(job_id)
     await repository.delete_job_by_id(job_id)
+
+    await channel.jobs_topic().send(Tombstone(JobMessage, id=job_id, job_type=job.job_type))
 
     return {"message": "Job deleted successfully"}
 
