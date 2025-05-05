@@ -68,7 +68,7 @@ async def create_app(cfg: DictConfig):
             lambda app: SaveResultCheckpointToDb(app.state.channel, app.state.repository, cfg)
         ),
         ActionLifespan(
-            lambda app: ProcessSerializationResult(app.state.channel, app.state.repository)
+            lambda app: ProcessSerializationResult(app.state.channel, app.state.repository, cfg)
         ),
         CreateModuleLifespan(),
     ]
@@ -117,7 +117,6 @@ async def create_app(cfg: DictConfig):
     @asynccontextmanager
     async def global_lifespan(app: FastAPI):
         logger.info("Starting tasks")
-        # TODO: run tasks sequentially, because there might be dependencies
         start_tasks = asyncio.gather(
             *[asyncio.create_task(lifespan.start(app)) for lifespan in lifespans]
         )
