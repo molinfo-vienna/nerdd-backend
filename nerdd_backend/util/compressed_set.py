@@ -52,6 +52,17 @@ class CompressedSet:
             self.intervals.pop(i + 1)
         return self
 
+    def contains(self, x: int) -> bool:
+        i = 0
+        while i < len(self.intervals) and self.intervals[i][0] <= x:
+            if x < self.intervals[i][1]:
+                return True
+            i += 1
+        return False
+
+    def __contains__(self, x: int) -> bool:
+        return self.contains(x)
+
     def count(self) -> int:
         return sum(j - i for i, j in self.intervals)
 
