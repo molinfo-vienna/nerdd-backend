@@ -5,7 +5,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Body, Header, HTTPException, Request
 from fastapi.responses import FileResponse
-from nerdd_link import Channel, FileSystem, JobMessage, Tombstone
+from nerdd_link import Channel, FileSystem, JobMessage, SerializationRequestMessage, Tombstone
 
 from ..data import RecordNotFoundError, Repository
 from ..models import JobCreate, JobInternal, JobPublic, OutputFile
@@ -138,6 +138,7 @@ async def delete_job(job_id: str, request: Request):
     app = request.app
     repository: Repository = app.state.repository
     channel: Channel = app.state.channel
+    cfg = app.state.config
 
     try:
         job = await repository.get_job_by_id(job_id)
@@ -147,7 +148,14 @@ async def delete_job(job_id: str, request: Request):
     await repository.delete_results_by_job_id(job_id)
     await repository.delete_job_by_id(job_id)
 
+    # send tombstone message on jobs topic
     await channel.jobs_topic().send(Tombstone(JobMessage, id=job_id, job_type=job.job_type))
+
+    # send tombstone messages on serialization requests topic
+    for output_format in cfg.output_formats:
+        await channel.serialization_requests_topic().send(
+            Tombstone(SerializationRequestMessage, job_id=job_id, output_format=output_format)
+        )
 
     return {"message": "Job deleted successfully"}
 
