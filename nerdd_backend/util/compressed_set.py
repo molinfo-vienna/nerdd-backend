@@ -10,7 +10,7 @@ class CompressedSet:
         self, intervals_or_entries: Optional[Union[List[Tuple[int, int]], List[int]]] = None
     ):
         if intervals_or_entries is None or len(intervals_or_entries) == 0:
-            intervals_or_entries = []
+            self.intervals = []
         else:
             if isinstance(intervals_or_entries[0], int):
                 # convert list of entries to list of intervals
