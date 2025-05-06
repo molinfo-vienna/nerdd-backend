@@ -26,6 +26,11 @@ class CompressedSet:
             elif isinstance(intervals_or_entries[0], tuple) and len(intervals_or_entries[0]) == 2:
                 # copy the list of intervals
                 self.intervals = list(intervals_or_entries)
+            else:
+                raise ValueError(
+                    f"Invalid input: must be a list of intervals or entries, got "
+                    f"{intervals_or_entries} of type {type(intervals_or_entries)}"
+                )
 
     def add(self, x: int) -> CompressedSet:
         i = 0
