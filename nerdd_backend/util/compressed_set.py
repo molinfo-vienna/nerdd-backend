@@ -2,6 +2,13 @@ from __future__ import annotations
 
 from typing import List, Optional, Tuple, Union
 
+from pydantic import GetCoreSchemaHandler
+from pydantic_core.core_schema import (
+    ValidationInfo,
+    plain_serializer_function_ser_schema,
+    with_info_plain_validator_function,
+)
+
 __all__ = ["CompressedSet"]
 
 
@@ -76,3 +83,23 @@ class CompressedSet:
 
     def __repr__(self) -> str:
         return f"CompressedSet({self.intervals})"
+
+    @classmethod
+    def __get_pydantic_core_schema__(cls, source, handler: GetCoreSchemaHandler):
+        def _validate(
+            v: List[Tuple[int, int]],
+            info: ValidationInfo,
+        ) -> CompressedSet:
+            if isinstance(v, cls):
+                return v
+            if isinstance(v, list):
+                return cls(v)
+            raise TypeError(f"Expected a CompressedSet or a list of intervals, got {type(v)}")
+
+        return with_info_plain_validator_function(
+            _validate,
+            serialization=plain_serializer_function_ser_schema(
+                lambda v: v.to_intervals(),
+                return_schema=handler(List[Tuple[int, int]]),
+            ),
+        )
