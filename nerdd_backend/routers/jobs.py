@@ -8,8 +8,7 @@ from fastapi.responses import FileResponse
 from nerdd_link import Channel, FileSystem, JobMessage, SerializationRequestMessage, Tombstone
 
 from ..data import RecordNotFoundError, Repository
-from ..models import JobCreate, JobInternal, JobPublic, OutputFile
-from ..util import CompressedSet
+from ..models import JobCreate, JobInternal, JobPublic, JobWithResults, OutputFile
 from .users import check_quota, get_user
 
 __all__ = ["jobs_router"]
@@ -19,18 +18,14 @@ logger = logging.getLogger(__name__)
 jobs_router = APIRouter(prefix="/jobs")
 
 
-async def augment_job(job: JobInternal, request: Request) -> JobPublic:
-    # compute number of processed entries
-    entries_processed = CompressedSet(job.entries_processed)
-    num_entries_processed = entries_processed.count()
-
+async def augment_job(job: JobWithResults, request: Request) -> JobPublic:
     # The number of processed pages is only valid if the computation has not finished yet. We adapt
     # this number in the if statement below.
-    num_pages_processed = num_entries_processed // job.page_size
+    num_pages_processed = job.num_entries_processed // job.page_size
     if job.num_entries_total is not None:
         num_pages_total = math.ceil(job.num_entries_total / job.page_size)
 
-        if job.num_entries_total == num_entries_processed:
+        if job.num_entries_total == job.num_entries_processed:
             num_pages_processed = num_pages_total
     else:
         num_pages_total = None
@@ -48,7 +43,6 @@ async def augment_job(job: JobInternal, request: Request) -> JobPublic:
         **job.model_dump(),
         job_url=str(request.url_for("get_job", job_id=job.id)),
         results_url=str(request.url_for("get_results", job_id=job.id)),
-        num_entries_processed=num_entries_processed,
         num_pages_processed=num_pages_processed,
         num_pages_total=num_pages_total,
         output_files=output_files,
@@ -64,7 +58,7 @@ async def create_job(
 ) -> JobPublic:
     app = request.app
     repository: Repository = app.state.repository
-    channel = app.state.channel
+    channel: Channel = app.state.channel
 
     # create a job id
     job_id = uuid4()
@@ -113,23 +107,38 @@ async def create_job(
         status="created",
     )
 
-    # We have to create the job in the database, because the user will fetch the created job
+    # We have to create the job in the database now, because the user will fetch the created job
     # in the next request. There is no time for sending it to Kafka and consuming the job record.
-    job_internal = await repository.create_job(job_new)
+    job_with_results = await repository.create_job(job_new)
 
-    # send job to kafka
-    await channel.jobs_topic().send(
-        JobMessage(
-            id=str(job_id),
-            # user_id=user.id,
-            job_type=job.job_type,
-            source_id=job.source_id,
-            params=job.params,
+    try:
+        # send job to kafka
+        await channel.jobs_topic().send(
+            JobMessage(
+                id=str(job_id),
+                # user_id=user.id,
+                job_type=job.job_type,
+                source_id=job.source_id,
+                params=job.params,
+            )
         )
-    )
+    except Exception as e:
+        # if sending the job to Kafka fails, we delete the job from the database
+        try:
+            await repository.delete_job_by_id(str(job_id))
+        except RecordNotFoundError:
+            pass  # ignore if something goes wrong
+        except Exception as inner:
+            logger.exception(
+                f"Failed to delete job {job_id} from database after failure in Kafka send", inner
+            )
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to send job to processing queue. Please try again later.",
+        ) from e
 
     # return the response
-    return await augment_job(job_internal, request)
+    return await augment_job(job_with_results, request)
 
 
 @jobs_router.delete("/{job_id}/", include_in_schema=False)
