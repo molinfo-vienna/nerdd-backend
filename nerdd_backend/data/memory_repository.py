@@ -11,6 +11,7 @@ from ..models import (
     Job,
     JobInternal,
     JobUpdate,
+    JobWithResults,
     Module,
     Result,
     Source,
@@ -83,26 +84,31 @@ class MemoryRepository(Repository):
             if (old is not None and old.id == job_id) or (new is not None and new.id == job_id):
                 yield (old, new)
 
-    async def create_job(self, job: JobInternal) -> JobInternal:
+    async def create_job(self, job: JobInternal) -> JobWithResults:
         async with self.transaction_lock:
             try:
                 await self.get_job_by_id(job.id)
                 raise RecordAlreadyExistsError(JobInternal, job.id)
             except RecordNotFoundError:
                 self.jobs.append(job)
-                return job
+                return JobWithResults(
+                    **job.model_dump(),
+                    entries_processed=CompressedSet(),
+                )
 
     async def update_job(self, job_update: JobUpdate) -> JobInternal:
         async with self.transaction_lock:
-            existing_job = await self.get_job_by_id(job_update.id)
+            # find job instance
+            existing_job = next(
+                (job for job in self.jobs.get_items() if job.id == job_update.id), None
+            )
+            if existing_job is None:
+                raise RecordNotFoundError(JobInternal, job_update.id)
+
+            # create a modified job instance based on the existing one
             modified_job = JobInternal(**existing_job.model_dump())
             if job_update.status is not None:
                 modified_job.status = job_update.status
-            if job_update.entries_processed is not None:
-                entries_processed = CompressedSet(modified_job.entries_processed)
-                for entry in job_update.entries_processed:
-                    entries_processed.add(entry)
-                modified_job.entries_processed = entries_processed.to_intervals()
             if job_update.num_entries_total is not None:
                 modified_job.num_entries_total = job_update.num_entries_total
             if job_update.num_checkpoints_total is not None:
@@ -111,12 +117,24 @@ class MemoryRepository(Repository):
                 modified_job.checkpoints_processed.extend(job_update.new_checkpoints_processed)
             if job_update.new_output_formats is not None:
                 modified_job.output_formats.extend(job_update.new_output_formats)
+
+            # update the job in the observable list
             self.jobs.update(existing_job, modified_job)
             return await self.get_job_by_id(job_update.id)
 
-    async def get_job_by_id(self, id: str) -> JobInternal:
+    async def get_job_by_id(self, id: str) -> JobWithResults:
+        # fetch all corresponding results
+        results = await self.get_results_by_job_id(id)
+        entries_processed = CompressedSet([result.mol_id for result in results]).to_intervals()
+
         try:
-            return next((job for job in self.jobs.get_items() if job.id == id))
+            return next(
+                (
+                    JobWithResults(**job.model_dump(), entries_processed=entries_processed)
+                    for job in self.jobs.get_items()
+                    if job.id == id
+                )
+            )
         except StopIteration as e:
             raise RecordNotFoundError(Job, id) from e
 
@@ -198,9 +216,6 @@ class MemoryRepository(Repository):
 
     async def get_all_results_by_job_id(self, job_id: str) -> List[Result]:
         return [result for result in self.results.get_items() if result.job_id == job_id]
-
-    async def get_num_processed_entries_by_job_id(self, job_id: str) -> int:
-        return len(await self.get_all_results_by_job_id(job_id))
 
     #
     # USERS
