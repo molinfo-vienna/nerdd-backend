@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import List, Optional, Tuple, Union
 
 from pydantic import GetCoreSchemaHandler
@@ -10,6 +11,21 @@ from pydantic_core.core_schema import (
 )
 
 __all__ = ["CompressedSet"]
+
+
+def _merge_intervals(intervals, i) -> None:
+    if i < 0 or i >= len(intervals) - 1:
+        return False
+
+    # merge intervals[i] with intervals[i + 1] if they are adjacent / overlapping
+    if intervals[i][1] >= intervals[i + 1][0]:
+        start = min(intervals[i][0], intervals[i + 1][0])
+        end = max(intervals[i][1], intervals[i + 1][1])
+        intervals[i] = (start, end)
+        intervals.pop(i + 1)
+        return True
+
+    return False
 
 
 class CompressedSet:
@@ -25,12 +41,17 @@ class CompressedSet:
                 intervals = []
                 start = entries[0]
                 for i in range(1, len(entries)):
+                    if entries[i] == entries[i - 1]:
+                        # skip duplicates
+                        continue
                     if entries[i] != entries[i - 1] + 1:
                         intervals.append((start, entries[i - 1] + 1))
                         start = entries[i]
                 intervals.append((start, entries[-1] + 1))
                 self.intervals = intervals
-            elif isinstance(intervals_or_entries[0], tuple) and len(intervals_or_entries[0]) == 2:
+            elif (
+                isinstance(intervals_or_entries[0], Sequence) and len(intervals_or_entries[0]) == 2
+            ):
                 # copy the list of intervals
                 self.intervals = list(intervals_or_entries)
             else:
@@ -39,30 +60,73 @@ class CompressedSet:
                     f"{intervals_or_entries} of type {type(intervals_or_entries)}"
                 )
 
-    def add(self, x: int) -> CompressedSet:
+    def add(self, x: int) -> None:
+        # search for the position to insert x
         i = 0
         while i < len(self.intervals) and self.intervals[i][0] <= x:
             i += 1
-        i = max(0, i - 1)
+        i = max(0, i - 1)  # the previous interval might contain x
+
         if i >= len(self.intervals):
+            # x is greater than all existing intervals
+            # -> append a new interval
             self.intervals.append((x, x + 1))
         else:
             left, right = self.intervals[i]
             if left <= x < right:
-                return self
+                # x is already in the set
+                return
             elif x < left:
                 self.intervals.insert(i, (x, x + 1))
             else:
                 self.intervals.insert(i + 1, (x, x + 1))
                 i += 1
-        if i > 0 and self.intervals[i - 1][1] == self.intervals[i][0]:
-            self.intervals[i - 1] = (self.intervals[i - 1][0], self.intervals[i][1])
-            self.intervals.pop(i)
-            i -= 1
-        if i < len(self.intervals) - 1 and self.intervals[i][1] == self.intervals[i + 1][0]:
-            self.intervals[i] = (self.intervals[i][0], self.intervals[i + 1][1])
-            self.intervals.pop(i + 1)
-        return self
+
+        # merge intervals if necessary
+        merged = _merge_intervals(self.intervals, i - 1)
+        if merged:
+            _merge_intervals(self.intervals, i)
+        else:
+            _merge_intervals(self.intervals, i + 1)
+
+    def union(self, other: Union[CompressedSet, List[int], List[Tuple[int, int]]]) -> CompressedSet:
+        if isinstance(other, CompressedSet):
+            other_intervals = other.intervals
+        elif isinstance(other, list):
+            if len(other) == 0:
+                return CompressedSet(self.intervals)
+
+            first = other[0]
+            if isinstance(first, int):
+                other_intervals = CompressedSet(other).intervals
+            elif isinstance(first, tuple) and len(first) == 2:
+                other_intervals = other
+            else:
+                raise ValueError(
+                    f"Invalid input: must be a CompressedSet or a list of integers or intervals, "
+                    f"got {other}"
+                )
+        else:
+            raise ValueError(
+                f"Invalid input: must be a CompressedSet or a list of integers, got {other}"
+            )
+
+        # merge the intervals from both sets
+        i = 0
+        j = 0
+        merged_intervals = []
+        while i < len(self.intervals) or j < len(other_intervals):
+            if i < len(self.intervals) and (
+                j == len(other_intervals) or (self.intervals[i][0] <= other_intervals[j][0])
+            ):
+                merged_intervals.append(tuple(self.intervals[i]))
+                i += 1
+            else:
+                merged_intervals.append(tuple(other_intervals[j]))
+                j += 1
+            _merge_intervals(merged_intervals, len(merged_intervals) - 2)
+
+        return CompressedSet(merged_intervals)
 
     def contains(self, x: int) -> bool:
         i = 0
