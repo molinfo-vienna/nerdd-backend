@@ -56,6 +56,9 @@ class JobWithResults(JobInternal):
     def num_entries_processed(self) -> int:
         return self.entries_processed.count()
 
+    def is_done(self) -> bool:
+        return self.status == "completed" and self.num_entries_processed == self.num_entries_total
+
 
 class JobCreate(BaseModel):
     job_type: str
