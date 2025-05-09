@@ -1,8 +1,20 @@
 from abc import ABC, abstractmethod
+from asyncio import Queue, create_task
 from datetime import datetime
-from typing import AsyncIterable, List, Optional, Tuple
+from typing import Any, AsyncIterable, List, Optional, Tuple
 
-from ..models import AnonymousUser, Challenge, JobInternal, JobUpdate, Module, Result, Source, User
+from ..models import (
+    AnonymousUser,
+    Challenge,
+    JobInternal,
+    JobUpdate,
+    JobWithResults,
+    Module,
+    Result,
+    Source,
+    User,
+)
+from ..util import CompressedSet
 
 __all__ = ["Repository"]
 
@@ -43,6 +55,78 @@ class Repository(ABC):
     #
     # JOBS
     #
+    async def get_job_with_result_changes(
+        self, job_id: str
+    ) -> AsyncIterable[Tuple[Optional[JobWithResults], Optional[JobWithResults]]]:
+        # The main idea of this method is to merge the changes of job and results. For that we
+        # get the current state of the job and update whenever a change occurs.
+        job = await self.get_job_by_id(job_id)
+
+        # return the initial state of the job (None indicates that this is the initial state)
+        yield None, job
+
+        if job.is_done():
+            return
+
+        # We create two tasks that listen to the changes of job and results and put the changes into
+        # a queue.
+        queue = Queue[Tuple[str, Any]]()
+
+        async def _drain_iterator(aiter: AsyncIterable, event_type: str) -> None:
+            async for item in aiter:
+                await queue.put((event_type, item))
+
+        drain_tasks = [
+            create_task(_drain_iterator(aiter, event_type))
+            for aiter, event_type in [
+                (self.get_job_changes(job_id), "job_change"),
+                (self.get_result_changes(job_id), "results_change"),
+            ]
+        ]
+
+        while True:
+            event_type, (_, new) = await queue.get()
+            if event_type == "job_change":
+                if new is not None:
+                    new_job = JobWithResults(
+                        **new.model_dump(),
+                        entries_processed=job.entries_processed,
+                    )
+                    yield job, new_job
+                    job = new_job
+
+                    if job.is_done():
+                        # job is completed, we can exit the loop
+                        break
+                else:
+                    # job was deleted -> exit the loop
+                    break
+            elif event_type == "results_change":
+                if new is not None:
+                    if new.mol_id in job.entries_processed:
+                        # result already processed, skip
+                        continue
+
+                    old_job_obj = job.model_dump()
+                    old_job_obj["entries_processed"] = CompressedSet(
+                        old_job_obj["entries_processed"].to_intervals()
+                    )
+                    old_job_obj["entries_processed"].add(new.mol_id)
+
+                    new_job = JobWithResults(**old_job_obj)
+
+                    yield job, new_job
+                    job = new_job
+
+                    if job.is_done():
+                        # job is completed, we can exit the loop
+                        break
+                else:
+                    pass
+
+        for task in drain_tasks:
+            task.cancel()
+
     @abstractmethod
     def get_job_changes(
         self, job_id: str
@@ -50,7 +134,7 @@ class Repository(ABC):
         pass
 
     @abstractmethod
-    async def create_job(self, job: JobInternal) -> JobInternal:
+    async def create_job(self, job: JobInternal) -> JobWithResults:
         pass
 
     @abstractmethod
@@ -58,7 +142,7 @@ class Repository(ABC):
         pass
 
     @abstractmethod
-    async def get_job_by_id(self, job_id: str) -> JobInternal:
+    async def get_job_by_id(self, job_id: str) -> JobWithResults:
         pass
 
     @abstractmethod
@@ -83,10 +167,6 @@ class Repository(ABC):
     #
     # RESULTS
     #
-    @abstractmethod
-    async def get_num_processed_entries_by_job_id(self, job_id: str) -> int:
-        pass
-
     @abstractmethod
     async def get_results_by_job_id(
         self,
@@ -132,6 +212,17 @@ class Repository(ABC):
         pass
 
     @abstractmethod
+    async def create_challenge(self, challenge: Challenge) -> Challenge:
+        pass
+
+    @abstractmethod
+    async def delete_challenge_by_id(self, id: str) -> None:
+        pass
+
+    @abstractmethod
+    async def delete_expired_challenges(self, deadline: datetime) -> None:
+        pass
+
     async def create_challenge(self, challenge: Challenge) -> Challenge:
         pass
 
