@@ -42,3 +42,10 @@ def test_contains():
     assert 4 not in compressed_set
     assert 5 in compressed_set
     assert 8 not in compressed_set
+
+def test_union_with_compressed_set():
+    set1 = CompressedSet([(2, 4), (5, 7)])
+    set2 = CompressedSet([(3, 6), (8, 10)])
+    union_set = set1.union(set2)
+    assert union_set.to_intervals() == [(2, 7), (8, 10)]
+    assert union_set.count() == 7
