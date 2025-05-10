@@ -40,7 +40,7 @@ class UpdateJobSize(Action[LogMessage]):
                     for output_format in output_formats:
                         await self.channel.serialization_requests_topic().send(
                             SerializationRequestMessage(
-                                job_id=message.job_Id,
+                                job_id=message.job_id,
                                 job_type=job.job_type,
                                 params=job.params,
                                 output_format=output_format,
