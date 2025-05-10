@@ -109,7 +109,7 @@ class Repository(ABC):
 
                     old_job_obj = job.model_dump()
                     old_job_obj["entries_processed"] = CompressedSet(
-                        old_job_obj["entries_processed"].to_intervals()
+                        old_job_obj["entries_processed"]
                     )
                     old_job_obj["entries_processed"].add(new.mol_id)
 
@@ -149,6 +149,10 @@ class Repository(ABC):
     async def delete_job_by_id(self, job_id: str) -> None:
         pass
 
+    @abstractmethod
+    async def get_expired_jobs(self, deadline: datetime) -> AsyncIterable[JobInternal]:
+        pass
+
     #
     # SOURCES
     #
@@ -162,6 +166,10 @@ class Repository(ABC):
 
     @abstractmethod
     async def delete_source_by_id(self, source_id: str) -> None:
+        pass
+
+    @abstractmethod
+    async def get_expired_sources(self, deadline: datetime) -> AsyncIterable[Source]:
         pass
 
     #
@@ -189,6 +197,10 @@ class Repository(ABC):
     ) -> AsyncIterable[Tuple[Optional[Result], Optional[Result]]]:
         pass
 
+    @abstractmethod
+    async def delete_results_by_job_id(self, job_id: str) -> None:
+        pass
+
     #
     # USERS
     #
@@ -212,17 +224,6 @@ class Repository(ABC):
         pass
 
     @abstractmethod
-    async def create_challenge(self, challenge: Challenge) -> Challenge:
-        pass
-
-    @abstractmethod
-    async def delete_challenge_by_id(self, id: str) -> None:
-        pass
-
-    @abstractmethod
-    async def delete_expired_challenges(self, deadline: datetime) -> None:
-        pass
-
     async def create_challenge(self, challenge: Challenge) -> Challenge:
         pass
 
