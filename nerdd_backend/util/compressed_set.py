@@ -85,9 +85,9 @@ class CompressedSet:
         # merge intervals if necessary
         merged = _merge_intervals(self.intervals, i - 1)
         if merged:
-            _merge_intervals(self.intervals, i)
+            _merge_intervals(self.intervals, i - 1)
         else:
-            _merge_intervals(self.intervals, i + 1)
+            _merge_intervals(self.intervals, i)
 
     def union(self, other: Union[CompressedSet, List[int], List[Tuple[int, int]]]) -> CompressedSet:
         if isinstance(other, CompressedSet):
