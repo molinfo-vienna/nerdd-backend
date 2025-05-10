@@ -30,12 +30,18 @@ def _merge_intervals(intervals, i) -> None:
 
 class CompressedSet:
     def __init__(
-        self, intervals_or_entries: Optional[Union[List[Tuple[int, int]], List[int]]] = None
+        self,
+        intervals_or_entries: Union[List[Tuple[int, int]], List[int], CompressedSet, None] = None,
     ):
-        if intervals_or_entries is None or len(intervals_or_entries) == 0:
+        if intervals_or_entries is None:
             self.intervals = []
+        elif isinstance(intervals_or_entries, CompressedSet):
+            # copy the intervals from another CompressedSet
+            self.intervals = list(intervals_or_entries.intervals)
         else:
-            if isinstance(intervals_or_entries[0], int):
+            if len(intervals_or_entries) == 0:
+                self.intervals = []
+            elif isinstance(intervals_or_entries[0], int):
                 # convert list of entries to list of intervals
                 entries = sorted(set(intervals_or_entries))
                 intervals = []
