@@ -16,6 +16,21 @@ def test_constructor_with_intervals():
     assert compressed_set.to_intervals() == [(1, 1000)]
     assert compressed_set.count() == 999
 
+def test_constructor_with_empty_list():
+    compressed_set = CompressedSet([])
+    assert compressed_set.to_intervals() == []
+    assert compressed_set.count() == 0
+
+    # test with None
+    compressed_set = CompressedSet(None)
+    assert compressed_set.to_intervals() == []
+    assert compressed_set.count() == 0
+
+    # test with empty CompressedSet
+    empty_set = CompressedSet()
+    assert empty_set.to_intervals() == []
+    assert empty_set.count() == 0
+
 def test_constructor_with_entries():
     entries = [2, 3, 5, 6]
     compressed_set = CompressedSet(entries)
@@ -37,6 +52,18 @@ def test_constructor_with_entries():
     for i in entries:
         assert i in compressed_set
     assert compressed_set.count() == len(entries)
+
+def test_constructor_with_compressed_set():
+    original_set = CompressedSet([(2, 4), (5, 7)])
+    compressed_set = CompressedSet(original_set)
+    assert compressed_set.to_intervals() == original_set.to_intervals()
+    assert compressed_set.count() == original_set.count()
+
+    # test with a large number of intervals
+    original_set = CompressedSet([(1, 1000)])
+    compressed_set = CompressedSet(original_set)
+    assert compressed_set.to_intervals() == original_set.to_intervals()
+    assert compressed_set.count() == original_set.count()
 
 def test_constructor_with_invalid_arg():
     try:
