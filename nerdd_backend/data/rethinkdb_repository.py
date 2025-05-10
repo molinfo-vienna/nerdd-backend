@@ -237,12 +237,16 @@ class RethinkDbRepository(Repository):
             await self.r.table("jobs")
             .get(job_id)
             .do(
-                lambda job: job.merge(
-                    {
-                        "entries_processed": self.r.table("results")
-                        .get_all(job["id"], index="job_id")["mol_id"]
-                        .coerce_to("array")
-                    }
+                lambda job: self.r.branch(
+                    job.eq(None),  # check if job exists
+                    None,
+                    job.merge(
+                        {
+                            "entries_processed": self.r.table("results")
+                            .get_all(job["id"], index="job_id")["mol_id"]
+                            .coerce_to("array")
+                        }
+                    ),
                 )
             )
             .run(self.connection)
@@ -255,6 +259,16 @@ class RethinkDbRepository(Repository):
 
     async def delete_job_by_id(self, job_id: str) -> None:
         await self.r.table("jobs").get(job_id).delete().run(self.connection)
+
+    async def get_expired_jobs(self, deadline: datetime) -> AsyncIterable[JobInternal]:
+        cursor = (
+            await self.r.table("jobs")
+            .filter(lambda job: job["expires_at"] < deadline)
+            .run(self.connection)
+        )
+
+        async for item in cursor:
+            yield JobInternal(**item)
 
     #
     # SOURCES
@@ -287,6 +301,16 @@ class RethinkDbRepository(Repository):
 
     async def delete_source_by_id(self, source_id: str) -> None:
         await self.r.table("sources").get(source_id).delete().run(self.connection)
+
+    async def get_expired_sources(self, deadline: datetime) -> AsyncIterable[Source]:
+        cursor = (
+            await self.r.table("sources")
+            .filter(lambda source: source["created_at"] < deadline)
+            .run(self.connection)
+        )
+
+        async for item in cursor:
+            yield Source(**item)
 
     #
     # RESULTS
@@ -364,6 +388,9 @@ class RethinkDbRepository(Repository):
                 new_result = Result(**change["new_val"])
 
             yield old_result, new_result
+
+    async def delete_results_by_job_id(self, job_id: str) -> None:
+        await self.r.table("results").get_all(job_id, index="job_id").delete().run(self.connection)
 
     #
     # USERS
