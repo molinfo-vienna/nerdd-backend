@@ -1,17 +1,42 @@
+import random
+
 from nerdd_backend.util import CompressedSet
 
 
 def test_constructor_with_intervals():
+    # simple and easily verifiable example
     intervals = [(2, 4), (5, 7)]
     compressed_set = CompressedSet(intervals)
     assert compressed_set.to_intervals() == [(2, 4), (5, 7)]
     assert compressed_set.count() == 4
+
+    # test with one interval
+    intervals = [(1, 1000)]
+    compressed_set = CompressedSet(intervals)
+    assert compressed_set.to_intervals() == [(1, 1000)]
+    assert compressed_set.count() == 999
 
 def test_constructor_with_entries():
     entries = [2, 3, 5, 6]
     compressed_set = CompressedSet(entries)
     assert compressed_set.to_intervals() == [(2, 4), (5, 7)]
     assert compressed_set.count() == 4
+
+    # test with a large number of entries
+    entries = list(range(1, 1000))
+    random.shuffle(entries)
+    compressed_set = CompressedSet(entries)
+    assert compressed_set.to_intervals() == [(1, 1000)]
+    assert compressed_set.count() == 999
+
+    # skip some entries
+    entries = list(range(1, 1000))
+    random.shuffle(entries)
+    entries = entries[:-100]
+    compressed_set = CompressedSet(entries)
+    for i in entries:
+        assert i in compressed_set
+    assert compressed_set.count() == len(entries)
 
 def test_constructor_with_invalid_arg():
     try:
@@ -27,8 +52,41 @@ def test_constructor_with_entries_duplicate():
     assert compressed_set.to_intervals() == [(2, 4), (5, 7)]
     assert compressed_set.count() == 4
 
+    # test with a large number of entries with duplicates
+    entries = list(range(1, 1000)) * 2
+    random.shuffle(entries)
+    compressed_set = CompressedSet(entries)
+    assert compressed_set.to_intervals() == [(1, 1000)]
+    assert compressed_set.count() == 999
+
 def test_add_entries():
-    pass
+    compressed_set = CompressedSet([(2, 4), (5, 7)])
+    compressed_set.add(4)
+    compressed_set.add(7)
+    compressed_set.add(1)
+    assert compressed_set.to_intervals() == [(1, 8)]
+    assert compressed_set.count() == 7
+
+    # test with a large number of entries
+    entries = list(range(1, 1000))
+    random.shuffle(entries)
+    compressed_set = CompressedSet()
+    for entry in entries:
+        compressed_set.add(entry)
+    assert compressed_set.to_intervals() == [(1, 1000)]
+    assert compressed_set.count() == 999
+
+def test_add_entries_with_duplicates():
+    compressed_set = CompressedSet([(2, 4), (5, 7)])
+
+    # adding an entry that is already present
+    compressed_set.add(6)
+    assert compressed_set.to_intervals() == [(2, 4), (5, 7)]
+    assert compressed_set.count() == 4
+
+    compressed_set.add(3)
+    assert compressed_set.to_intervals() == [(2, 4), (5, 7)]
+    assert compressed_set.count() == 4
 
 def test_contains():
     compressed_set = CompressedSet([(2, 4), (5, 7)])
