@@ -149,9 +149,9 @@ class Repository(ABC):
     async def delete_job_by_id(self, job_id: str) -> None:
         pass
 
-    # @abstractmethod
-    # async def get_expired_jobs(self, deadline: datetime) -> AsyncIterable[JobInternal]:
-    #     pass
+    @abstractmethod
+    async def get_expired_jobs(self, deadline: datetime) -> AsyncIterable[JobInternal]:
+        pass
 
     #
     # SOURCES
@@ -168,9 +168,9 @@ class Repository(ABC):
     async def delete_source_by_id(self, source_id: str) -> None:
         pass
 
-    # @abstractmethod
-    # async def get_expired_sources(self, deadline: datetime) -> AsyncIterable[Source]:
-    #     pass
+    @abstractmethod
+    async def get_expired_sources(self, deadline: datetime) -> AsyncIterable[Source]:
+        pass
 
     #
     # RESULTS
@@ -197,9 +197,9 @@ class Repository(ABC):
     ) -> AsyncIterable[Tuple[Optional[Result], Optional[Result]]]:
         pass
 
-    # @abstractmethod
-    # async def delete_results_by_job_id(self, job_id: str) -> None:
-    #     pass
+    @abstractmethod
+    async def delete_results_by_job_id(self, job_id: str) -> None:
+        pass
 
     #
     # USERS
