@@ -29,7 +29,8 @@ async def get_modules(request: Request):
     ]
 
 
-@modules_router.get("/{module_id}")
+@modules_router.get("/{module_id}", include_in_schema=False)
+@modules_router.get("/{module_id}/")
 async def get_module(module_id: str, request: Request):
     app = request.app
     repository: Repository = app.state.repository
