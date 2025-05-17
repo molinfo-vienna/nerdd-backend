@@ -1,20 +1,10 @@
 import json
 import logging
-from typing import List, Optional
+from typing import Annotated, List, Optional
 
-from fastapi import (
-    APIRouter,
-    Body,
-    Depends,
-    File,
-    Header,
-    HTTPException,
-    Query,
-    Request,
-    UploadFile,
-)
+from fastapi import APIRouter, File, Form, Header, HTTPException, Query, Request, UploadFile
 from nerdd_module.config import JobParameter
-from pydantic import Field, create_model, model_validator
+from pydantic import Field, create_model
 from stringcase import pascalcase, snakecase
 
 from ..models import JobCreate, Module
@@ -40,7 +30,9 @@ type_mapping = {
 }
 
 INPUTS_DESCRIPTION = "Molecule representations in any of the formats SMILES, SDF or InChI."
-SOURCES_DESCRIPTION = "List of source IDs to use as input for the job."
+SOURCES_DESCRIPTION = "Optional: List of source IDs to use as input for the job."
+FILES_DESCRIPTION = "Optional: List of files to use as input for the job."
+SWAGGER_WARNING = '**Uncheck "Send empty value" if sending from Swagger UI.**'
 
 
 def get_query_param(job_parameter: JobParameter):
@@ -49,7 +41,7 @@ def get_query_param(job_parameter: JobParameter):
     default_value = job_parameter.default or None
     description = job_parameter.help_text or ""
     field = Field(default_value, description=description)
-    return (actual_type, field)
+    return Annotated[actual_type, field]
 
 
 def validate_to_json(cls, value):
@@ -80,23 +72,39 @@ def get_dynamic_router(module: Module):
     module_name = pascalcase(snakecase(module.id))
     QueryModelGet = create_model(
         f"{module_name}JobCreate",
+        inputs=Annotated[Optional[List[str]], Field(default=None, description=INPUTS_DESCRIPTION)],
+        sources=Annotated[
+            Optional[List[str]], Field(default=None, description=SOURCES_DESCRIPTION)
+        ],
         **field_definitions,
     )
     QueryModelPost = create_model(
         f"{module_name}ComplexJobCreate",
-        __validators__={"validate_to_json": model_validator(mode="before")(validate_to_json)},
-        inputs=(
+        inputs=Annotated[
             List[str],
-            Field(
+            Form(
+                # we are using an empty array here (in contrast to above) so Swagger UI does not
+                # show a list with empty entries
                 default=[],
-                description=INPUTS_DESCRIPTION,
+                description=f"{INPUTS_DESCRIPTION} {SWAGGER_WARNING}",
             ),
-        ),
+        ],
         sources=(
             List[str],
             Field(
+                # we are using an empty array here (in contrast to above) so Swagger UI does not
+                # show a list with empty entries
                 default=[],
-                description=SOURCES_DESCRIPTION,
+                description=f"{SOURCES_DESCRIPTION} {SWAGGER_WARNING}",
+            ),
+        ),
+        files=(
+            List[UploadFile],
+            File(
+                # we are using an empty array here (in contrast to above) so Swagger UI does not
+                # show a list with empty entries
+                default=[],
+                description=f"{FILES_DESCRIPTION} {SWAGGER_WARNING}",
             ),
         ),
         **field_definitions,
@@ -105,7 +113,9 @@ def get_dynamic_router(module: Module):
     #
     # GET /jobs
     # query parameters:
-    #   - input: list of strings (SMILES, InCHI)
+    #   - inputs: list of strings (SMILES, InCHI)
+    #   - sources: list of source IDs
+    #   - files: list of files (optional)
     #   - all params from module (e.g. metabolism_phase)
     #
     async def _create_job(
@@ -144,17 +154,17 @@ def get_dynamic_router(module: Module):
     # GET /jobs
     #
     async def create_simple_job(
-        inputs: Optional[List[str]] = Query(default=None, description=INPUTS_DESCRIPTION),
-        sources: Optional[List[str]] = Query(default=None, description=SOURCES_DESCRIPTION),
-        job_: QueryModelGet = Depends(),
-        referer: Optional[str] = Header(None, include_in_schema=False),
+        # Annotated[QueryModelGet, Query()] converts all model fields to GET parameters
+        # a valid request looks like this:
+        # /cypstrate/jobs/?prediction_mode=best_performance&inputs=CCO&inputs=CC
+        job: Annotated[QueryModelGet, Query()],
+        referer: Annotated[Optional[str], Header(include_in_schema=False)] = None,
         request: Request = None,
     ):
-        if inputs is None:
-            inputs = []
-        if sources is None:
-            sources = []
-        return await _create_job(inputs, sources, [], params.model_dump(), referer, request)
+        inputs = job.inputs if job.inputs is not None else []
+        sources = job.sources if job.sources is not None else []
+        params = {k: getattr(job, k) for k in field_definitions}
+        return await _create_job(inputs, sources, [], params, referer, request)
 
     router.get(f"/{module.id}/jobs/", include_in_schema=False)(create_simple_job)
     router.get(f"/{module.id}/jobs")(create_simple_job)
@@ -163,23 +173,19 @@ def get_dynamic_router(module: Module):
     # POST /jobs
     #
     async def create_complex_job(
-        files: List[UploadFile] = File(
-            default=[],
-            description='Files to upload. Uncheck "Send empty value" if sending from Swagger UI.',
-        ),
-        job: QueryModelPost = Body(),
-        referer: Optional[str] = Header(None, include_in_schema=False),
+        # media_type="multipart/form-data": important for Swagger UI to upload files correctly
+        job: Annotated[QueryModelPost, Form(media_type="multipart/form-data")],
+        referer: Annotated[Optional[str], Header(include_in_schema=False)] = None,
         request: Request = None,
     ):
         # files can be None if no files are uploaded (even though the type suggests otherwise)
-        if files is None:
-            files = []
+        files = job.files if job.files is not None else []
 
         return await _create_job(
             job.inputs,
             job.sources,
             files,
-            {k: v for k, v in job.dict().items() if k not in ["inputs", "sources"]},
+            {k: getattr(job, k) for k in field_definitions},
             referer,
             request,
         )
