@@ -14,7 +14,7 @@ from fastapi import (
     UploadFile,
 )
 from pydantic import create_model, model_validator
-from stringcase import pascalcase
+from stringcase import pascalcase, snakecase
 
 from ..models import JobCreate, Module
 from .jobs import create_job, delete_job, get_job
@@ -60,10 +60,18 @@ def get_dynamic_router(module: Module):
     # module will be hidden if visible is set to False
     router = APIRouter(tags=[module.id], include_in_schema=module.visible)
 
+    #
+    # Generate models for endpoints visible on the generated Swagger UI page
+    #
+
+    # convert all job parameters to pydantic fields
     field_definitions = dict(
         **{p.name: get_query_param(p) for p in module.job_parameters},
     )
-    module_name = pascalcase(module.id)
+
+    # generate the name of the pydantic models (shown in Swagger UI)
+    # note: snakecase before pascalcase is necessary (pascalcase("mol-scale") produces "Mocale")
+    module_name = pascalcase(snakecase(module.id))
     QueryModelGet = create_model(
         f"{module_name}JobCreate",
         **field_definitions,
