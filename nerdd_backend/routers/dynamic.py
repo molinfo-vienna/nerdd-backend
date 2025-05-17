@@ -119,9 +119,9 @@ def get_dynamic_router(module: Module):
     #   - all params from module (e.g. metabolism_phase)
     #
     async def _create_job(
-        inputs: List[str],
-        sources: List[str],
-        files: List[UploadFile],
+        inputs: Optional[List[str]],
+        sources: Optional[List[str]],
+        files: Optional[List[UploadFile]],
         params: dict,
         referer: Optional[str] = None,
         request: Request = None,
@@ -131,6 +131,13 @@ def get_dynamic_router(module: Module):
                 status_code=400,
                 detail="job_type was specified, but it does not match the module name",
             )
+
+        if inputs is None:
+            inputs = []
+        if sources is None:
+            sources = []
+        if files is None:
+            files = []
 
         if len(inputs) == 0 and len(sources) == 0 and len(files) == 0:
             raise HTTPException(
@@ -161,10 +168,8 @@ def get_dynamic_router(module: Module):
         referer: Annotated[Optional[str], Header(include_in_schema=False)] = None,
         request: Request = None,
     ):
-        inputs = job.inputs if job.inputs is not None else []
-        sources = job.sources if job.sources is not None else []
         params = {k: getattr(job, k) for k in field_definitions}
-        return await _create_job(inputs, sources, [], params, referer, request)
+        return await _create_job(job.inputs, job.sources, None, params, referer, request)
 
     router.get(f"/{module.id}/jobs/", include_in_schema=False)(create_simple_job)
     router.get(f"/{module.id}/jobs")(create_simple_job)
@@ -178,13 +183,10 @@ def get_dynamic_router(module: Module):
         referer: Annotated[Optional[str], Header(include_in_schema=False)] = None,
         request: Request = None,
     ):
-        # files can be None if no files are uploaded (even though the type suggests otherwise)
-        files = job.files if job.files is not None else []
-
         return await _create_job(
             job.inputs,
             job.sources,
-            files,
+            job.files,
             {k: getattr(job, k) for k in field_definitions},
             referer,
             request,
