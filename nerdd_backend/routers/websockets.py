@@ -9,7 +9,6 @@ __all__ = ["get_job_ws", "get_results_ws", "websockets_router"]
 websockets_router = APIRouter(prefix="/websocket")
 
 
-@websockets_router.websocket("/jobs/{job_id}")
 @websockets_router.websocket("/jobs/{job_id}/")
 async def get_job_ws(websocket: WebSocket, job_id: str):
     app = websocket.app
@@ -24,7 +23,6 @@ async def get_job_ws(websocket: WebSocket, job_id: str):
     await websocket.close()
 
 
-@websockets_router.websocket("/jobs/{job_id}/results")
 @websockets_router.websocket("/jobs/{job_id}/results/")
 async def get_results_ws(websocket: WebSocket, job_id: str, page: int = Query()):
     app = websocket.app
