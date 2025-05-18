@@ -126,12 +126,6 @@ def get_dynamic_router(module: Module):
         referer: Optional[str] = None,
         request: Request = None,
     ):
-        if "job_type" in params and params["job_type"] != module.id:
-            raise HTTPException(
-                status_code=400,
-                detail="job_type was specified, but it does not match the module name",
-            )
-
         if inputs is None:
             inputs = []
         if sources is None:
