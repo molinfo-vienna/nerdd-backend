@@ -205,8 +205,13 @@ def get_dynamic_router(module: Module):
     #
     # websocket endpoints
     #
+
+    # Note: we need the slash-less and slash version of the routes, because fastapi does not
+    # redirect from the slash-less version to the slash version (as in normal routes).
     router.websocket(f"/websocket/{module.id}/jobs/{{job_id}}")(get_job_ws)
+    router.websocket(f"/websocket/{module.id}/jobs/{{job_id}}/")(get_job_ws)
 
     router.websocket(f"/websocket/{module.id}/jobs/{{job_id}}/results")(get_results_ws)
+    router.websocket(f"/websocket/{module.id}/jobs/{{job_id}}/results/")(get_results_ws)
 
     return router
