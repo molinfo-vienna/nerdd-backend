@@ -199,6 +199,9 @@ async def main(cfg: DictConfig) -> None:
         # headers (host, port, protocol) do not contain the correct values.
         proxy_headers=True,
         forwarded_allow_ips="*",
+        # do not use root_path here, because it breaks local development (and it doesn't improve
+        # a production setup either)
+        # root_path=cfg.root_path,
     )
     server = uvicorn.Server(config)
     await server.serve()
