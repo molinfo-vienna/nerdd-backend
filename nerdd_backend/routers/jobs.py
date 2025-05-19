@@ -49,7 +49,7 @@ async def augment_job(job: JobWithResults, request: Request) -> JobPublic:
     )
 
 
-@jobs_router.post("/")
+@jobs_router.post("")
 async def create_job(
     job: JobCreate = Body(),
     referer: Optional[str] = Header(None, include_in_schema=False),
@@ -140,7 +140,7 @@ async def create_job(
     return await augment_job(job_with_results, request)
 
 
-@jobs_router.delete("/{job_id}/")
+@jobs_router.delete("/{job_id}")
 async def delete_job(job_id: str, request: Request):
     app = request.app
     repository: Repository = app.state.repository
@@ -167,7 +167,7 @@ async def delete_job(job_id: str, request: Request):
     return {"message": "Job deleted successfully"}
 
 
-@jobs_router.get("/{job_id}/output.{format}/")
+@jobs_router.get("/{job_id}/output.{format}")
 async def get_output_file(job_id: str, format: str, request: Request):
     app = request.app
     repository = app.state.repository
@@ -200,7 +200,7 @@ async def get_output_file(job_id: str, format: str, request: Request):
     return FileResponse(filepath, filename=f"{job.job_type}-{job_id}.{format}")
 
 
-@jobs_router.get("/{job_id}/")
+@jobs_router.get("/{job_id}")
 async def get_job(job_id: str, request: Request):
     app = request.app
     repository = app.state.repository

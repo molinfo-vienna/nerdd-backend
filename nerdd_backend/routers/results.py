@@ -47,7 +47,7 @@ async def get_results(
 
     def page_url(p):
         # page in url is 1-based
-        return f"{request.base_url}{job.job_type}/jobs/{job_id}/results?page={p+1}"
+        return f"{request.base_url}{job.job_type}/jobs/{job_id}/results?page={p + 1}"
 
     pagination = Pagination(
         page=page,  # 1-based!
