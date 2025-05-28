@@ -167,8 +167,19 @@ async def create_app(cfg: DictConfig):
         allow_headers=["*"],
     )
 
+    #
+    # Middlewares
+    #
+    if cfg.log_requests:
+        from .util import LogRequestsMiddleware
+
+        app.add_middleware(LogRequestsMiddleware)
+
     app.add_middleware(GZipMiddleware)
 
+    #
+    # Routers
+    #
     app.include_router(jobs_router)
     app.include_router(sources_router)
     app.include_router(results_router)

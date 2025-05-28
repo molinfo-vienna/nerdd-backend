@@ -5,6 +5,7 @@ defaults:
 host: localhost
 port: 8000
 root_path: null
+log_requests: false
 
 quota_anonymous: 1_000_000
 
