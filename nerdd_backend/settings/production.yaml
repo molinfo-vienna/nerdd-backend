@@ -6,6 +6,7 @@ host: 0.0.0.0
 port: 8000
 root_path: /api
 log_requests: true
+cors: false
 
 quota_anonymous: 1_000_000
 
