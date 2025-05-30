@@ -9,9 +9,14 @@ modules_router = APIRouter(prefix="/modules")
 
 
 def augment_module(module: Module, request: Request) -> ModulePublic:
+    config = request.app.state.config
+
+    output_formats = config.get("output_formats", [])
+
     return ModulePublic(
         **module.model_dump(),
         module_url=str(request.url_for("get_module", module_id=module.id)),
+        output_formats=output_formats,
     )
 
 
