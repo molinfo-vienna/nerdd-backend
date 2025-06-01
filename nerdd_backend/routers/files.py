@@ -10,7 +10,9 @@ files_router = APIRouter(prefix="")
 
 
 @files_router.get("/jobs/{job_id}/files/{property}/{record_id}")
-async def get_job_file(job_id: str, property: str, record_id: str, request: Request = None):
+async def get_job_file(
+    job_id: str, property: str, record_id: str, request: Request = None
+) -> FileResponse:
     app = request.app
     filesystem: FileSystem = app.state.filesystem
 
