@@ -8,7 +8,7 @@ import altcha
 from fastapi import APIRouter, HTTPException, Query, Request
 
 from ..data import RecordNotFoundError, Repository
-from ..models import Challenge
+from ..models import BaseSuccessResponse, Challenge
 
 __all__ = ["challenges_router", "verify_solution"]
 
@@ -92,4 +92,4 @@ async def verify_solution(
     # delete the challenge from the repository
     await repository.delete_challenge_by_id(challenge.id)
 
-    return "Challenge verified successfully."
+    return BaseSuccessResponse(message="Challenge verified successfully.")
