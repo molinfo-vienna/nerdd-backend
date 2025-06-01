@@ -8,7 +8,14 @@ from fastapi.responses import FileResponse
 from nerdd_link import Channel, FileSystem, JobMessage, SerializationRequestMessage, Tombstone
 
 from ..data import RecordNotFoundError, Repository
-from ..models import JobCreate, JobInternal, JobPublic, JobWithResults, OutputFile
+from ..models import (
+    BaseSuccessResponse,
+    JobCreate,
+    JobInternal,
+    JobPublic,
+    JobWithResults,
+    OutputFile,
+)
 from .users import check_quota, get_user
 
 __all__ = ["jobs_router"]
@@ -141,7 +148,7 @@ async def create_job(
 
 
 @jobs_router.delete("/{job_id}")
-async def delete_job(job_id: str, request: Request):
+async def delete_job(job_id: str, request: Request) -> BaseSuccessResponse:
     app = request.app
     repository: Repository = app.state.repository
     channel: Channel = app.state.channel
@@ -164,11 +171,11 @@ async def delete_job(job_id: str, request: Request):
             Tombstone(SerializationRequestMessage, job_id=job_id, output_format=output_format)
         )
 
-    return {"message": "Job deleted successfully"}
+    return BaseSuccessResponse(message="Job deleted successfully")
 
 
 @jobs_router.get("/{job_id}/output.{format}")
-async def get_output_file(job_id: str, format: str, request: Request):
+async def get_output_file(job_id: str, format: str, request: Request) -> FileResponse:
     app = request.app
     repository = app.state.repository
     config = app.state.config
@@ -201,7 +208,7 @@ async def get_output_file(job_id: str, format: str, request: Request):
 
 
 @jobs_router.get("/{job_id}")
-async def get_job(job_id: str, request: Request):
+async def get_job(job_id: str, request: Request) -> JobPublic:
     app = request.app
     repository = app.state.repository
 
