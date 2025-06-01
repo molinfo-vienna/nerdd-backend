@@ -7,7 +7,7 @@ from nerdd_module.config import JobParameter
 from pydantic import Field, create_model
 from stringcase import pascalcase, snakecase
 
-from ..models import JobCreate, Module
+from ..models import JobCreate, JobPublic, Module
 from .jobs import create_job, delete_job, get_job
 from .results import get_results
 from .sources import put_multiple_sources
@@ -161,7 +161,7 @@ def get_dynamic_router(module: Module):
         job: Annotated[QueryModelGet, Query()],
         referer: Annotated[Optional[str], Header(include_in_schema=False)] = None,
         request: Request = None,
-    ):
+    ) -> JobPublic:
         params = {k: getattr(job, k) for k in field_definitions}
         return await _create_job(job.inputs, job.sources, None, params, referer, request)
 
@@ -175,7 +175,7 @@ def get_dynamic_router(module: Module):
         job: Annotated[QueryModelPost, Form(media_type="multipart/form-data")],
         referer: Annotated[Optional[str], Header(include_in_schema=False)] = None,
         request: Request = None,
-    ):
+    ) -> JobPublic:
         return await _create_job(
             job.inputs,
             job.sources,
