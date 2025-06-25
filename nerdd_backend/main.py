@@ -17,6 +17,7 @@ from .actions import (
     SaveModuleToDb,
     SaveResultCheckpointToDb,
     SaveResultToDb,
+    StartSerialization,
     UpdateJobSize,
 )
 from .data import MemoryRepository, RethinkDbRepository
@@ -66,6 +67,9 @@ async def create_app(cfg: DictConfig):
         ActionLifespan(lambda app: SaveResultToDb(app.state.channel, app.state.repository)),
         ActionLifespan(
             lambda app: SaveResultCheckpointToDb(app.state.channel, app.state.repository, cfg)
+        ),
+        ActionLifespan(
+            lambda app: StartSerialization(app.state.channel, app.state.repository, cfg)
         ),
         ActionLifespan(
             lambda app: ProcessSerializationResult(app.state.channel, app.state.repository, cfg)
