@@ -208,10 +208,6 @@ class RethinkDbRepository(Repository):
             update_set["num_entries_total"] = job_update.num_entries_total
         if job_update.num_checkpoints_total is not None:
             update_set["num_checkpoints_total"] = job_update.num_checkpoints_total
-        if job_update.new_checkpoints_processed is not None:
-            update_set["checkpoints_processed"] = self.r.row["checkpoints_processed"].set_union(
-                job_update.new_checkpoints_processed
-            )
         if job_update.new_output_formats is not None:
             update_set["output_formats"] = self.r.row["output_formats"].set_union(
                 job_update.new_output_formats

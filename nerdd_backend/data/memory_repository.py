@@ -113,8 +113,6 @@ class MemoryRepository(Repository):
                 modified_job.num_entries_total = job_update.num_entries_total
             if job_update.num_checkpoints_total is not None:
                 modified_job.num_checkpoints_total = job_update.num_checkpoints_total
-            if job_update.new_checkpoints_processed is not None:
-                modified_job.checkpoints_processed.extend(job_update.new_checkpoints_processed)
             if job_update.new_output_formats is not None:
                 modified_job.output_formats.extend(job_update.new_output_formats)
 
