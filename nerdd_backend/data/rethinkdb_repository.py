@@ -16,6 +16,7 @@ from ..models import (
     JobWithResults,
     Module,
     Result,
+    ResultCheckpoint,
     Source,
     User,
     UserType,
@@ -58,6 +59,7 @@ class RethinkDbRepository(Repository):
         await self.create_sources_table()
         await self.create_jobs_table()
         await self.create_results_table()
+        await self.create_result_checkpoints_table()
         await self.create_users_table()
         await self.create_challenges_table()
 
@@ -71,9 +73,20 @@ class RethinkDbRepository(Repository):
             if not str(e).startswith("Index `job_id` already exists"):
                 logger.exception("Failed to create index", exc_info=e)
 
+        # create an index on job_id in checkpoints table
+        try:
+            await self.r.table("checkpoints").index_create("job_id").run(self.connection)
+
+            # wait for index to be ready
+            await self.r.table("checkpoints").index_wait("job_id").run(self.connection)
+        except ReqlOpFailedError as e:
+            if not str(e).startswith("Index `job_id` already exists"):
+                logger.exception("Failed to create index", exc_info=e)
+
         # create an index on ip_address in anonymous_users table
         try:
             await self.r.table("users").index_create("ip_address").run(self.connection)
+
             # wait for index to be ready
             await self.r.table("users").index_wait("ip_address").run(self.connection)
         except ReqlOpFailedError as e:
@@ -387,6 +400,41 @@ class RethinkDbRepository(Repository):
 
     async def delete_results_by_job_id(self, job_id: str) -> None:
         await self.r.table("results").get_all(job_id, index="job_id").delete().run(self.connection)
+
+    #
+    # CHECKPOINTS
+    #
+    async def create_result_checkpoints_table(self) -> None:
+        try:
+            await self.r.table_create("checkpoints", primary_key="id").run(self.connection)
+        except ReqlOpFailedError:
+            pass
+
+    async def create_result_checkpoint(self, checkpoint: ResultCheckpoint) -> ResultCheckpoint:
+        result = await (
+            self.r.table("checkpoints")
+            .insert(checkpoint.model_dump(), conflict="error", return_changes=True)
+            .run(self.connection)
+        )
+
+        if len(result["changes"]) == 0:
+            raise RecordAlreadyExistsError(ResultCheckpoint, checkpoint.id)
+
+        return ResultCheckpoint(**result["changes"][0]["new_val"])
+
+    async def get_result_checkpoints_by_job_id(self, job_id: str) -> List[ResultCheckpoint]:
+        cursor = (
+            await self.r.table("checkpoints").get_all(job_id, index="job_id").run(self.connection)
+        )
+        return [ResultCheckpoint(**item) async for item in cursor]
+
+    async def delete_result_checkpoints_by_job_id(self, job_id: str) -> None:
+        await (
+            self.r.table("checkpoints")
+            .get_all(job_id, index="job_id")
+            .delete()
+            .run(self.connection)
+        )
 
     #
     # USERS
