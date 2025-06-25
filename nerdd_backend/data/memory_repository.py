@@ -14,6 +14,7 @@ from ..models import (
     JobWithResults,
     Module,
     Result,
+    ResultCheckpoint,
     Source,
     User,
 )
@@ -37,6 +38,7 @@ class MemoryRepository(Repository):
         self.modules = ObservableList[Module]()
         self.sources = ObservableList[Source]()
         self.results = ObservableList[Result]()
+        self.checkpoints = ObservableList[ResultCheckpoint]()
         self.users = ObservableList[User]()
         self.challenges = ObservableList[Challenge]()
 
@@ -234,6 +236,33 @@ class MemoryRepository(Repository):
             ]
             for result in results_to_delete:
                 self.results.remove(result)
+
+    #
+    # CHECKPOINTS
+    #
+    async def create_result_checkpoint(self, checkpoint: ResultCheckpoint) -> ResultCheckpoint:
+        async with self.transaction_lock:
+            try:
+                await self.get_result_checkpoints_by_job_id(checkpoint.job_id)
+                raise RecordAlreadyExistsError(ResultCheckpoint, checkpoint.job_id)
+            except RecordNotFoundError:
+                self.checkpoints.append(checkpoint)
+                return checkpoint
+
+    async def get_result_checkpoints_by_job_id(self, job_id: str) -> List[ResultCheckpoint]:
+        return [
+            checkpoint for checkpoint in self.checkpoints.get_items() if checkpoint.job_id == job_id
+        ]
+
+    async def delete_result_checkpoints_by_job_id(self, job_id: str) -> None:
+        async with self.transaction_lock:
+            checkpoints_to_delete = [
+                checkpoint
+                for checkpoint in self.checkpoints.get_items()
+                if checkpoint.job_id == job_id
+            ]
+            for checkpoint in checkpoints_to_delete:
+                self.checkpoints.remove(checkpoint)
 
     #
     # USERS
