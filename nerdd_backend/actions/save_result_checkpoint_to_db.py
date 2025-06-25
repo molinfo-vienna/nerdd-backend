@@ -4,7 +4,7 @@ from nerdd_link import Action, Channel, ResultCheckpointMessage, SerializationRe
 from omegaconf import DictConfig
 
 from ..data import RecordNotFoundError, Repository
-from ..models import JobUpdate
+from ..models import JobUpdate, ResultCheckpoint
 
 __all__ = ["SaveResultCheckpointToDb"]
 
@@ -22,19 +22,22 @@ class SaveResultCheckpointToDb(Action[ResultCheckpointMessage]):
         checkpoint_id = message.checkpoint_id
         logger.info(f"Received result checkpoint {checkpoint_id} for job {job_id}")
 
-        # update job status
         try:
-            job = await self.repository.update_job(
-                JobUpdate(id=job_id, new_checkpoints_processed=[checkpoint_id], status="processing")
-            )
+            # update job status
+            job = await self.repository.update_job(JobUpdate(id=job_id, status="processing"))
         except RecordNotFoundError:
             # the job might not exist anymore, e.g., if it was deleted
             logger.warning(f"Job {job_id} not found, skipping checkpoint processing")
             return
 
+        # create result checkpoint
+        await self.repository.create_result_checkpoint(
+            ResultCheckpoint(id=f"{job_id}-{checkpoint_id}", **message.model_dump())
+        )
+
         # check if all checkpoints have been processed
-        unique_checkpoints = set(job.checkpoints_processed)
-        if len(unique_checkpoints) == job.num_checkpoints_total:
+        checkpoints = await self.repository.get_result_checkpoints_by_job_id(job_id)
+        if len(checkpoints) == job.num_checkpoints_total:
             # send request to write output files
             output_formats = self.config.output_formats
             for output_format in output_formats:
