@@ -1,6 +1,6 @@
 import logging
 
-from nerdd_link import Action, Channel, ResultCheckpointMessage, SerializationRequestMessage
+from nerdd_link import Action, Channel, LogMessage, ResultCheckpointMessage
 from omegaconf import DictConfig
 
 from ..data import RecordNotFoundError, Repository
@@ -38,17 +38,12 @@ class SaveResultCheckpointToDb(Action[ResultCheckpointMessage]):
         # check if all checkpoints have been processed
         checkpoints = await self.repository.get_result_checkpoints_by_job_id(job_id)
         if len(checkpoints) == job.num_checkpoints_total:
-            # send request to write output files
-            output_formats = self.config.output_formats
-            for output_format in output_formats:
-                await self.channel.serialization_requests_topic().send(
-                    SerializationRequestMessage(
-                        job_id=job_id,
-                        job_type=job.job_type,
-                        params=job.params,
-                        output_format=output_format,
-                    )
+            await self.channel.logs_topic().send(
+                LogMessage(
+                    job_id=job_id,
+                    message_type="all_checkpoints_processed",
                 )
+            )
 
     def _get_group_name(self):
         return "save-result-checkpoint-to-db"
