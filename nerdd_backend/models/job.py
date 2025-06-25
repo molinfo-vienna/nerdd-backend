@@ -43,7 +43,6 @@ class Job(BaseModel):
 class JobInternal(Job):
     user_id: Optional[str] = None
     referer: Optional[str] = None
-    checkpoints_processed: List[int] = []
     num_checkpoints_total: Optional[int] = None
     output_formats: List[str] = []
 
@@ -85,7 +84,5 @@ class JobUpdate(BaseModel):
     status: Optional[str] = None
     num_entries_total: Optional[int] = None
     num_checkpoints_total: Optional[int] = None
-    # checkpoint list update
-    new_checkpoints_processed: Optional[List[int]] = None
     # output formats update
     new_output_formats: Optional[List[str]] = None
