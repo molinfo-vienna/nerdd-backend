@@ -3,11 +3,16 @@ from typing import List, Optional
 from nerdd_module.config import Module as NerddModule
 from pydantic import BaseModel
 
-__all__ = ["Module", "ModulePublic", "ModuleShort"]
+__all__ = ["Module", "ModuleInternal", "ModulePublic", "ModuleShort"]
 
 
 class Module(NerddModule):
     pass
+
+
+class ModuleInternal(Module):
+    molecules_per_second: float = 0.01
+    startup_time_seconds: float = 5
 
 
 class ModulePublic(Module):
