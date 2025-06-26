@@ -1,6 +1,33 @@
 # CHANGELOG
 
 
+## v0.2.1 (2025-06-26)
+
+### Code Style
+
+* style: Adapt import directives ([`fd8ec0e`](https://github.com/molinfo-vienna/nerdd-backend/commit/fd8ec0e20efb68fa462500a52376c743ad576f6f))
+
+* style: Use async_step from nerdd-link ([`9b94a54`](https://github.com/molinfo-vienna/nerdd-backend/commit/9b94a542439103c198d33136f4726dcf4b3b7bc7))
+
+* style: Remove unused dependency 'time' in SaveResultsToDb ([`f1aca27`](https://github.com/molinfo-vienna/nerdd-backend/commit/f1aca27638da78b7beaad944e930d28421884ce5))
+
+* style: Remove unused code in RethinkDbRepository ([`7ab4f9d`](https://github.com/molinfo-vienna/nerdd-backend/commit/7ab4f9d7fa3662a04491c679a8ec0828bfba9931))
+
+### Fixes
+
+* fix: pytest-bdd required for normal runs (ie non dev/test), adding to requirements.txt ([`ca06182`](https://github.com/molinfo-vienna/nerdd-backend/commit/ca0618209284c39a6542de210115a89b19e0445f))
+
+### Unknown
+
+* Merge pull request #34 from wschuell/main
+
+fix: pytest-bdd required for normal runs (ie non dev/test), adding to… ([`6897c19`](https://github.com/molinfo-vienna/nerdd-backend/commit/6897c1971b0992aae897f5788909b7e03ef1c644))
+
+* Merge pull request #33 from shirte/main
+
+Cosmetic changes ([`ccd70c0`](https://github.com/molinfo-vienna/nerdd-backend/commit/ccd70c0e8f8386850c0b7a4211cc850c57e5dbea))
+
+
 ## v0.2.0 (2025-06-10)
 
 ### Features
