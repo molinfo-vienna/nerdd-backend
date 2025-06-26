@@ -106,8 +106,6 @@ async def create_app(cfg: DictConfig):
             ActionLifespan(
                 lambda app: ProcessJobsAction(
                     app.state.channel,
-                    checkpoint_size=100,
-                    max_num_molecules=10_000,
                     num_test_entries=10,
                     ratio_valid_entries=0.5,
                     maximum_depth=100,
