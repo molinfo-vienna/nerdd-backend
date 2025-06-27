@@ -1,8 +1,6 @@
-import hashlib
-import json
 import logging
 from datetime import datetime
-from typing import Any, AsyncIterable, Dict, List, Optional, Tuple
+from typing import AsyncIterable, List, Optional, Tuple
 
 from rethinkdb import RethinkDB
 from rethinkdb.errors import ReqlOpFailedError
@@ -14,7 +12,7 @@ from ..models import (
     JobInternal,
     JobUpdate,
     JobWithResults,
-    Module,
+    ModuleInternal,
     Result,
     ResultCheckpoint,
     Source,
@@ -98,33 +96,33 @@ class RethinkDbRepository(Repository):
     #
     async def get_module_changes(
         self,
-    ) -> AsyncIterable[Tuple[Optional[Module], Optional[Module]]]:
+    ) -> AsyncIterable[Tuple[Optional[ModuleInternal], Optional[ModuleInternal]]]:
         cursor = await self.r.table("modules").changes(include_initial=True).run(self.connection)
 
         async for change in cursor:
             if "old_val" not in change or change["old_val"] is None:
                 old_module = None
             else:
-                old_module = Module(**change["old_val"])
+                old_module = ModuleInternal(**change["old_val"])
 
             if "new_val" not in change or change["new_val"] is None:
                 new_module = None
             else:
-                new_module = Module(**change["new_val"])
+                new_module = ModuleInternal(**change["new_val"])
 
             yield old_module, new_module
 
-    async def get_all_modules(self) -> List[Module]:
+    async def get_all_modules(self) -> List[ModuleInternal]:
         cursor = await self.r.table("modules").run(self.connection)
-        return [Module(**item) async for item in cursor]
+        return [ModuleInternal(**item) async for item in cursor]
 
-    async def get_module_by_id(self, module_id: str) -> Module:
+    async def get_module_by_id(self, module_id: str) -> ModuleInternal:
         result = await self.r.table("modules").get(module_id).run(self.connection)
 
         if result is None:
-            raise RecordNotFoundError(Module, module_id)
+            raise RecordNotFoundError(ModuleInternal, module_id)
 
-        return Module(**result)
+        return ModuleInternal(**result)
 
     async def create_module_table(self) -> None:
         try:
@@ -132,20 +130,7 @@ class RethinkDbRepository(Repository):
         except ReqlOpFailedError:
             pass
 
-    # async def get_most_recent_version(self, module_name: str) -> Module:
-    #     result = (
-    #         await self.r
-    #         .table("modules")
-    #         .get(module_name)
-    #         .run(self.connection)
-    #     )
-
-    #     if result is None:
-    #         raise RecordNotFoundError(Module, module_name)
-
-    #     return Module(**result)
-
-    async def create_module(self, module: Module) -> Module:
+    async def create_module(self, module: ModuleInternal) -> ModuleInternal:
         result = await (
             self.r.table("modules")
             .insert(module.model_dump(), conflict="error", return_changes=True)
@@ -153,11 +138,11 @@ class RethinkDbRepository(Repository):
         )
 
         if len(result["changes"]) == 0:
-            raise RecordAlreadyExistsError(Module, module.id)
+            raise RecordAlreadyExistsError(ModuleInternal, module.id)
 
-        return Module(**result["changes"][0]["new_val"])
+        return ModuleInternal(**result["changes"][0]["new_val"])
 
-    async def update_module(self, module: Module) -> Module:
+    async def update_module(self, module: ModuleInternal) -> ModuleInternal:
         result = await (
             self.r.table("modules")
             .get(module.id)
@@ -166,7 +151,7 @@ class RethinkDbRepository(Repository):
         )
 
         if result["skipped"] == 1:
-            raise RecordNotFoundError(Module, module.id)
+            raise RecordNotFoundError(ModuleInternal, module.id)
 
         return module
 
