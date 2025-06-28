@@ -1,0 +1,41 @@
+FROM mambaorg/micromamba:2.0.5
+
+# necessary to display the image on Github
+LABEL org.opencontainers.image.source="https://github.com/molinfo-vienna/nerdd-backend"
+
+# using the root user in the development image
+USER root
+
+# Necessary, so Docker doesn't buffer the output and that we can see the output 
+# of the application in real-time.
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+COPY environment.yml requirements.txt ./
+
+COPY --from=repos ./nerdd-link /deps/nerdd-link
+COPY --from=repos ./nerdd-module /deps/nerdd-module
+
+# --mount creates a cache directory for conda /pip, so that it doesn't have to download the 
+# dependencies every time we build the image
+RUN --mount=type=cache,target=/home/mambauser/.mamba/pkgs \
+    --mount=type=cache,target=/root/.cache/pip \
+    # create the conda environment
+    micromamba env create -f environment.yml && \
+    # remove the cache and the tarballs of the packages
+    micromamba clean --all --yes && \
+    # modify requirements.txt to use the local nerdd-link and nerdd-module packages
+    sed -i \
+    # replace "nerdd-module==some_version" with "-e /deps/nerdd-module"
+    -e 's/^nerdd-module==.*$/-e \/deps\/nerdd-module/' \
+    # replace "nerdd-link==some_version" with "-e /deps/nerdd-link"
+    -e 's/^nerdd-link==.*$/-e \/deps\/nerdd-link/' \
+    requirements.txt && \
+    # install the requirements, which are not part of the conda environment
+    micromamba run -n nerdd_backend pip install -r requirements.txt
+
+COPY . .
+RUN micromamba run -n nerdd_backend pip install --no-deps .
+
+ENTRYPOINT ["micromamba", "run", "-n", "nerdd_backend", "python", "-m", "nerdd_backend.main"]
