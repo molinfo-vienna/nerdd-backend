@@ -1,6 +1,23 @@
 # CHANGELOG
 
 
+## v0.2.2 (2025-06-28)
+
+### Fixes
+
+* fix: Add folders to gitignore ([`58e2d2b`](https://github.com/molinfo-vienna/nerdd-backend/commit/58e2d2b5d528bae9fa305ea2475a4fb323ecc3fd))
+
+* fix: Add development Dockerfile ([`33c4d0d`](https://github.com/molinfo-vienna/nerdd-backend/commit/33c4d0d414fcf8273c7b776b0341d9a54eab49a4))
+
+* fix: Update nerdd-link ([`82a1e79`](https://github.com/molinfo-vienna/nerdd-backend/commit/82a1e792ff62473353736afabf2b262c9ba7a051))
+
+### Unknown
+
+* Merge pull request #35 from shirte/main
+
+Update nerdd-link ([`c4ede62`](https://github.com/molinfo-vienna/nerdd-backend/commit/c4ede6253188f2ccab5985d9c043639d5823711e))
+
+
 ## v0.2.1 (2025-06-26)
 
 ### Code Style
