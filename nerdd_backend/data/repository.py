@@ -210,7 +210,15 @@ class Repository(ABC):
         pass
 
     @abstractmethod
+    async def update_result_checkpoint(self, checkpoint: ResultCheckpoint) -> ResultCheckpoint:
+        pass
+
+    @abstractmethod
     async def get_result_checkpoints_by_job_id(self, job_id: str) -> List[ResultCheckpoint]:
+        pass
+
+    @abstractmethod
+    async def get_result_checkpoints_by_module_id(self, module_id: str) -> List[ResultCheckpoint]:
         pass
 
     @abstractmethod
