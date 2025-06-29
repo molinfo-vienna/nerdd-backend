@@ -150,7 +150,7 @@ class RethinkDbRepository(Repository):
             .run(self.connection)
         )
 
-        if result["skipped"] == 1:
+        if result["changes"] is None or len(result["changes"]) == 0:
             raise RecordNotFoundError(ModuleInternal, module.id)
 
         return module
@@ -407,9 +407,30 @@ class RethinkDbRepository(Repository):
 
         return ResultCheckpoint(**result["changes"][0]["new_val"])
 
+    async def update_result_checkpoint(self, checkpoint: ResultCheckpoint) -> ResultCheckpoint:
+        result = await (
+            self.r.table("checkpoints")
+            .get(checkpoint.id)
+            .update(checkpoint.model_dump(), return_changes=True)
+            .run(self.connection)
+        )
+
+        if result["changes"] is None or len(result["changes"]) == 0:
+            raise RecordNotFoundError(ResultCheckpoint, checkpoint.id)
+
+        return ResultCheckpoint(**result["changes"][0]["new_val"])
+
     async def get_result_checkpoints_by_job_id(self, job_id: str) -> List[ResultCheckpoint]:
         cursor = (
             await self.r.table("checkpoints").get_all(job_id, index="job_id").run(self.connection)
+        )
+        return [ResultCheckpoint(**item) async for item in cursor]
+
+    async def get_result_checkpoints_by_module_id(self, module_id: str) -> List[ResultCheckpoint]:
+        cursor = (
+            await self.r.table("checkpoints")
+            .filter(self.r.row["job_type"] == module_id)
+            .run(self.connection)
         )
         return [ResultCheckpoint(**item) async for item in cursor]
 
