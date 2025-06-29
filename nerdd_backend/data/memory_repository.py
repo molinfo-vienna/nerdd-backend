@@ -249,9 +249,27 @@ class MemoryRepository(Repository):
                 self.checkpoints.append(checkpoint)
                 return checkpoint
 
+    async def update_result_checkpoint(self, checkpoint: ResultCheckpoint) -> ResultCheckpoint:
+        async with self.transaction_lock:
+            existing_checkpoint = next(
+                (cp for cp in self.checkpoints.get_items() if cp.id == checkpoint.id), None
+            )
+            if existing_checkpoint is None:
+                raise RecordNotFoundError(ResultCheckpoint, checkpoint.id)
+
+            self.checkpoints.update(existing_checkpoint, checkpoint)
+            return await self.get_result_checkpoints_by_job_id(checkpoint.job_id)
+
     async def get_result_checkpoints_by_job_id(self, job_id: str) -> List[ResultCheckpoint]:
         return [
             checkpoint for checkpoint in self.checkpoints.get_items() if checkpoint.job_id == job_id
+        ]
+
+    async def get_result_checkpoints_by_module_id(self, module_id):
+        return [
+            checkpoint
+            for checkpoint in self.checkpoints.get_items()
+            if checkpoint.job_type == module_id
         ]
 
     async def delete_result_checkpoints_by_job_id(self, job_id: str) -> None:
