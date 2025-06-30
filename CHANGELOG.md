@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.2.3 (2025-06-30)
+
+### Fixes
+
+* fix: Do not import example model from test packages ([`243c7cf`](https://github.com/molinfo-vienna/nerdd-backend/commit/243c7cfe8c368445f8c237f78b3e55cb5b960911))
+
+### Unknown
+
+* Merge pull request #36 from shirte/main
+
+fix: Do not import example model from test packages ([`77b2c85`](https://github.com/molinfo-vienna/nerdd-backend/commit/77b2c851a17e7d7fb287d55f67055ec6b3960b13))
+
+
 ## v0.2.2 (2025-06-28)
 
 ### Fixes
