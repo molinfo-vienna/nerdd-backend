@@ -86,7 +86,8 @@ async def create_app(cfg: DictConfig):
             RegisterModuleAction,
             SerializeJobAction,
         )
-        from nerdd_module.tests import MolWeightModel
+
+        from .util import MolWeightModel
 
         model = MolWeightModel()
 
