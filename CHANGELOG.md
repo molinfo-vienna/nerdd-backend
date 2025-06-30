@@ -1,6 +1,29 @@
 # CHANGELOG
 
 
+## v0.2.4 (2025-06-30)
+
+### Fixes
+
+* fix: Delete output files on deletion request ([`8565b5f`](https://github.com/molinfo-vienna/nerdd-backend/commit/8565b5f23dc709c3fb01d8d81ae662fb1f03b7bc))
+
+* fix: Handle deleted jobs in UpdateJobSize ([`0a67265`](https://github.com/molinfo-vienna/nerdd-backend/commit/0a67265c0784450d0bb13d57dadfbdf93e82a318))
+
+* fix: Handle deleted jobs in SaveResult ([`f48d406`](https://github.com/molinfo-vienna/nerdd-backend/commit/f48d40695a50f77ff9da533deb812cb898003ac6))
+
+* fix: Handle deleted jobs in SaveResultCheckpointToDb ([`b5963f6`](https://github.com/molinfo-vienna/nerdd-backend/commit/b5963f606504ae2da0fff23c8075bdc128501e5d))
+
+* fix: Handle deleted jobs in ProcessSerializationResult ([`1c15665`](https://github.com/molinfo-vienna/nerdd-backend/commit/1c1566568156685613e4a747cd8a5bdf4100eb8e))
+
+* fix: Propagate job deletion to kafka ([`083a62c`](https://github.com/molinfo-vienna/nerdd-backend/commit/083a62cad0288840bdfc61bb24c51ae4855191a0))
+
+### Unknown
+
+* Merge pull request #37 from shirte/main
+
+Handle deleted jobs ([`9a28fd1`](https://github.com/molinfo-vienna/nerdd-backend/commit/9a28fd10efe994e553b489ce5b52664bf6203352))
+
+
 ## v0.2.3 (2025-06-30)
 
 ### Fixes
