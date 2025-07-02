@@ -11,7 +11,7 @@ class Module(NerddModule):
 
 
 class ModuleInternal(Module):
-    molecules_per_second: float = 0.01
+    seconds_per_molecule: float = 30
     startup_time_seconds: float = 5
 
 
