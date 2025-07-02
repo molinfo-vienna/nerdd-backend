@@ -13,3 +13,4 @@ class ResultCheckpoint(BaseModel):
     job_type: Optional[str] = None
     checkpoint_id: int
     elapsed_time_seconds: Optional[int] = None
+    size: Optional[int] = None
