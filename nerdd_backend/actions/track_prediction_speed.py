@@ -127,6 +127,11 @@ class TrackPredictionSpeed(Action[LogMessage]):
             #
             # update the module with the prediction speed
             #
+            logger.info(
+                f"Updating module {module.id} with prediction speed: "
+                f"{model.coef_[0]:.1f} seconds per molecule, "
+                f"startup time of {model.intercept_:.1f} seconds"
+            )
             await self.repository.update_module(
                 ModuleInternal(
                     **{
