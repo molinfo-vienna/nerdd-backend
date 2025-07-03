@@ -1,6 +1,67 @@
 # CHANGELOG
 
 
+## v0.3.0 (2025-07-03)
+
+### Features
+
+* feat: Simplify job updates using CompressedSet ([`6574cfd`](https://github.com/molinfo-vienna/nerdd-backend/commit/6574cfdb41be623bb145a3d2a15987ae868c8e7b))
+
+### Fixes
+
+* fix: Handle the case job_id does not exist in get_job_by_id ([`7b09e30`](https://github.com/molinfo-vienna/nerdd-backend/commit/7b09e3071238c0ee13308933636d4e74a07695b8))
+
+* fix: Fix a typo in UpdateJobSize action ([`4ff0d36`](https://github.com/molinfo-vienna/nerdd-backend/commit/4ff0d369186a4d14992315e3b4983381d6ea3e0f))
+
+* fix: Do not require deletion methods in repository yet ([`f2e992a`](https://github.com/molinfo-vienna/nerdd-backend/commit/f2e992ab9691ed3f7180645c0b919d5f4d69efef))
+
+* fix: Fix a bug in repository ([`ed66d36`](https://github.com/molinfo-vienna/nerdd-backend/commit/ed66d36600dceb9449f7190553213afd970eaa19))
+
+* fix: Merge correct intervals in add method ([`d5a3d66`](https://github.com/molinfo-vienna/nerdd-backend/commit/d5a3d66fec04cda3e6809f674469e1ffec8f9a23))
+
+* fix: Adapt RethinkDbRepository to JobWithResults ([`0f5c80b`](https://github.com/molinfo-vienna/nerdd-backend/commit/0f5c80b3ad203f3de14f3916ac9c09dd7da4534a))
+
+* fix: Adapt MemoryRepository to JobWithResults ([`78a1328`](https://github.com/molinfo-vienna/nerdd-backend/commit/78a1328c71cba13e00bdd0a950cad320d93300dc))
+
+* fix: Implement get_job_with_result_changes ([`eef3fe3`](https://github.com/molinfo-vienna/nerdd-backend/commit/eef3fe3758f3f56b602d33a6fcf8b6a1e7eaf09c))
+
+* fix: Add is_done method on job model ([`e1331f5`](https://github.com/molinfo-vienna/nerdd-backend/commit/e1331f56ec42db7b55c2b3b6e488c15e68c42567))
+
+* fix: Implement union operation on CompressedSet ([`db94421`](https://github.com/molinfo-vienna/nerdd-backend/commit/db94421850b9eb095f9e92f9c0cd73328adcd8c1))
+
+* fix: Use model JobWithResults in jobs router ([`4bcec64`](https://github.com/molinfo-vienna/nerdd-backend/commit/4bcec64ece235654ee56bba0b614a8fb831e7a9e))
+
+* fix: Create new model JobWithResults ([`294114f`](https://github.com/molinfo-vienna/nerdd-backend/commit/294114f96b4e110a3f047cfe36e9fbe7ba411338))
+
+* fix: Make CompressedSet serializable ([`c5e69e7`](https://github.com/molinfo-vienna/nerdd-backend/commit/c5e69e78d534b5fe5352e27229f7998878292a80))
+
+* fix: Correct typo in CompressedSet ([`18f9fe7`](https://github.com/molinfo-vienna/nerdd-backend/commit/18f9fe77c3e6fdd14e329f89503d2291a71e14bd))
+
+* fix: Handle invalid input to CompressedSet constructor ([`d899c49`](https://github.com/molinfo-vienna/nerdd-backend/commit/d899c49914208d5943071a7cd793dd4405b19a5e))
+
+* fix: Implement CompressedSet.contains ([`f2f50c5`](https://github.com/molinfo-vienna/nerdd-backend/commit/f2f50c552ecb19234fe723ca2b806c7672e9e0af))
+
+* fix: Extend constructor of CompressedSet ([`4bccd60`](https://github.com/molinfo-vienna/nerdd-backend/commit/4bccd603228947293e404bd585851287096aeab1))
+
+### Testing
+
+* test: Add tests for empty constructor arguments in CompressedSet ([`2acd2d4`](https://github.com/molinfo-vienna/nerdd-backend/commit/2acd2d47ba7386ee99cc6aa59f2b7d49286482a1))
+
+* test: Allow CompressedSet as constructor argument in CompressedSet ([`5e40875`](https://github.com/molinfo-vienna/nerdd-backend/commit/5e40875950a89f468e46fb36ae9e97122f56dbeb))
+
+* test: Add tests for CompressedSet using larger inputs ([`39635fd`](https://github.com/molinfo-vienna/nerdd-backend/commit/39635fd2103a5d62fd54c044aac4c5b203f82248))
+
+* test: Add test for CompressedSet.union ([`7a1dde5`](https://github.com/molinfo-vienna/nerdd-backend/commit/7a1dde51ece594f088f33cc66d150c09de9f8a58))
+
+* test: Add tests for CompressedSet ([`5b26601`](https://github.com/molinfo-vienna/nerdd-backend/commit/5b26601fb918a39f7c7ba6b41769a422cbfc22a7))
+
+### Unknown
+
+* Merge pull request #38 from shirte/main
+
+Simplify (and speed up) job updates using CompressedSet ([`65fb703`](https://github.com/molinfo-vienna/nerdd-backend/commit/65fb70371adcfd7a1cf0d395157b5950af1cee27))
+
+
 ## v0.2.4 (2025-06-30)
 
 ### Fixes
