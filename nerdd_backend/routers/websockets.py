@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, Query, WebSocket
 from fastapi.encoders import jsonable_encoder
 
-from ..data import RecordNotFoundError
-from .jobs import augment_job, get_job
+from ..data import RecordNotFoundError, Repository
+from .jobs import augment_job
 
 __all__ = ["get_job_ws", "get_results_ws", "websockets_router"]
 
@@ -13,24 +13,22 @@ websockets_router = APIRouter(prefix="/websocket")
 @websockets_router.websocket("/jobs/{job_id}/")
 async def get_job_ws(websocket: WebSocket, job_id: str):
     app = websocket.app
-    repository = app.state.repository
+    repository: Repository = app.state.repository
 
     await websocket.accept()
 
-    job = await get_job(job_id, websocket)
-    await websocket.send_json(jsonable_encoder(job))
+    async for _, internal_job in repository.get_job_with_result_changes(job_id):
+        job = await augment_job(internal_job, websocket)
+        await websocket.send_json(jsonable_encoder(job))
 
-    async for _, new in repository.get_job_changes(job_id):
-        if new is not None:
-            new = await augment_job(new, websocket)
-            await websocket.send_json(jsonable_encoder(new))
+    await websocket.close()
 
 
 @websockets_router.websocket("/jobs/{job_id}/results")
 @websockets_router.websocket("/jobs/{job_id}/results/")
 async def get_results_ws(websocket: WebSocket, job_id: str, page: int = Query()):
     app = websocket.app
-    repository = app.state.repository
+    repository: Repository = app.state.repository
 
     await websocket.accept()
 

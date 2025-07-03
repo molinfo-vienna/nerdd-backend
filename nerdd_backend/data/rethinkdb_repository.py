@@ -13,13 +13,13 @@ from ..models import (
     Job,
     JobInternal,
     JobUpdate,
+    JobWithResults,
     Module,
     Result,
     Source,
     User,
     UserType,
 )
-from ..util import CompressedSet
 from .exceptions import RecordAlreadyExistsError, RecordNotFoundError
 from .repository import Repository
 
@@ -162,7 +162,7 @@ class RethinkDbRepository(Repository):
     #
     async def get_job_changes(
         self, job_id: str
-    ) -> AsyncIterable[Tuple[Optional[JobInternal], Optional[JobInternal]]]:
+    ) -> AsyncIterable[Tuple[Optional[JobWithResults], Optional[JobInternal]]]:
         cursor = (
             await self.r.table("jobs")
             .get(job_id)
@@ -189,16 +189,17 @@ class RethinkDbRepository(Repository):
         except ReqlOpFailedError:
             pass
 
-    async def create_job(self, job: JobInternal) -> JobInternal:
+    async def create_job(self, job: JobInternal) -> JobWithResults:
         result = await (
             self.r.table("jobs")
             .insert(job.model_dump(), conflict="error", return_changes=True)
             .run(self.connection)
         )
-        return JobInternal(**result["changes"][0]["new_val"])
+        # JobWithResults adds the entries_processed field, which is not part of JobInternal.
+        return JobWithResults(**result["changes"][0]["new_val"])
 
     async def update_job(self, job_update: JobUpdate) -> JobInternal:
-        # all fields (except entries_processed) can be updated in a single query
+        # all fields can be updated in a single query
         # --> prepare an object with all fields that should be updated
         update_set = {}
         if job_update.status is not None:
@@ -216,76 +217,58 @@ class RethinkDbRepository(Repository):
                 job_update.new_output_formats
             )
 
-        if job_update.entries_processed is None:
-            changes = (
-                await self.r.table("jobs")
-                .get(job_update.id)
-                .update(update_set, return_changes=True)
-                .run(self.connection)
-            )
-        else:
-            # The field entries_processed is tricky: we need to update the slightly complex data
-            # structure containing the processed entries in a way that is atomic.
-            while True:
-                # get old value
-                old_job = (
-                    await self.r.table("jobs")
-                    .get(job_update.id)
-                    .pluck("entries_processed")
-                    .run(self.connection)
-                )
-                old_intervals = old_job["entries_processed"]
+        # update the job in the database
+        changes = (
+            await self.r.table("jobs")
+            .get(job_update.id)
+            .update(update_set, return_changes="always")
+            .run(self.connection)
+        )
 
-                # update the old value
-                compressed_set = CompressedSet(intervals=old_intervals)
-                for entry in job_update.entries_processed:
-                    compressed_set.add(entry)
-                new_intervals = compressed_set.to_intervals()
+        updated_job = changes["changes"][0]["new_val"] if len(changes["changes"]) > 0 else None
 
-                if old_intervals == new_intervals:
-                    changes = {"unchanged": 1}
-                    break
-
-                # this is the important part: before updating we check if the value has changed
-                # * if yes: start over
-                # * if no: update the value
-                changes = (
-                    await self.r.table("jobs")
-                    .get(job_update.id)
-                    .update(
-                        lambda record: self.r.branch(
-                            record["entries_processed"] == old_intervals,
-                            # update:
-                            {**update_set, "entries_processed": new_intervals},
-                            # do not update:
-                            {},
-                        ),
-                        return_changes=True,
-                    )
-                    .run(self.connection)
-                )
-
-                if changes["replaced"] > 0:
-                    break
-
-        if changes["unchanged"] == 1:
-            return None
-
-        if len(changes["changes"]) == 0:
+        if updated_job is None:
             raise RecordNotFoundError(Job, job_update.id)
 
-        return JobInternal(**changes["changes"][0]["new_val"])
+        return JobInternal(**updated_job)
 
-    async def get_job_by_id(self, job_id: str) -> JobInternal:
-        result = await self.r.table("jobs").get(job_id).run(self.connection)
+    async def get_job_by_id(self, job_id: str) -> JobWithResults:
+        result = (
+            await self.r.table("jobs")
+            .get(job_id)
+            .do(
+                lambda job: self.r.branch(
+                    job.eq(None),  # check if job exists
+                    None,
+                    job.merge(
+                        {
+                            "entries_processed": self.r.table("results")
+                            .get_all(job["id"], index="job_id")["mol_id"]
+                            .coerce_to("array")
+                        }
+                    ),
+                )
+            )
+            .run(self.connection)
+        )
 
         if result is None:
             raise RecordNotFoundError(Job, job_id)
 
-        return JobInternal(**result)
+        return JobWithResults(**result)
 
     async def delete_job_by_id(self, job_id: str) -> None:
         await self.r.table("jobs").get(job_id).delete().run(self.connection)
+
+    async def get_expired_jobs(self, deadline: datetime) -> AsyncIterable[JobInternal]:
+        cursor = (
+            await self.r.table("jobs")
+            .filter(lambda job: job["expires_at"] < deadline)
+            .run(self.connection)
+        )
+
+        async for item in cursor:
+            yield JobInternal(**item)
 
     #
     # SOURCES
@@ -319,6 +302,16 @@ class RethinkDbRepository(Repository):
     async def delete_source_by_id(self, source_id: str) -> None:
         await self.r.table("sources").get(source_id).delete().run(self.connection)
 
+    async def get_expired_sources(self, deadline: datetime) -> AsyncIterable[Source]:
+        cursor = (
+            await self.r.table("sources")
+            .filter(lambda source: source["created_at"] < deadline)
+            .run(self.connection)
+        )
+
+        async for item in cursor:
+            yield Source(**item)
+
     #
     # RESULTS
     #
@@ -331,16 +324,6 @@ class RethinkDbRepository(Repository):
     async def get_all_results_by_job_id(self, job_id: str) -> List[Result]:
         cursor = await self.r.table("results").get_all(job_id, index="job_id").run(self.connection)
         return [Result(**item) async for item in cursor]
-
-    async def get_num_processed_entries_by_job_id(self, job_id: str) -> int:
-        return (
-            await self.r.table("results")
-            .get_all(job_id, index="job_id")
-            .pluck("mol_id")
-            .distinct()
-            .count()
-            .run(self.connection)
-        )
 
     async def get_results_by_job_id(
         self,
@@ -405,6 +388,9 @@ class RethinkDbRepository(Repository):
                 new_result = Result(**change["new_val"])
 
             yield old_result, new_result
+
+    async def delete_results_by_job_id(self, job_id: str) -> None:
+        await self.r.table("results").get_all(job_id, index="job_id").delete().run(self.connection)
 
     #
     # USERS
