@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query, status
 from fastapi.encoders import jsonable_encoder
-from fastapi.websockets import WebSocket, WebSocketState
+from fastapi.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
 from ..data import RecordNotFoundError, Repository
 from .jobs import augment_job
@@ -24,8 +24,12 @@ async def get_job_ws(websocket: WebSocket, job_id: str):
         async for _, internal_job in repository.get_job_with_result_changes(job_id):
             job = await augment_job(internal_job, websocket)
             await websocket.send_json(jsonable_encoder(job))
+    except WebSocketDisconnect:
+        # dlient disconnected, no action needed
+        pass
     except:
-        await websocket.close(code=status.WS_1011_INTERNAL_ERROR)
+        if websocket.application_state != WebSocketState.DISCONNECTED:
+            await websocket.close(code=status.WS_1011_INTERNAL_ERROR)
         raise
     finally:
         if websocket.application_state != WebSocketState.DISCONNECTED:
@@ -69,8 +73,12 @@ async def get_results_ws(websocket: WebSocket, job_id: str, page: int = Query())
         async for _, new in repository.get_result_changes(job_id, first_mol_id, last_mol_id):
             if new is not None:
                 await websocket.send_json(jsonable_encoder(new))
+    except WebSocketDisconnect:
+        # dlient disconnected, no action needed
+        pass
     except:
-        await websocket.close(code=status.WS_1011_INTERNAL_ERROR)
+        if websocket.application_state != WebSocketState.DISCONNECTED:
+            await websocket.close(code=status.WS_1011_INTERNAL_ERROR)
         raise
     finally:
         if websocket.application_state != WebSocketState.DISCONNECTED:
