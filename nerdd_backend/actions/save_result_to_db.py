@@ -5,7 +5,7 @@ from collections import OrderedDict
 
 from nerdd_link import Action, Channel, ResultMessage
 
-from ..data import RecordNotFoundError, Repository
+from ..data import RecordAlreadyExistsError, RecordNotFoundError, Repository
 from ..models import Result
 
 __all__ = ["SaveResultToDb"]
@@ -70,37 +70,37 @@ class SaveResultToDb(Action[ResultMessage]):
 
         # TODO: check if corresponding module has correct task type (e.g. "derivative_prediction")
 
-        try:
-            # generate an id for the result
-            if hasattr(message, "atom_id"):
-                id = f"{job_id}-{message.mol_id}-{message.atom_id}"
-            elif hasattr(message, "derivative_id"):
-                id = f"{job_id}-{message.mol_id}-{message.derivative_id}"
-            else:
-                id = f"{job_id}-{message.mol_id}"
+        # generate an id for the result
+        if hasattr(message, "atom_id"):
+            id = f"{job_id}-{message.mol_id}-{message.atom_id}"
+        elif hasattr(message, "derivative_id"):
+            id = f"{job_id}-{message.mol_id}-{message.derivative_id}"
+        else:
+            id = f"{job_id}-{message.mol_id}"
 
-            # map sources to original file names
-            if hasattr(message, "source") and not isinstance(message.source, str):
-                translated_sources = await asyncio.gather(
-                    *(get_source_by_id(source_id, self.repository) for source_id in message.source)
-                )
-                message.source = [s for s in translated_sources if s is not None]
+        # map sources to original file names
+        if hasattr(message, "source") and not isinstance(message.source, str):
+            translated_sources = await asyncio.gather(
+                *(get_source_by_id(source_id, self.repository) for source_id in message.source)
+            )
+            message.source = [s for s in translated_sources if s is not None]
 
-            # replace all file paths with urls
-            result = message.model_dump()
-            for result_property in module.result_properties:
-                k = result_property.name
-                v = result.get(k)
-                if isinstance(v, str) and v.startswith("file://"):
-                    parts = v.rsplit("/", 1)
-                    if len(parts) == 2:
-                        record_id = parts[1]
-                        result[k] = f"/api/jobs/{job_id}/files/{k}/{record_id}"
+        # replace all file paths with urls
+        result = message.model_dump()
+        for result_property in module.result_properties:
+            k = result_property.name
+            v = result.get(k)
+            if isinstance(v, str) and v.startswith("file://"):
+                parts = v.rsplit("/", 1)
+                if len(parts) == 2:
+                    record_id = parts[1]
+                    result[k] = f"/api/jobs/{job_id}/files/{k}/{record_id}"
 
             # save result
+        try:
             await self.repository.create_result(Result(id=id, **result))
-        except RecordNotFoundError:
-            logger.warning(f"Job with id {job_id} not found. Ignoring this result.")
+        except RecordAlreadyExistsError:
+            logger.warning(f"Result with id {id} already exists. Ignoring this result.")
 
     def _get_group_name(self):
         return "save-result-to-db"
