@@ -1,6 +1,33 @@
 # CHANGELOG
 
 
+## v0.4.0 (2025-07-04)
+
+### Documentation
+
+* docs: Simplify readme ([`56e42e6`](https://github.com/molinfo-vienna/nerdd-backend/commit/56e42e61696413c9e060d7d0ad3d0af556d03135))
+
+### Features
+
+* feat: Implement job expiration in MemoryRepository ([`29496e4`](https://github.com/molinfo-vienna/nerdd-backend/commit/29496e408c09e4efe3a79d000dc901a3e41b5f26))
+
+* feat: Require methods for obtaining expired jobs ([`a69fd68`](https://github.com/molinfo-vienna/nerdd-backend/commit/a69fd68a5cbe6d71e150c7cad55823c22824d03f))
+
+### Fixes
+
+* fix: Add config to specify job expiration ([`825e4d7`](https://github.com/molinfo-vienna/nerdd-backend/commit/825e4d776829385495e97cc112e3482870877047))
+
+### Unknown
+
+* Merge pull request #40 from shirte/main
+
+Enable retrieving expired jobs ([`190bf75`](https://github.com/molinfo-vienna/nerdd-backend/commit/190bf75d569f6c49d898e5c6ccb91eb93ef1d886))
+
+* Merge pull request #39 from shirte/main
+
+docs: Simplify readme ([`09bad35`](https://github.com/molinfo-vienna/nerdd-backend/commit/09bad359aea320b023533b57c734a0ab494bc607))
+
+
 ## v0.3.0 (2025-07-03)
 
 ### Features
