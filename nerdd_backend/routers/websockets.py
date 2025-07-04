@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Query, WebSocketException, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
@@ -50,7 +50,9 @@ async def get_results_ws(websocket: WebSocket, job_id: str, page: int = Query())
         try:
             job = await repository.get_job_by_id(job_id)
         except RecordNotFoundError as e:
-            raise HTTPException(status_code=404, detail="Job not found") from e
+            raise WebSocketException(
+                code=status.WS_1008_POLICY_VIOLATION, reason="Job not found"
+            ) from e
 
         page_size = job.page_size
 
@@ -65,7 +67,9 @@ async def get_results_ws(websocket: WebSocket, job_id: str, page: int = Query())
 
         # check if page is clearly out of range
         if page_zero_based < 0 or page_zero_based * page_size >= num_entries:
-            raise HTTPException(status_code=404, detail="Page out of range")
+            raise WebSocketException(
+                code=status.WS_1008_POLICY_VIOLATION, reason="Page out of range"
+            )
 
         first_mol_id = page_zero_based * page_size
         last_mol_id = min(first_mol_id + page_size, num_entries) - 1
