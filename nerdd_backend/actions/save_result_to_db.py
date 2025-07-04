@@ -6,7 +6,7 @@ from collections import OrderedDict
 from nerdd_link import Action, Channel, ResultMessage
 
 from ..data import RecordNotFoundError, Repository
-from ..models import JobUpdate, Result
+from ..models import Result
 
 __all__ = ["SaveResultToDb"]
 
@@ -99,11 +99,6 @@ class SaveResultToDb(Action[ResultMessage]):
 
             # save result
             await self.repository.create_result(Result(id=id, **result))
-
-            # update set of processed entries in job
-            await self.repository.update_job(
-                JobUpdate(id=job_id, entries_processed=[message.mol_id])
-            )
         except RecordNotFoundError:
             logger.warning(f"Job with id {job_id} not found. Ignoring this result.")
 
