@@ -24,6 +24,10 @@ async def get_job_ws(websocket: WebSocket, job_id: str):
         async for _, internal_job in repository.get_job_with_result_changes(job_id):
             job = await augment_job(internal_job, websocket)
             await websocket.send_json(jsonable_encoder(job))
+    except RecordNotFoundError as e:
+        raise WebSocketException(
+            code=status.WS_1008_POLICY_VIOLATION, reason="Job not found"
+        ) from e
     except WebSocketDisconnect:
         # dlient disconnected, no action needed
         pass
