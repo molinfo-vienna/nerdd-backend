@@ -143,6 +143,11 @@ class MemoryRepository(Repository):
             job = await self.get_job_by_id(id)
             self.jobs.remove(job)
 
+    async def get_expired_jobs(self, deadline: datetime) -> AsyncIterable[JobInternal]:
+        for job in self.jobs.get_items():
+            if job.created_at < deadline:
+                yield job
+
     #
     # SOURCES
     #
@@ -165,6 +170,11 @@ class MemoryRepository(Repository):
         async with self.transaction_lock:
             source = await self.get_source_by_id(id)
             self.sources.remove(source)
+
+    async def get_expired_sources(self, deadline: datetime) -> AsyncIterable[Source]:
+        for source in self.sources.get_items():
+            if source.created_at < deadline:
+                yield source
 
     #
     # RESULTS
@@ -216,6 +226,14 @@ class MemoryRepository(Repository):
 
     async def get_all_results_by_job_id(self, job_id: str) -> List[Result]:
         return [result for result in self.results.get_items() if result.job_id == job_id]
+
+    async def delete_results_by_job_id(self, job_id) -> None:
+        async with self.transaction_lock:
+            results_to_delete = [
+                result for result in self.results.get_items() if result.job_id == job_id
+            ]
+            for result in results_to_delete:
+                self.results.remove(result)
 
     #
     # USERS

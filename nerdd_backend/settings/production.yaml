@@ -11,6 +11,8 @@ quota_anonymous: 1_000_000
 challenge_difficulty: 1_000_000
 challenge_expiration_seconds: 3600
 
+job_expiration_days: 60
+
 page_size_molecular_property_prediction: 100
 page_size_atom_property_prediction: 10
 page_size_derivative_property_prediction: 10
