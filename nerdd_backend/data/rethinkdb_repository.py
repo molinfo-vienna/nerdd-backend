@@ -147,14 +147,14 @@ class RethinkDbRepository(Repository):
         result = await (
             self.r.table("modules")
             .get(module.id)
-            .update(module.model_dump(), return_changes=True)
+            .update(module.model_dump(), return_changes="always")
             .run(self.connection)
         )
 
         if result["changes"] is None or len(result["changes"]) == 0:
             raise RecordNotFoundError(ModuleInternal, module.id)
 
-        return module
+        return ModuleInternal(**result["changes"][0]["new_val"])
 
     #
     # JOBS
@@ -464,7 +464,7 @@ class RethinkDbRepository(Repository):
         result = await (
             self.r.table("checkpoints")
             .get(checkpoint.id)
-            .update(checkpoint.model_dump(), return_changes=True)
+            .update(checkpoint.model_dump(), return_changes="always")
             .run(self.connection)
         )
 
