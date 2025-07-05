@@ -152,24 +152,17 @@ async def delete_job(job_id: str, request: Request) -> BaseSuccessResponse:
     app = request.app
     repository: Repository = app.state.repository
     channel: Channel = app.state.channel
-    cfg = app.state.config
 
     try:
         job = await repository.get_job_by_id(job_id)
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail="Job not found") from e
 
-    await repository.delete_results_by_job_id(job_id)
+    # delete only the job instance to prevent future access
     await repository.delete_job_by_id(job_id)
 
-    # send tombstone message on jobs topic
+    # send tombstone message on jobs topic (DeleteJob action will take care of the rest)
     await channel.jobs_topic().send(Tombstone(JobMessage, id=job_id, job_type=job.job_type))
-
-    # send tombstone messages on serialization requests topic
-    for output_format in cfg.output_formats:
-        await channel.serialization_requests_topic().send(
-            Tombstone(SerializationRequestMessage, job_id=job_id, output_format=output_format)
-        )
 
     return BaseSuccessResponse(message="Job deleted successfully")
 
