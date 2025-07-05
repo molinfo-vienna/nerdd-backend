@@ -206,7 +206,7 @@ class RethinkDbRepository(Repository):
 
     async def get_job_changes(
         self, job_id: str
-    ) -> AsyncIterable[Tuple[Optional[JobWithResults], Optional[JobInternal]]]:
+    ) -> AsyncIterable[Tuple[Optional[JobInternal], Optional[JobInternal]]]:
         cursor = (
             await self.r.table("jobs")
             .get(job_id)
