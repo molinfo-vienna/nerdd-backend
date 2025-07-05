@@ -96,7 +96,7 @@ class SaveResultToDb(Action[ResultMessage]):
                     record_id = parts[1]
                     result[k] = f"/api/jobs/{job_id}/files/{k}/{record_id}"
 
-            # save result
+        # save result
         try:
             await self.repository.create_result(Result(id=id, **result))
         except RecordAlreadyExistsError:
