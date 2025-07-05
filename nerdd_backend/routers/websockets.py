@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Query, WebSocketException, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.websockets import WebSocket, WebSocketDisconnect, WebSocketState
+from websockets.exceptions import ConnectionClosed
 
 from ..data import RecordNotFoundError, Repository
 from .jobs import augment_job
@@ -18,17 +19,20 @@ async def get_job_ws(websocket: WebSocket, job_id: str):
     app = websocket.app
     repository: Repository = app.state.repository
 
-    await websocket.accept()
-
     try:
+        await websocket.accept()
+
         async for _, internal_job in repository.get_job_with_result_changes(job_id):
-            job = await augment_job(internal_job, websocket)
+            if internal_job is None:
+                job = None
+            else:
+                job = await augment_job(internal_job, websocket)
             await websocket.send_json(jsonable_encoder(job))
     except RecordNotFoundError as e:
         raise WebSocketException(
             code=status.WS_1008_POLICY_VIOLATION, reason="Job not found"
         ) from e
-    except WebSocketDisconnect:
+    except (WebSocketDisconnect, ConnectionClosed):
         # dlient disconnected, no action needed
         pass
     except:
@@ -48,9 +52,9 @@ async def get_results_ws(websocket: WebSocket, job_id: str, page: int = Query())
     app = websocket.app
     repository: Repository = app.state.repository
 
-    await websocket.accept()
-
     try:
+        await websocket.accept()
+
         try:
             job = await repository.get_job_by_id(job_id)
         except RecordNotFoundError as e:
@@ -81,7 +85,7 @@ async def get_results_ws(websocket: WebSocket, job_id: str, page: int = Query())
         async for _, new in repository.get_result_changes(job_id, first_mol_id, last_mol_id):
             if new is not None:
                 await websocket.send_json(jsonable_encoder(new))
-    except WebSocketDisconnect:
+    except (WebSocketDisconnect, ConnectionClosed):
         # dlient disconnected, no action needed
         pass
     except:
