@@ -8,7 +8,8 @@ root_path: /api
 log_requests: false
 cors: false
 
-quota_anonymous: 1_000_000
+quota_mols_per_day_anonymous: 1_000_000
+quota_active_jobs_anonymous: 5
 
 challenge_difficulty: 1_000_000
 challenge_expiration_seconds: 3600
