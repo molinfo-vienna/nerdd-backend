@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## v0.4.1 (2025-07-09)
+
+### Fixes
+
+* fix: Add missing route to /modules router ([`ab58a55`](https://github.com/molinfo-vienna/nerdd-backend/commit/ab58a5508448d247adbf1827545200d6c70230c2))
+
+* fix: Extract augment_module function ([`74702e4`](https://github.com/molinfo-vienna/nerdd-backend/commit/74702e40066330982a4dbf66f3595deb8cf47bb5))
+
+### Unknown
+
+* Merge pull request #41 from shirte/main
+
+Extract augment_module function ([`cda868a`](https://github.com/molinfo-vienna/nerdd-backend/commit/cda868af20782ada80b663ee02e0e971a426fa23))
+
+
 ## v0.4.0 (2025-07-04)
 
 ### Documentation
