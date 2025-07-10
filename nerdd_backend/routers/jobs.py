@@ -95,6 +95,12 @@ async def create_job(
             detail=f"Invalid parameters for module {job.job_type}: {str(e)}",
         ) from e
 
+    # add default values for optional parameters
+    for job_parameter in module.job_parameters:
+        if job_parameter.name not in job.params:
+            if job_parameter.default is not None:
+                job.params[job_parameter.name] = job_parameter.default
+
     # get page size (depending on module task)
     task = module.task
     if task == "atom_property_prediction":
