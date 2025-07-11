@@ -1,6 +1,31 @@
 # CHANGELOG
 
 
+## v0.4.2 (2025-07-11)
+
+### Code Style
+
+* style: Check None in _create_job ([`50f1bf2`](https://github.com/molinfo-vienna/nerdd-backend/commit/50f1bf2d6f714c5a543aab5fbf9872c99d890c42))
+
+### Fixes
+
+* fix: Update version of fastapi ([`e000b0c`](https://github.com/molinfo-vienna/nerdd-backend/commit/e000b0cbc22962a1f827b5a8d7909273099f4058))
+
+* fix: Omit deprecated job type check in _create_job function ([`a2c1a6a`](https://github.com/molinfo-vienna/nerdd-backend/commit/a2c1a6ad36293a8e5d2f62090694af0957e12aae))
+
+* fix: Improve API structure for creating jobs ([`ff292e5`](https://github.com/molinfo-vienna/nerdd-backend/commit/ff292e5a16391282c61f6164f1eb3f46ba8276ac))
+
+* fix: Add descriptions to fields ([`2b1578d`](https://github.com/molinfo-vienna/nerdd-backend/commit/2b1578d93222466daa908b9d542ace38383e1a96))
+
+* fix: Compute valid model name by using snakecase before pascalcase ([`2abac8d`](https://github.com/molinfo-vienna/nerdd-backend/commit/2abac8d3d16bbcee61afe5e1e15c8dc9d8dcaa52))
+
+### Unknown
+
+* Merge pull request #42 from shirte/main
+
+Improve API structure for creating jobs ([`6d292d7`](https://github.com/molinfo-vienna/nerdd-backend/commit/6d292d78205d63cccfea3f77e6ac157b101ac993))
+
+
 ## v0.4.1 (2025-07-09)
 
 ### Fixes
