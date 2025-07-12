@@ -1,6 +1,35 @@
 # CHANGELOG
 
 
+## v0.4.3 (2025-07-12)
+
+### Fixes
+
+* fix: Use duplicate slash routes on websocket routes ([`2954796`](https://github.com/molinfo-vienna/nerdd-backend/commit/2954796819bd679afd168d3178a7ad41a58ca253))
+
+* fix: Do not use root_path on uvicorn server ([`7f01603`](https://github.com/molinfo-vienna/nerdd-backend/commit/7f016036e8f65c5b80d4fbe263a49eba4eb10beb))
+
+* fix: Remove trailing slashes in routes ([`d8810cb`](https://github.com/molinfo-vienna/nerdd-backend/commit/d8810cb86c6190752be53e21cb8514c013798a4f))
+
+* fix: Remove redundant routes in challenges router ([`74b83b8`](https://github.com/molinfo-vienna/nerdd-backend/commit/74b83b8c1d9eb65413d9ba19336747936247c053))
+
+* fix: Remove redundant routes in dynamic router ([`bcee419`](https://github.com/molinfo-vienna/nerdd-backend/commit/bcee419365b2ae8828ecbbc889af96bf78e97f0f))
+
+* fix: Remove redundant routes in sources router ([`6c0498b`](https://github.com/molinfo-vienna/nerdd-backend/commit/6c0498b9a8a255eb2ec44e4e6186af0e3b7ce7a2))
+
+* fix: Remove redundant routes in modules router ([`a23b00d`](https://github.com/molinfo-vienna/nerdd-backend/commit/a23b00dd542a72b03abc4995a7859dc5e61b5d1c))
+
+* fix: Remove redundant routes in jobs router ([`dc2d6cc`](https://github.com/molinfo-vienna/nerdd-backend/commit/dc2d6ccd36e794b9e0006cf942d6bd5c77ca487b))
+
+* fix: Remove redundant routes in websocket router ([`8aac664`](https://github.com/molinfo-vienna/nerdd-backend/commit/8aac664f5a502b110506b66d33092adc4dd53b49))
+
+### Unknown
+
+* Merge pull request #43 from shirte/main
+
+Remove redundant fastapi routes ([`c19881c`](https://github.com/molinfo-vienna/nerdd-backend/commit/c19881ca2fba6327b28a7dd0d62724bf921442ad))
+
+
 ## v0.4.2 (2025-07-11)
 
 ### Code Style
