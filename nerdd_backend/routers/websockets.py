@@ -9,6 +9,8 @@ __all__ = ["get_job_ws", "get_results_ws", "websockets_router"]
 websockets_router = APIRouter(prefix="/websocket")
 
 
+# Note: we need the slash-less and slash version of the routes, because fastapi does not redirect
+# from the slash-less version to the slash version (as in normal routes).
 @websockets_router.websocket("/jobs/{job_id}")
 @websockets_router.websocket("/jobs/{job_id}/")
 async def get_job_ws(websocket: WebSocket, job_id: str):
@@ -24,6 +26,8 @@ async def get_job_ws(websocket: WebSocket, job_id: str):
     await websocket.close()
 
 
+# Note: we need the slash-less and slash version of the routes, because fastapi does not redirect
+# from the slash-less version to the slash version (as in normal routes).
 @websockets_router.websocket("/jobs/{job_id}/results")
 @websockets_router.websocket("/jobs/{job_id}/results/")
 async def get_results_ws(websocket: WebSocket, job_id: str, page: int = Query()):

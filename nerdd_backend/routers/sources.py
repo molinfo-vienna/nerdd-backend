@@ -18,8 +18,7 @@ __all__ = ["sources_router", "put_multiple_sources"]
 sources_router = APIRouter(prefix="/sources")
 
 
-@sources_router.put("", include_in_schema=False)
-@sources_router.put("/")
+@sources_router.put("")
 async def put_source(file: UploadFile, format: Optional[str] = None, request: Request = None):
     app = request.app
     repository: Repository = app.state.repository

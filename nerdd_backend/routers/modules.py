@@ -15,8 +15,7 @@ def augment_module(module: Module, request: Request) -> ModulePublic:
     )
 
 
-@modules_router.get("", include_in_schema=False)
-@modules_router.get("/")
+@modules_router.get("")
 async def get_modules(request: Request):
     app = request.app
     repository: Repository = app.state.repository
@@ -29,8 +28,7 @@ async def get_modules(request: Request):
     ]
 
 
-@modules_router.get("/{module_id}", include_in_schema=False)
-@modules_router.get("/{module_id}/")
+@modules_router.get("/{module_id}")
 async def get_module(module_id: str, request: Request):
     app = request.app
     repository: Repository = app.state.repository

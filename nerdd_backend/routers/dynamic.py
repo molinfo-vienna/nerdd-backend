@@ -157,7 +157,7 @@ def get_dynamic_router(module: Module):
     async def create_simple_job(
         # Annotated[QueryModelGet, Query()] converts all model fields to GET parameters
         # a valid request looks like this:
-        # /cypstrate/jobs/?prediction_mode=best_performance&inputs=CCO&inputs=CC
+        # /cypstrate/jobs?prediction_mode=best_performance&inputs=CCO&inputs=CC
         job: Annotated[QueryModelGet, Query()],
         referer: Annotated[Optional[str], Header(include_in_schema=False)] = None,
         request: Request = None,
@@ -165,7 +165,6 @@ def get_dynamic_router(module: Module):
         params = {k: getattr(job, k) for k in field_definitions}
         return await _create_job(job.inputs, job.sources, None, params, referer, request)
 
-    router.get(f"/{module.id}/jobs/", include_in_schema=False)(create_simple_job)
     router.get(f"/{module.id}/jobs")(create_simple_job)
 
     #
@@ -186,30 +185,29 @@ def get_dynamic_router(module: Module):
             request,
         )
 
-    router.post(f"/{module.id}/jobs/", include_in_schema=False)(create_complex_job)
     router.post(f"/{module.id}/jobs")(create_complex_job)
 
     #
     # GET /jobs/{job_id}
     #
-    router.get(f"/{module.id}/jobs/{{job_id}}/", include_in_schema=False)(get_job)
     router.get(f"/{module.id}/jobs/{{job_id}}")(get_job)
 
     #
     # DELETE /jobs/{job_id}
     #
-    router.delete(f"/{module.id}/jobs/{{job_id}}/", include_in_schema=False)(delete_job)
     router.delete(f"/{module.id}/jobs/{{job_id}}")(delete_job)
 
     #
     # GET /jobs/{job_id}/results/{page}
     #
-    router.get(f"/{module.id}/jobs/{{job_id}}/results/", include_in_schema=False)(get_results)
     router.get(f"/{module.id}/jobs/{{job_id}}/results")(get_results)
 
     #
     # websocket endpoints
     #
+
+    # Note: we need the slash-less and slash version of the routes, because fastapi does not
+    # redirect from the slash-less version to the slash version (as in normal routes).
     router.websocket(f"/websocket/{module.id}/jobs/{{job_id}}")(get_job_ws)
     router.websocket(f"/websocket/{module.id}/jobs/{{job_id}}/")(get_job_ws)
 

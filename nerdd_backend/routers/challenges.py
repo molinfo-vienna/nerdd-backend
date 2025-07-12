@@ -16,7 +16,6 @@ challenges_router = APIRouter(prefix="/challenges")
 
 
 @challenges_router.get("/create", include_in_schema=False)
-@challenges_router.get("/create/", include_in_schema=False)
 async def create_challenge(request: Request = None):
     app = request.app
     config = app.state.config
@@ -49,7 +48,6 @@ async def create_challenge(request: Request = None):
 
 
 @challenges_router.get("/verify", include_in_schema=False)
-@challenges_router.get("/verify/", include_in_schema=False)
 async def verify_solution(
     payload: str = Query(alias="altcha"),
     request: Request = None,
