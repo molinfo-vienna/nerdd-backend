@@ -1,6 +1,25 @@
 # CHANGELOG
 
 
+## v0.4.4 (2025-07-13)
+
+### Fixes
+
+* fix: Use CORS middleware only in development mode ([`07194c3`](https://github.com/molinfo-vienna/nerdd-backend/commit/07194c30caa460f5bed0f836d1efea82b4db8937))
+
+* fix: Use LogRequestsMiddleware if configured by user ([`6784478`](https://github.com/molinfo-vienna/nerdd-backend/commit/6784478a98e2cfac3f61a1dd5e8ab70a154fe604))
+
+* fix: Implement LogRequestsMiddleware ([`2599a73`](https://github.com/molinfo-vienna/nerdd-backend/commit/2599a73b2a3d075ea96a20697dec503a3aff677f))
+
+* fix: Check if mol_id bounds are None in MemoryRepository ([`359a189`](https://github.com/molinfo-vienna/nerdd-backend/commit/359a189ac45f0ba0c62f88983f6d1dcb1d847303))
+
+### Unknown
+
+* Merge pull request #44 from shirte/main
+
+Reorganize fastapi middlewares ([`c369dd7`](https://github.com/molinfo-vienna/nerdd-backend/commit/c369dd7834edb391430f200e770080fe9526e19f))
+
+
 ## v0.4.3 (2025-07-12)
 
 ### Fixes
