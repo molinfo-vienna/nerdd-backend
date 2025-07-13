@@ -213,7 +213,9 @@ class MemoryRepository(Repository):
         return [
             result
             for result in self.results.get_items()
-            if result.job_id == job_id and start_mol_id <= result.mol_id <= end_mol_id
+            if result.job_id == job_id
+            and (start_mol_id is None or start_mol_id <= result.mol_id)
+            and (end_mol_id is None or result.mol_id <= end_mol_id)
         ]
 
     async def create_result(self, result: Result) -> None:

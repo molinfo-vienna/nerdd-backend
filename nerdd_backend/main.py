@@ -149,26 +149,28 @@ async def create_app(cfg: DictConfig):
     if cfg.mock_infra:
         await channel.system_topic().send(SystemMessage())
 
-    origins = [
-        "http://localhost",
-        "http://localhost:8000",
-        "http://localhost:3000",
-        "http://dev-nerdd.univie.ac.at",
-        "https://dev-nerdd.univie.ac.at",
-        "http://nerdd.univie.ac.at",
-        "https://nerdd.univie.ac.at",
-    ]
+    #
+    # Middlewares
+    #
+    if cfg.log_requests:
+        from .util import LogRequestsMiddleware
 
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=origins,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+        app.add_middleware(LogRequestsMiddleware)
+
+    if cfg.cors:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
 
     app.add_middleware(GZipMiddleware)
 
+    #
+    # Routers
+    #
     app.include_router(jobs_router)
     app.include_router(sources_router)
     app.include_router(results_router)

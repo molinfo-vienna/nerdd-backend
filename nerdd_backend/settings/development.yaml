@@ -5,6 +5,8 @@ defaults:
 host: 0.0.0.0
 port: 8000
 root_path: null
+log_requests: true
+cors: true
 
 quota_anonymous: 1_000_000
 
