@@ -1,6 +1,25 @@
 # CHANGELOG
 
 
+## v0.4.5 (2025-07-14)
+
+### Fixes
+
+* fix: Return output_formats in /modules routes ([`26c595c`](https://github.com/molinfo-vienna/nerdd-backend/commit/26c595c00a279a711db6fa5cb67437667f4621ec))
+
+* fix: Add output_formats to Module ([`08002b9`](https://github.com/molinfo-vienna/nerdd-backend/commit/08002b97a2af3911216dae62604cec76a77b5fd8))
+
+* fix: Format copyright line ([`bf9f8b8`](https://github.com/molinfo-vienna/nerdd-backend/commit/bf9f8b80ec312d490f0c72bc23d3499f161af002))
+
+* fix: Don't log requests in production ([`b198eae`](https://github.com/molinfo-vienna/nerdd-backend/commit/b198eae371fb73e4381d3d70cc02c2bbbb7830f9))
+
+### Unknown
+
+* Merge pull request #45 from shirte/main
+
+Return available output formats in /modules requests ([`3d06c61`](https://github.com/molinfo-vienna/nerdd-backend/commit/3d06c6171930731cf7e9f28a0f7307d0e85f36dd))
+
+
 ## v0.4.4 (2025-07-13)
 
 ### Fixes
