@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from nerdd_module.config import Module as NerddModule
 from pydantic import BaseModel
@@ -12,6 +12,7 @@ class Module(NerddModule):
 
 class ModulePublic(Module):
     module_url: str
+    output_formats: List[str]
 
 
 class ModuleShort(BaseModel):
@@ -24,3 +25,4 @@ class ModuleShort(BaseModel):
     logo_title: Optional[str] = None
     logo_caption: Optional[str] = None
     module_url: str
+    output_formats: List[str]
