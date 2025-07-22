@@ -21,7 +21,6 @@ class ModuleShort(BaseModel):
     name: Optional[str] = None
     version: Optional[str] = None
     visible_name: Optional[str] = None
-    logo: Optional[str] = None
     logo_title: Optional[str] = None
     logo_caption: Optional[str] = None
     module_url: str

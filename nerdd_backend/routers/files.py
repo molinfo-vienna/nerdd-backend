@@ -9,7 +9,7 @@ __all__ = ["files_router"]
 files_router = APIRouter(prefix="")
 
 
-@files_router.get("/jobs/{job_id}/files/{property}/{record_id}")
+@files_router.get("/jobs/{job_id}/files/{property}/{record_id}", include_in_schema=False)
 async def get_job_file(
     job_id: str, property: str, record_id: str, request: Request = None
 ) -> FileResponse:
