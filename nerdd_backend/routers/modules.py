@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import APIRouter, HTTPException, Request
 
 from ..data import RecordNotFoundError, Repository
@@ -21,7 +23,7 @@ def augment_module(module: Module, request: Request) -> ModulePublic:
 
 
 @modules_router.get("")
-async def get_modules(request: Request):
+async def get_modules(request: Request) -> List[ModuleShort]:
     app = request.app
     repository: Repository = app.state.repository
 
@@ -34,7 +36,7 @@ async def get_modules(request: Request):
 
 
 @modules_router.get("/{module_id}")
-async def get_module(module_id: str, request: Request):
+async def get_module(module_id: str, request: Request) -> ModulePublic:
     app = request.app
     repository: Repository = app.state.repository
 

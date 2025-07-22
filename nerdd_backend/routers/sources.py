@@ -11,7 +11,7 @@ from fastapi.encoders import jsonable_encoder
 from nerdd_link import FileSystem
 
 from ..data import RecordNotFoundError, Repository
-from ..models import Source, SourcePublic
+from ..models import BaseSuccessResponse, Source, SourcePublic
 
 __all__ = ["sources_router", "put_multiple_sources"]
 
@@ -19,7 +19,9 @@ sources_router = APIRouter(prefix="/sources")
 
 
 @sources_router.put("")
-async def put_source(file: UploadFile, format: Optional[str] = None, request: Request = None):
+async def put_source(
+    file: UploadFile, format: Optional[str] = None, request: Request = None
+) -> SourcePublic:
     app = request.app
     repository: Repository = app.state.repository
     filesystem: FileSystem = app.state.filesystem
@@ -47,7 +49,7 @@ async def put_source(file: UploadFile, format: Optional[str] = None, request: Re
 
 
 @sources_router.get("/{uuid}")
-async def get_source(uuid: str, request: Request):
+async def get_source(uuid: str, request: Request) -> SourcePublic:
     app = request.app
     repository: Repository = app.state.repository
     try:
@@ -59,7 +61,7 @@ async def get_source(uuid: str, request: Request):
 
 
 @sources_router.delete("/{uuid}")
-async def delete_source(uuid: str, request: Request):
+async def delete_source(uuid: str, request: Request) -> BaseSuccessResponse:
     app = request.app
     repository: Repository = app.state.repository
     filesystem: FileSystem = app.state.filesystem
@@ -76,7 +78,7 @@ async def delete_source(uuid: str, request: Request):
     # delete source from database
     await repository.delete_source_by_id(uuid)
 
-    return {"message": "Source deleted successfully"}
+    return BaseSuccessResponse(message="Source deleted successfully")
 
 
 async def put_multiple_sources(
@@ -84,7 +86,7 @@ async def put_multiple_sources(
     sources: List[str],
     files: List[UploadFile],
     request: Request,
-):
+) -> SourcePublic:
     app = request.app
     repository: Repository = app.state.repository
 
