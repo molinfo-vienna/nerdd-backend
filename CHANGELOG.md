@@ -1,6 +1,31 @@
 # CHANGELOG
 
 
+## v0.4.6 (2025-07-22)
+
+### Fixes
+
+* fix: Annotate return types in dynamic router ([`7a8de28`](https://github.com/molinfo-vienna/nerdd-backend/commit/7a8de2888f1c45d75bb9f4cbcfe4d785e03a39b0))
+
+* fix: Annotate return types in modules router ([`8d03dfc`](https://github.com/molinfo-vienna/nerdd-backend/commit/8d03dfc8f864b32a4d3b8bd0c49803a054c13b0c))
+
+* fix: Annotate return types in jobs router ([`a9bf812`](https://github.com/molinfo-vienna/nerdd-backend/commit/a9bf812384322db45272007cc10c3cbd434e8b0e))
+
+* fix: Annotate return types in files router ([`8c723a5`](https://github.com/molinfo-vienna/nerdd-backend/commit/8c723a55bad3b6c6cff0c97872e84fba1eee6df5))
+
+* fix: Annotate return types in challenges router ([`0c49145`](https://github.com/molinfo-vienna/nerdd-backend/commit/0c49145ea79a1e2f74beb8a030960f92ebb6333b))
+
+* fix: Annotate return types in sources routes ([`6a4e5b5`](https://github.com/molinfo-vienna/nerdd-backend/commit/6a4e5b523a694e83e6a286b8a5df5d7e9dca4259))
+
+* fix: Add BaseSuccessResponse class ([`30e7e53`](https://github.com/molinfo-vienna/nerdd-backend/commit/30e7e53dca34d530ba9a87677553f0b12e5f922e))
+
+### Unknown
+
+* Merge pull request #46 from shirte/main
+
+Annotate return types in all routes ([`aa1ecf2`](https://github.com/molinfo-vienna/nerdd-backend/commit/aa1ecf26d320bfe086e313c04e29efe824365963))
+
+
 ## v0.4.5 (2025-07-14)
 
 ### Fixes
