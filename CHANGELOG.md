@@ -1,6 +1,25 @@
 # CHANGELOG
 
 
+## v0.4.7 (2025-07-22)
+
+### Fixes
+
+* fix: Add default logo file ([`984cd0b`](https://github.com/molinfo-vienna/nerdd-backend/commit/984cd0bb7f8ecef5b8a4aeb5c35791d49b835a2f))
+
+* fix: Exclude route for external files ([`0f2b0ce`](https://github.com/molinfo-vienna/nerdd-backend/commit/0f2b0ce034043c00f153c353b6ea832a53032757))
+
+* fix: Serve module logos in separate route ([`e21a90b`](https://github.com/molinfo-vienna/nerdd-backend/commit/e21a90bcbb6ba58f5c18be95add4a5d86c0bfd65))
+
+* fix: Exclude logo from module responses ([`320e476`](https://github.com/molinfo-vienna/nerdd-backend/commit/320e476eb1ff976dd6a5a8e1950e13198da77769))
+
+### Unknown
+
+* Merge pull request #47 from shirte/main
+
+Speed up retrieval of module configurations ([`9b9102c`](https://github.com/molinfo-vienna/nerdd-backend/commit/9b9102c89c93533d3e40c015486cdd01c909abd8))
+
+
 ## v0.4.6 (2025-07-22)
 
 ### Fixes
