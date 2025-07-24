@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.4.9 (2025-07-24)
+
+### Fixes
+
+* fix: Check file path before returning to user ([`66bf56b`](https://github.com/molinfo-vienna/nerdd-backend/commit/66bf56bdfa8fb9af3c3d4dc0bd0db033d1784fbe))
+
+### Unknown
+
+* Merge pull request #49 from shirte/main
+
+fix: Check file path before returning to user ([`6bff116`](https://github.com/molinfo-vienna/nerdd-backend/commit/6bff116be408569ef99239c50af7c44268884e6c))
+
+
 ## v0.4.8 (2025-07-24)
 
 ### Fixes
