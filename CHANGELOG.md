@@ -1,6 +1,23 @@
 # CHANGELOG
 
 
+## v0.4.8 (2025-07-24)
+
+### Fixes
+
+* fix: Use correct file path for large files ([`128660e`](https://github.com/molinfo-vienna/nerdd-backend/commit/128660e2b013f6713126aa9adbfe5eaa861238ed))
+
+* fix: Bump dependencies ([`9135c48`](https://github.com/molinfo-vienna/nerdd-backend/commit/9135c48dd2ce1b7f92080da705b449f222419aaa))
+
+* fix: Derive from Model instead of SimpleModel ([`7553d97`](https://github.com/molinfo-vienna/nerdd-backend/commit/7553d972e90eafab0e95c49f80a8158970ce15a4))
+
+### Unknown
+
+* Merge pull request #48 from shirte/main
+
+Use correct path for large files ([`4a82481`](https://github.com/molinfo-vienna/nerdd-backend/commit/4a824818b1f9312027a936b5cd9a8887eddb14d5))
+
+
 ## v0.4.7 (2025-07-22)
 
 ### Fixes
