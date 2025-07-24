@@ -74,13 +74,10 @@ class SaveResultToDb(Action[ResultMessage]):
             # generate an id for the result
             if hasattr(message, "atom_id"):
                 id = f"{job_id}-{message.mol_id}-{message.atom_id}"
-                record_id = f"{message.mol_id}-{message.atom_id}"
             elif hasattr(message, "derivative_id"):
                 id = f"{job_id}-{message.mol_id}-{message.derivative_id}"
-                record_id = f"{message.mol_id}-{message.derivative_id}"
             else:
                 id = f"{job_id}-{message.mol_id}"
-                record_id = message.mol_id
 
             # map sources to original file names
             if hasattr(message, "source") and not isinstance(message.source, str):
@@ -91,9 +88,14 @@ class SaveResultToDb(Action[ResultMessage]):
 
             # replace all file paths with urls
             result = message.model_dump()
-            for k, v in result.items():
+            for result_property in module.result_properties:
+                k = result_property.name
+                v = result.get(k)
                 if isinstance(v, str) and v.startswith("file://"):
-                    result[k] = f"/api/jobs/{job_id}/files/{k}/{record_id}"
+                    parts = v.rsplit("/", 1)
+                    if len(parts) == 2:
+                        record_id = parts[1]
+                        result[k] = f"/api/jobs/{job_id}/files/{k}/{record_id}"
 
             # save result
             await self.repository.create_result(Result(id=id, **result))

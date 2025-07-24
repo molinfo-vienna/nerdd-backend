@@ -1,11 +1,11 @@
-from nerdd_module import SimpleModel
+from nerdd_module import Model
 from nerdd_module.preprocessing import Sanitize
 from rdkit.Chem.rdMolDescriptors import CalcExactMolWt
 
 __all__ = ["MolWeightModel"]
 
 
-class MolWeightModel(SimpleModel):
+class MolWeightModel(Model):
     def __init__(self):
         super().__init__(preprocessing_steps=[Sanitize()])
 
