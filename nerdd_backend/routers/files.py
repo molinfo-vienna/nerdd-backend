@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse
@@ -18,7 +18,14 @@ async def get_job_file(
 
     path = filesystem.get_property_file_path(job_id, property, record_id)
 
-    if not os.path.exists(path):
+    # for security reasons, we check if the returned path is really in jobs dir
+    jobs_dir = filesystem.get_jobs_dir()
+    resolved_path = Path(path).resolve()
+
+    if not resolved_path.is_relative_to(jobs_dir):
+        raise HTTPException(status_code=403, detail="Access to this file is forbidden")
+
+    if not resolved_path.is_file():
         raise HTTPException(status_code=404, detail="File not found")
 
-    return FileResponse(path)
+    return FileResponse(resolved_path)
