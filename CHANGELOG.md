@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## v0.4.11 (2025-07-31)
+
+### Fixes
+
+* fix: Adapt to nerdd-link 0.5.0 ([`00d8865`](https://github.com/molinfo-vienna/nerdd-backend/commit/00d8865b63385dd487e9a19a038e0865e7c5b519))
+
+* fix: Bump dependencies ([`0439d79`](https://github.com/molinfo-vienna/nerdd-backend/commit/0439d79ba978e24f77845f9eb1c7081b3df5c918))
+
+### Unknown
+
+* Merge pull request #51 from shirte/main
+
+Adapt to nerdd-link 0.5.0 ([`8d93316`](https://github.com/molinfo-vienna/nerdd-backend/commit/8d933168563cc0be42c686acead1fe1302cac33c))
+
+
 ## v0.4.10 (2025-07-31)
 
 ### Fixes
