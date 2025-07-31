@@ -11,6 +11,7 @@ from ..models import (
     JobWithResults,
     Module,
     Result,
+    ResultCheckpoint,
     Source,
     User,
 )
@@ -199,6 +200,21 @@ class Repository(ABC):
 
     @abstractmethod
     async def delete_results_by_job_id(self, job_id: str) -> None:
+        pass
+
+    #
+    # CHECKPOINTS
+    #
+    @abstractmethod
+    async def create_result_checkpoint(self, checkpoint: ResultCheckpoint) -> ResultCheckpoint:
+        pass
+
+    @abstractmethod
+    async def get_result_checkpoints_by_job_id(self, job_id: str) -> List[ResultCheckpoint]:
+        pass
+
+    @abstractmethod
+    async def delete_result_checkpoints_by_job_id(self, job_id: str) -> None:
         pass
 
     #
