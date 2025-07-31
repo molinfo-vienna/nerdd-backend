@@ -1,6 +1,37 @@
 # CHANGELOG
 
 
+## v0.4.10 (2025-07-31)
+
+### Fixes
+
+* fix: Run StartSerialization action in main ([`b14a4cb`](https://github.com/molinfo-vienna/nerdd-backend/commit/b14a4cb98f22e2731ebf691ee4647a255dab3978))
+
+* fix: Extract serialization into separate action ([`ae79f87`](https://github.com/molinfo-vienna/nerdd-backend/commit/ae79f87123f92810889f70b1353370f035977d88))
+
+* fix: Adapt actions to ResultCheckpoint model ([`f1370ed`](https://github.com/molinfo-vienna/nerdd-backend/commit/f1370edc1dd5bd5b50cf526acd3ca63d2986e797))
+
+* fix: Export ResultCheckpoint model ([`c0c5871`](https://github.com/molinfo-vienna/nerdd-backend/commit/c0c58714671a521f26187c4aa43fdadcf2d42825))
+
+* fix: Add an id field to ResultCheckpoint model ([`4d0da54`](https://github.com/molinfo-vienna/nerdd-backend/commit/4d0da54872c5cc049ea8f23c8d48c2892fad3357))
+
+* fix: Implement result checkpoint methods in RethinkDbRepository ([`3d3fe23`](https://github.com/molinfo-vienna/nerdd-backend/commit/3d3fe23eac463fc648fa24de18a17e4110319181))
+
+* fix: Implement result checkpoint methods in MemoryRepository ([`2d0d416`](https://github.com/molinfo-vienna/nerdd-backend/commit/2d0d416d40f8077ae7f2cecb9c1b08ab9ae85827))
+
+* fix: Add repository methods for result checkpoints ([`659d137`](https://github.com/molinfo-vienna/nerdd-backend/commit/659d137ac1fc7fc436036146083108a698b42ac5))
+
+* fix: Remove checkpoint update from update_job ([`652d651`](https://github.com/molinfo-vienna/nerdd-backend/commit/652d6510872a5fd16321bd846c68c3b5ab3d991e))
+
+* fix: Create separate model for result checkpoints ([`d0c5080`](https://github.com/molinfo-vienna/nerdd-backend/commit/d0c50808e0f213a9cc4c19b3f92e841e539796d5))
+
+### Unknown
+
+* Merge pull request #50 from shirte/main
+
+Change serialization workflow ([`e1c9878`](https://github.com/molinfo-vienna/nerdd-backend/commit/e1c9878085e6e0ef0187466f337a0839312a5dfe))
+
+
 ## v0.4.9 (2025-07-24)
 
 ### Fixes
