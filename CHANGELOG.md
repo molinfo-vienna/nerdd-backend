@@ -1,6 +1,25 @@
 # CHANGELOG
 
 
+## v0.5.1 (2025-08-01)
+
+### Fixes
+
+* fix: Handle RecordNotFoundError in get_job_ws ([`6fd7ede`](https://github.com/molinfo-vienna/nerdd-backend/commit/6fd7ede5d623b9095a4b548f0b103f8fc0a23a31))
+
+* fix: Use WebSocketException in websocket routes ([`5e0a3a1`](https://github.com/molinfo-vienna/nerdd-backend/commit/5e0a3a13f60503cbb130bf0fb0da20a45e06b6d0))
+
+* fix: Handle client disconnect gracefully in websocket routes ([`06e2264`](https://github.com/molinfo-vienna/nerdd-backend/commit/06e2264386e936f7b261810c52e41041018e80b0))
+
+* fix: Close websocket connections when exceptions are raised ([`df4ff8f`](https://github.com/molinfo-vienna/nerdd-backend/commit/df4ff8f9c9af0fd68ef06e320766c40242de5e2e))
+
+### Unknown
+
+* Merge pull request #53 from shirte/main
+
+Improve error handling in websockets ([`6263123`](https://github.com/molinfo-vienna/nerdd-backend/commit/6263123d9085ff4e2918da45cac9e22a76f511ac))
+
+
 ## v0.5.0 (2025-08-01)
 
 ### Features
