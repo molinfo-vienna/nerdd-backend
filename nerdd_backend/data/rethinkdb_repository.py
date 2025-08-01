@@ -344,12 +344,16 @@ class RethinkDbRepository(Repository):
         return [Result(**item) for item in cursor]
 
     async def create_result(self, result: Result) -> Result:
-        # TODO: return result
-        await (
+        changes = await (
             self.r.table("results")
-            .insert(result.model_dump(), conflict="error")
+            .insert(result.model_dump(), conflict="error", return_changes=True)
             .run(self.connection)
         )
+
+        if changes["changes"] is None or len(changes["changes"]) == 0:
+            raise RecordAlreadyExistsError(Result, result.id)
+
+        return Result(**changes["changes"][0]["new_val"])
 
     async def get_result_changes(
         self,
