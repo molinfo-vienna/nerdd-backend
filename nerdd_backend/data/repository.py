@@ -9,7 +9,7 @@ from ..models import (
     JobInternal,
     JobUpdate,
     JobWithResults,
-    Module,
+    ModuleInternal,
     Result,
     ResultCheckpoint,
     Source,
@@ -34,23 +34,23 @@ class Repository(ABC):
     @abstractmethod
     def get_module_changes(
         self,
-    ) -> AsyncIterable[Tuple[Optional[Module], Optional[Module]]]:
+    ) -> AsyncIterable[Tuple[Optional[ModuleInternal], Optional[ModuleInternal]]]:
         pass
 
     @abstractmethod
-    async def get_all_modules(self) -> List[Module]:
+    async def get_all_modules(self) -> List[ModuleInternal]:
         pass
 
     @abstractmethod
-    async def get_module_by_id(self, module_id: str) -> Module:
+    async def get_module_by_id(self, module_id: str) -> ModuleInternal:
         pass
 
     @abstractmethod
-    async def create_module(self, module: Module) -> Module:
+    async def create_module(self, module: ModuleInternal) -> ModuleInternal:
         pass
 
     @abstractmethod
-    async def update_module(self, module: Module) -> Module:
+    async def update_module(self, module: ModuleInternal) -> ModuleInternal:
         pass
 
     #
@@ -210,7 +210,15 @@ class Repository(ABC):
         pass
 
     @abstractmethod
+    async def update_result_checkpoint(self, checkpoint: ResultCheckpoint) -> ResultCheckpoint:
+        pass
+
+    @abstractmethod
     async def get_result_checkpoints_by_job_id(self, job_id: str) -> List[ResultCheckpoint]:
+        pass
+
+    @abstractmethod
+    async def get_result_checkpoints_by_module_id(self, module_id: str) -> List[ResultCheckpoint]:
         pass
 
     @abstractmethod

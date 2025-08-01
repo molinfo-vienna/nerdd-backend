@@ -3,17 +3,17 @@ import io
 from typing import List
 
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import StreamingResponse
 
 from ..data import RecordNotFoundError, Repository
-from ..models import Module, ModulePublic, ModuleShort
+from ..models import ModuleInternal, ModulePublic, ModuleShort
 
 __all__ = ["modules_router"]
 
 modules_router = APIRouter(prefix="/modules")
 
 
-def augment_module(module: Module, request: Request) -> ModulePublic:
+def augment_module(module: ModuleInternal, request: Request) -> ModulePublic:
     config = request.app.state.config
 
     output_formats = config.get("output_formats", [])

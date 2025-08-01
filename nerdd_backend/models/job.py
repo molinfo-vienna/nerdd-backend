@@ -43,6 +43,8 @@ class Job(BaseModel):
 class JobInternal(Job):
     user_id: Optional[str] = None
     referer: Optional[str] = None
+    max_num_molecules: int = 10000
+    checkpoint_size: int = 100
     num_checkpoints_total: Optional[int] = None
     output_formats: List[str] = []
 

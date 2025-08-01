@@ -32,7 +32,9 @@ class SaveResultCheckpointToDb(Action[ResultCheckpointMessage]):
 
         # create result checkpoint
         await self.repository.create_result_checkpoint(
-            ResultCheckpoint(id=f"{job_id}-{checkpoint_id}", **message.model_dump())
+            ResultCheckpoint(
+                id=f"{job_id}-{checkpoint_id}", job_type=job.job_type, **message.model_dump()
+            )
         )
 
         # check if all checkpoints have been processed

@@ -12,7 +12,7 @@ from ..models import (
     JobInternal,
     JobUpdate,
     JobWithResults,
-    Module,
+    ModuleInternal,
     Result,
     ResultCheckpoint,
     Source,
@@ -35,7 +35,7 @@ class MemoryRepository(Repository):
     async def initialize(self) -> None:
         self.transaction_lock = Lock()
         self.jobs = ObservableList[JobInternal]()
-        self.modules = ObservableList[Module]()
+        self.modules = ObservableList[ModuleInternal]()
         self.sources = ObservableList[Source]()
         self.results = ObservableList[Result]()
         self.checkpoints = ObservableList[ResultCheckpoint]()
@@ -47,34 +47,34 @@ class MemoryRepository(Repository):
     #
     async def get_module_changes(
         self,
-    ) -> AsyncIterable[Tuple[Optional[Module], Optional[Module]]]:
+    ) -> AsyncIterable[Tuple[Optional[ModuleInternal], Optional[ModuleInternal]]]:
         async for change in self.modules.changes():
             yield change
 
-    async def get_all_modules(self) -> List[Module]:
+    async def get_all_modules(self) -> List[ModuleInternal]:
         return self.modules.get_items()
 
-    async def create_module(self, module: Module) -> Module:
+    async def create_module(self, module: ModuleInternal) -> ModuleInternal:
         assert module.id is not None
         async with self.transaction_lock:
             try:
                 await self.get_module_by_id(module.id)
-                raise RecordAlreadyExistsError(Module, module.id)
+                raise RecordAlreadyExistsError(ModuleInternal, module.id)
             except RecordNotFoundError:
                 self.modules.append(module)
                 return module
 
-    async def update_module(self, module: Module) -> Module:
+    async def update_module(self, module: ModuleInternal) -> ModuleInternal:
         async with self.transaction_lock:
             existing_module = await self.get_module_by_id(module.id)
             self.modules.update(existing_module, module)
             return await self.get_module_by_id(module)
 
-    async def get_module_by_id(self, id: str) -> Module:
+    async def get_module_by_id(self, id: str) -> ModuleInternal:
         try:
             return next((module for module in self.modules.get_items() if module.id == id))
         except StopIteration as e:
-            raise RecordNotFoundError(Module, id) from e
+            raise RecordNotFoundError(ModuleInternal, id) from e
 
     #
     # JOBS
@@ -249,9 +249,27 @@ class MemoryRepository(Repository):
                 self.checkpoints.append(checkpoint)
                 return checkpoint
 
+    async def update_result_checkpoint(self, checkpoint: ResultCheckpoint) -> ResultCheckpoint:
+        async with self.transaction_lock:
+            existing_checkpoint = next(
+                (cp for cp in self.checkpoints.get_items() if cp.id == checkpoint.id), None
+            )
+            if existing_checkpoint is None:
+                raise RecordNotFoundError(ResultCheckpoint, checkpoint.id)
+
+            self.checkpoints.update(existing_checkpoint, checkpoint)
+            return await self.get_result_checkpoints_by_job_id(checkpoint.job_id)
+
     async def get_result_checkpoints_by_job_id(self, job_id: str) -> List[ResultCheckpoint]:
         return [
             checkpoint for checkpoint in self.checkpoints.get_items() if checkpoint.job_id == job_id
+        ]
+
+    async def get_result_checkpoints_by_module_id(self, module_id):
+        return [
+            checkpoint
+            for checkpoint in self.checkpoints.get_items()
+            if checkpoint.job_type == module_id
         ]
 
     async def delete_result_checkpoints_by_job_id(self, job_id: str) -> None:
