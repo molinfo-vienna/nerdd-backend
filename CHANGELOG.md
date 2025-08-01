@@ -1,6 +1,47 @@
 # CHANGELOG
 
 
+## v0.5.0 (2025-08-01)
+
+### Features
+
+* feat: Include TrackPredictionSpeed in main ([`c6d53be`](https://github.com/molinfo-vienna/nerdd-backend/commit/c6d53be36984305017bbe1efa8f81aabc7831263))
+
+### Fixes
+
+* fix: Log update in prediction time ([`978d8a7`](https://github.com/molinfo-vienna/nerdd-backend/commit/978d8a70fcc1eba309ae18827c1115c08dfc16c4))
+
+* fix: Implement TrackPredictionSpeed action ([`1267e85`](https://github.com/molinfo-vienna/nerdd-backend/commit/1267e857446b346dc3551330c5e088a5ad57653f))
+
+* fix: Add sklearn dependency ([`15351cd`](https://github.com/molinfo-vienna/nerdd-backend/commit/15351cdb45bf2e942700a31d13b96b7ebdb30feb))
+
+* fix: Rename field in Module for consistency ([`1a93e24`](https://github.com/molinfo-vienna/nerdd-backend/commit/1a93e2489076a700e135ea2c55804c0db843a048))
+
+* fix: Add new result checkpoint fields to compute prediction speed ([`92ce690`](https://github.com/molinfo-vienna/nerdd-backend/commit/92ce6904b348a1ac0edc2a54880e68f90c6588b9))
+
+* fix: Add new job fields to compute prediction speed ([`3073bad`](https://github.com/molinfo-vienna/nerdd-backend/commit/3073bade1269435ec2cc507ceee3c272eca95da2))
+
+* fix: Store job type in ResultCheckpoint ([`8e0042f`](https://github.com/molinfo-vienna/nerdd-backend/commit/8e0042fea1923e0e3c20aef286462d5fa2d75ca6))
+
+* fix: Implement new repository methods in RethinkDbRepository ([`6de43ad`](https://github.com/molinfo-vienna/nerdd-backend/commit/6de43ad3d45ce225585df341bca5c1e69c6fba8c))
+
+* fix: Implement new repository methods in MemoryRepository ([`dc56cfa`](https://github.com/molinfo-vienna/nerdd-backend/commit/dc56cfaeacd1714f2da0a5a10b8c66aea40beac9))
+
+* fix: Add more checkpoint repository methods ([`06df45f`](https://github.com/molinfo-vienna/nerdd-backend/commit/06df45fbbfe9b6fdc87fdfb6aeef2b3e3fa9c260))
+
+* fix: Adapt module router to ModuleInternal ([`b2cf373`](https://github.com/molinfo-vienna/nerdd-backend/commit/b2cf3737264425a37e4b459b712cc4fe33072167))
+
+* fix: Let repository classes use ModuleInternal ([`657cac8`](https://github.com/molinfo-vienna/nerdd-backend/commit/657cac8cb7add919e8a0e0a4a3378cd5a7c2a4ba))
+
+* fix: Add ModuleInternal model ([`9bd45d7`](https://github.com/molinfo-vienna/nerdd-backend/commit/9bd45d72ebf9693f85480033dee4a4879e971be3))
+
+### Unknown
+
+* Merge pull request #52 from shirte/main
+
+Track prediction speed in all modules ([`718453a`](https://github.com/molinfo-vienna/nerdd-backend/commit/718453a4c2316102cf7657632725dd523ddd6f0f))
+
+
 ## v0.4.11 (2025-07-31)
 
 ### Fixes
