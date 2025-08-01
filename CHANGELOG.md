@@ -1,6 +1,23 @@
 # CHANGELOG
 
 
+## v0.5.2 (2025-08-01)
+
+### Fixes
+
+* fix: Catch RecordAlreadyExists error when saving results ([`2ace3d0`](https://github.com/molinfo-vienna/nerdd-backend/commit/2ace3d0195eafcc2a66eaa975df140ca7c7e249f))
+
+* fix: Return result instance in create_result ([`db091e8`](https://github.com/molinfo-vienna/nerdd-backend/commit/db091e81b8df824dc7796c035abb2ad46945f605))
+
+* fix: Save one update operation when saving results ([`724d884`](https://github.com/molinfo-vienna/nerdd-backend/commit/724d884010afca12270963ed276255c5097b637f))
+
+### Unknown
+
+* Merge pull request #54 from shirte/main
+
+Improve performance of result saving ([`b2f3ee4`](https://github.com/molinfo-vienna/nerdd-backend/commit/b2f3ee457648151d11e8c44f3ab99de782491c5b))
+
+
 ## v0.5.1 (2025-08-01)
 
 ### Fixes
