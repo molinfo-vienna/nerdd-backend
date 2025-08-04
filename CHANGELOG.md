@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.5 (2025-08-04)
+
+### Fixes
+
+* fix: Speed up build process on Github significantly by removing ARM support ([`bb5b631`](https://github.com/molinfo-vienna/nerdd-backend/commit/bb5b631fde51ac57659903133b888fa4cce323f0))
+
+### Unknown
+
+* Merge pull request #57 from shirte/main
+
+fix: Speed up build process on Github significantly ([`c07d33b`](https://github.com/molinfo-vienna/nerdd-backend/commit/c07d33b35ccb97cc83659bb7837a5af49bbe0900))
+
+
 ## v0.5.4 (2025-08-04)
 
 ### Fixes
