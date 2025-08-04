@@ -1,6 +1,23 @@
 # CHANGELOG
 
 
+## v0.5.3 (2025-08-04)
+
+### Fixes
+
+* fix: Use correct types in RethinkDbRepository ([`993a639`](https://github.com/molinfo-vienna/nerdd-backend/commit/993a639580f3240b655b2320d0bc9b5fc3e43fa4))
+
+* fix: Improve performance of get_job_with_result_changes ([`b963138`](https://github.com/molinfo-vienna/nerdd-backend/commit/b963138c4bc2f3902502edf988af63eece470395))
+
+* fix: Add deepcopy method to CompressedSet ([`94a33be`](https://github.com/molinfo-vienna/nerdd-backend/commit/94a33be7e699c2480f02e959afa4c6bf73a5a246))
+
+### Unknown
+
+* Merge pull request #55 from shirte/main
+
+Improve performance of job status streaming significantly ([`94ea79a`](https://github.com/molinfo-vienna/nerdd-backend/commit/94ea79a894177ab28f1506d1db3616ad6c097f67))
+
+
 ## v0.5.2 (2025-08-01)
 
 ### Fixes
