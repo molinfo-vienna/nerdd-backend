@@ -201,7 +201,7 @@ class RethinkDbRepository(Repository):
             yield job, new_job
             job = new_job
 
-            if job.is_done():
+            if job is None or job.is_done():
                 break
 
     async def get_job_changes(
@@ -226,6 +226,9 @@ class RethinkDbRepository(Repository):
                 new_job = JobInternal(**change["new_val"])
 
             yield old_job, new_job
+
+            if new_job is None:
+                break
 
     async def create_jobs_table(self) -> None:
         try:

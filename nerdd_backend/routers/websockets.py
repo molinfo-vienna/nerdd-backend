@@ -24,9 +24,9 @@ async def get_job_ws(websocket: WebSocket, job_id: str):
 
         async for _, internal_job in repository.get_job_with_result_changes(job_id):
             if internal_job is None:
-                job = None
-            else:
-                job = await augment_job(internal_job, websocket)
+                break
+
+            job = await augment_job(internal_job, websocket)
             await websocket.send_json(jsonable_encoder(job))
     except RecordNotFoundError as e:
         raise WebSocketException(

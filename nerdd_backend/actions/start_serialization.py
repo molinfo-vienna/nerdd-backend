@@ -32,6 +32,7 @@ class StartSerialization(Action[LogMessage]):
             except RecordNotFoundError as e:
                 # The job might have been deleted in the meantime.
                 logger.warning(f"Job with ID {message.job_id} not found: {e}")
+                return
 
             # send request to write output files
             output_formats = self.config.output_formats
