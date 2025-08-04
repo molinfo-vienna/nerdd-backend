@@ -1,6 +1,23 @@
 # CHANGELOG
 
 
+## v0.5.7 (2025-08-04)
+
+### Fixes
+
+* fix: Do not forward job deletion to websocket ([`fa61cab`](https://github.com/molinfo-vienna/nerdd-backend/commit/fa61cab0215ad47301fd5f6b796908c34bf05eca))
+
+* fix: Do not serialize jobs after deletion ([`f661323`](https://github.com/molinfo-vienna/nerdd-backend/commit/f66132329850d2b80c59c054616ece45d708e2f9))
+
+* fix: Stop listening for changes after job deletion ([`15b3b43`](https://github.com/molinfo-vienna/nerdd-backend/commit/15b3b4320e9eddc9bab349fe1162c7a9eee1ba07))
+
+### Unknown
+
+* Merge pull request #59 from shirte/main
+
+Handle job deletion ([`89c9029`](https://github.com/molinfo-vienna/nerdd-backend/commit/89c90291717f590068c161863e6ad18dbde7b8ad))
+
+
 ## v0.5.6 (2025-08-04)
 
 ### Fixes
