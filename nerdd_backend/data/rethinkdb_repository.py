@@ -1,3 +1,4 @@
+import copy
 import logging
 from datetime import datetime
 from typing import AsyncIterable, List, Optional, Tuple
@@ -158,9 +159,54 @@ class RethinkDbRepository(Repository):
     #
     # JOBS
     #
+    async def get_job_with_result_changes(
+        self, job_id: str
+    ) -> AsyncIterable[Tuple[Optional[JobWithResults], Optional[JobWithResults]]]:
+        cursor = (
+            await self.r.table("jobs")
+            .get(job_id)
+            .changes(include_initial=False)
+            .union(
+                self.r.table("results")
+                .get_all(job_id, index="job_id")
+                .pluck("mol_id")
+                .changes(include_initial=False)
+            )
+            .run(self.connection)
+        )
+
+        job = await self.get_job_by_id(job_id)
+
+        yield None, job
+
+        async for change in cursor:
+            if "new_val" not in change or change["new_val"] is None:
+                new_job = None
+            elif "mol_id" in change["new_val"]:
+                # result entries change
+                entries_processed = copy.deepcopy(job.entries_processed)
+                entries_processed.add(change["new_val"]["mol_id"])
+                new_job = JobWithResults(
+                    **{
+                        **job.model_dump(),
+                        "entries_processed": entries_processed,
+                    }
+                )
+            else:
+                # job change (status, num_entries_total, etc.)
+                new_job = JobWithResults(
+                    **change["new_val"], entries_processed=job.entries_processed
+                )
+
+            yield job, new_job
+            job = new_job
+
+            if job.is_done():
+                break
+
     async def get_job_changes(
         self, job_id: str
-    ) -> AsyncIterable[Tuple[Optional[JobWithResults], Optional[JobInternal]]]:
+    ) -> AsyncIterable[Tuple[Optional[JobInternal], Optional[JobInternal]]]:
         cursor = (
             await self.r.table("jobs")
             .get(job_id)

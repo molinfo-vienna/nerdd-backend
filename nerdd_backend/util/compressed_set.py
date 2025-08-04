@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import copy
 from collections.abc import Sequence
-from typing import List, Optional, Tuple, Union
+from typing import List, Tuple, Union
 
 from pydantic import GetCoreSchemaHandler
 from pydantic_core.core_schema import (
@@ -150,6 +151,9 @@ class CompressedSet:
 
     def to_intervals(self) -> List[Tuple[int, int]]:
         return self.intervals
+
+    def __deepcopy__(self, memo=None) -> CompressedSet:
+        return CompressedSet(copy.deepcopy(self.intervals, memo))
 
     def __repr__(self) -> str:
         return f"CompressedSet({self.intervals})"
