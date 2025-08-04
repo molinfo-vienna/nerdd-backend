@@ -1,6 +1,23 @@
 # CHANGELOG
 
 
+## v0.5.6 (2025-08-04)
+
+### Fixes
+
+* fix: Delete jobs in the background ([`c0ed604`](https://github.com/molinfo-vienna/nerdd-backend/commit/c0ed604f6ebdba11d6f876f0dfd88c90ef89abe8))
+
+* fix: Add DeleteJob action to lifespans ([`2f46987`](https://github.com/molinfo-vienna/nerdd-backend/commit/2f46987df516fe3b1287af70bd61ba404422554b))
+
+* fix: Implement DeleteJob action ([`b7a2636`](https://github.com/molinfo-vienna/nerdd-backend/commit/b7a26364d6237b79f6b987ef4b330dd7a36911a8))
+
+### Unknown
+
+* Merge pull request #58 from shirte/main
+
+Delete jobs in a background action ([`25dded6`](https://github.com/molinfo-vienna/nerdd-backend/commit/25dded62fb9c3eabcd683c65bbc8f862c144e9c2))
+
+
 ## v0.5.5 (2025-08-04)
 
 ### Fixes
