@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.4 (2025-08-04)
+
+### Fixes
+
+* fix: Handle more errors in websocket connections ([`58a45af`](https://github.com/molinfo-vienna/nerdd-backend/commit/58a45afbf24bf71f7738c035ae1043561378f5e0))
+
+### Unknown
+
+* Merge pull request #56 from shirte/main
+
+Handle more errors in websocket connections ([`da343a7`](https://github.com/molinfo-vienna/nerdd-backend/commit/da343a75010e1f5a7267c9a96ddbbaf226bac979))
+
+
 ## v0.5.3 (2025-08-04)
 
 ### Fixes
