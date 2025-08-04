@@ -3,7 +3,7 @@ import logging
 from nerdd_link import Action, Channel, LogMessage, ResultCheckpointMessage
 from omegaconf import DictConfig
 
-from ..data import RecordNotFoundError, Repository
+from ..data import RecordAlreadyExistsError, RecordNotFoundError, Repository
 from ..models import JobUpdate, ResultCheckpoint
 
 __all__ = ["SaveResultCheckpointToDb"]
@@ -31,11 +31,16 @@ class SaveResultCheckpointToDb(Action[ResultCheckpointMessage]):
             return
 
         # create result checkpoint
-        await self.repository.create_result_checkpoint(
-            ResultCheckpoint(
-                id=f"{job_id}-{checkpoint_id}", job_type=job.job_type, **message.model_dump()
+        try:
+            await self.repository.create_result_checkpoint(
+                ResultCheckpoint(
+                    id=f"{job_id}-{checkpoint_id}", job_type=job.job_type, **message.model_dump()
+                )
             )
-        )
+        except RecordAlreadyExistsError:
+            logger.warning(
+                f"Result checkpoint {checkpoint_id} for job {job_id} already exists, skipping"
+            )
 
         # check if all checkpoints have been processed
         checkpoints = await self.repository.get_result_checkpoints_by_job_id(job_id)
