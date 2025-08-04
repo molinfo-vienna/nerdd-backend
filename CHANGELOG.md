@@ -1,6 +1,25 @@
 # CHANGELOG
 
 
+## v0.5.8 (2025-08-04)
+
+### Code Style
+
+* style: Fix indentation ([`9eb8e97`](https://github.com/molinfo-vienna/nerdd-backend/commit/9eb8e9734321a20dca759624f7d88d609dd86539))
+
+### Fixes
+
+* fix: Handle that checkpoints might already exist ([`6dc3c2d`](https://github.com/molinfo-vienna/nerdd-backend/commit/6dc3c2d0e82f55a4b7f6529df99f20b567770319))
+
+* fix: Let rethinkdb always return changes in updates ([`0d9675a`](https://github.com/molinfo-vienna/nerdd-backend/commit/0d9675a1dafeffdd188bbbf972287a760fc8e65b))
+
+### Unknown
+
+* Merge pull request #60 from shirte/main
+
+Let rethinkdb always return changes in updates ([`80544f9`](https://github.com/molinfo-vienna/nerdd-backend/commit/80544f9e95c5c16ae8d868e3f38c747fe094bede))
+
+
 ## v0.5.7 (2025-08-04)
 
 ### Fixes
