@@ -14,6 +14,14 @@ quota_active_jobs_anonymous: 5
 challenge_difficulty: 1_000_000
 challenge_expiration_seconds: 3600
 
+# The maximum number of molecules per job is restricted by two factors:
+# 1) The variable max_num_molecules_per_job below, and
+# 2) The module-specific limit, which is defined by the number of molecules it can process in
+#    the time given by max_job_duration_minutes below.
+# The actual limit is the minimum of these two values.
+max_num_molecules_per_job: 100_000
+max_job_duration_minutes: 360
+
 job_expiration_days: 60
 
 page_size_molecular_property_prediction: 100
