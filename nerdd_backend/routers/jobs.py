@@ -16,6 +16,7 @@ from ..models import (
     JobWithResults,
     OutputFile,
 )
+from .modules import augment_module
 from .users import check_quota, get_user
 
 __all__ = ["jobs_router"]
@@ -107,6 +108,9 @@ async def create_job(
             detail=f"Invalid parameters for module {job.job_type}: {str(e)}",
         ) from e
 
+    # get additional module information (for max_num_molecules)
+    augmented_module = await augment_module(module, request)
+
     # add default values for optional parameters
     for job_parameter in module.job_parameters:
         if job_parameter.name not in job.params:
@@ -137,6 +141,8 @@ async def create_job(
         source_id=job.source_id,
         params=job.params,
         page_size=page_size,
+        max_num_molecules=augmented_module.max_num_molecules,
+        checkpoint_size=augmented_module.checkpoint_size,
         status="created",
     )
 
@@ -150,9 +156,11 @@ async def create_job(
             JobMessage(
                 id=str(job_id),
                 # user_id=user.id,
-                job_type=job.job_type,
-                source_id=job.source_id,
-                params=job.params,
+                job_type=job_new.job_type,
+                source_id=job_new.source_id,
+                params=job_new.params,
+                max_num_molecules=job_new.max_num_molecules,
+                checkpoint_size=job_new.checkpoint_size,
             )
         )
     except Exception as e:
