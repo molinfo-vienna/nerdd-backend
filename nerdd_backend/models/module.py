@@ -12,10 +12,17 @@ class Module(NerddModule):
 
 class ModuleInternal(Module):
     seconds_per_molecule: float = 30
+    # estimated time the module takes to start up before processing a *batch*
     startup_time_seconds: float = 5
 
 
+# We intentionally do not inherit from ModuleInternal here, to give the chance to hide internal
+# fields in the future if needed.
 class ModulePublic(Module):
+    seconds_per_molecule: float
+    startup_time_seconds: float
+    max_num_molecules: int
+    checkpoint_size: int
     module_url: str
     output_formats: List[str]
 
