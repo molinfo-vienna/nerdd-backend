@@ -123,6 +123,8 @@ class TrackPredictionSpeed(Action[LogMessage]):
             #
             model = LinearRegression(fit_intercept=True, positive=True)
             model.fit(X_final, y_final)
+            seconds_per_molecule = model.coef_[0]
+            startup_time_seconds = model.intercept_
 
             #
             # update the module with the prediction speed
@@ -136,8 +138,8 @@ class TrackPredictionSpeed(Action[LogMessage]):
                 ModuleInternal(
                     **{
                         **module.model_dump(),
-                        "seconds_per_molecule": model.coef_[0],
-                        "startup_time_seconds": model.intercept_,
+                        "seconds_per_molecule": seconds_per_molecule,
+                        "startup_time_seconds": startup_time_seconds,
                     }
                 )
             )
