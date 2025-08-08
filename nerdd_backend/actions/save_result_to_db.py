@@ -57,26 +57,12 @@ class SaveResultToDb(Action[ResultMessage]):
         # If a job was submitted and deleted during processing, results might still be generated.
         # In this case, we ignore the results of the deleted job.
         try:
-            job = await self.repository.get_job_by_id(job_id)
+            await self.repository.get_job_by_id(job_id)
         except RecordNotFoundError:
             logger.warning(f"Job with id {job_id} not found. Ignoring this result.")
             return
 
-        try:
-            module = await self.repository.get_module_by_id(job.job_type)
-        except RecordNotFoundError:
-            logger.warning(f"Module with id {job.job_type} not found. Ignoring this result.")
-            return
-
         # TODO: check if corresponding module has correct task type (e.g. "derivative_prediction")
-
-        # generate an id for the result
-        if hasattr(message, "atom_id"):
-            id = f"{job_id}-{message.mol_id}-{message.atom_id}"
-        elif hasattr(message, "derivative_id"):
-            id = f"{job_id}-{message.mol_id}-{message.derivative_id}"
-        else:
-            id = f"{job_id}-{message.mol_id}"
 
         # map sources to original file names
         if hasattr(message, "source") and not isinstance(message.source, str):
@@ -87,8 +73,7 @@ class SaveResultToDb(Action[ResultMessage]):
 
         # replace all file paths with urls
         result = message.model_dump()
-        for result_property in module.result_properties:
-            k = result_property.name
+        for k in result.keys():
             v = result.get(k)
             if isinstance(v, str) and v.startswith("file://"):
                 parts = v.rsplit("/", 1)
@@ -96,9 +81,19 @@ class SaveResultToDb(Action[ResultMessage]):
                     record_id = parts[1]
                     result[k] = f"/api/jobs/{job_id}/files/{k}/{record_id}"
 
+        # generate an id for the result
+        if "id" not in result:
+            if hasattr(message, "atom_id"):
+                id = f"{job_id}-{message.mol_id}-{message.atom_id}"
+            elif hasattr(message, "derivative_id"):
+                id = f"{job_id}-{message.mol_id}-{message.derivative_id}"
+            else:
+                id = f"{job_id}-{message.mol_id}"
+            result["id"] = id
+
         # save result
         try:
-            await self.repository.create_result(Result(id=id, **result))
+            await self.repository.create_result(Result(**result))
         except RecordAlreadyExistsError:
             logger.warning(f"Result with id {id} already exists. Ignoring this result.")
 
