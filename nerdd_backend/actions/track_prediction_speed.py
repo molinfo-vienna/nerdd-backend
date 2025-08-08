@@ -126,6 +126,19 @@ class TrackPredictionSpeed(Action[LogMessage]):
             seconds_per_molecule = model.coef_[0]
             startup_time_seconds = model.intercept_
 
+            # linear regression might return a negative value for the intercept
+            # -> we distribute the negative startup_time_seconds equally on all molecules in
+            #    the batch and set startup_time_seconds to 0
+            if startup_time_seconds < 0:
+                seconds_per_molecule += startup_time_seconds / module.batch_size
+
+                # remember that startup_time_seconds is negative and seconds_per_molecule might
+                # become negative as well after the addition
+                if seconds_per_molecule < 0:
+                    seconds_per_molecule = 0.0
+
+                startup_time_seconds = 0.0
+
             #
             # update the module with the prediction speed
             #
