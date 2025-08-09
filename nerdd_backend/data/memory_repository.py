@@ -10,6 +10,7 @@ from ..models import (
     Challenge,
     Job,
     JobInternal,
+    JobStatus,
     JobUpdate,
     JobWithResults,
     ModuleInternal,
@@ -142,6 +143,11 @@ class MemoryRepository(Repository):
         async with self.transaction_lock:
             job = await self.get_job_by_id(id)
             self.jobs.remove(job)
+
+    async def get_jobs_by_status(self, status: List[JobStatus] | JobStatus) -> List[JobInternal]:
+        if isinstance(status, str):
+            status = [status]
+        return [job for job in self.jobs.get_items() if job.status in status]
 
     async def get_expired_jobs(self, deadline: datetime) -> AsyncIterable[JobInternal]:
         for job in self.jobs.get_items():
