@@ -23,6 +23,7 @@ class ModulePublic(Module):
     startup_time_seconds: float
     max_num_molecules: int
     checkpoint_size: int
+    waiting_time_minutes: int
     module_url: str
     output_formats: List[str]
 
