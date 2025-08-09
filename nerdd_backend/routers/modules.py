@@ -1,5 +1,6 @@
 import base64
 import io
+import math
 import sys
 from typing import List
 
@@ -15,8 +16,9 @@ __all__ = ["modules_router"]
 modules_router = APIRouter(prefix="/modules")
 
 
-async def augment_module(module: ModuleInternal, request: Request) -> ModulePublic:
+async def augment_module(module: ModuleInternal, request: Request, truncated=False) -> ModulePublic:
     config = request.app.state.config
+    repository: Repository = request.app.state.repository
 
     # get output formats from config (if available)
     output_formats = config.get("output_formats", [])
@@ -78,12 +80,39 @@ async def augment_module(module: ModuleInternal, request: Request) -> ModulePubl
         config.max_num_molecules_per_job,
     )
 
+    #
+    # Compute estimated waiting time
+    #
+
+    # skip this (slightly expensive) computation if we only want a truncated module representation
+    if not truncated:
+        active_jobs = await repository.get_jobs_by_status(["created", "processing"])
+        active_jobs_of_module = [job for job in active_jobs if job.job_type == module.id]
+        job_sizes = [
+            job.num_entries_total if job.num_entries_total is not None else 10
+            for job in active_jobs_of_module
+        ]
+
+        # the waiting time is an approximation for the following reasons:
+        # * it doesn't consider the number of available workers
+        # * it uses the total number of molecules in a job, not the remaining number
+        waiting_time_per_job = [
+            job_size * module.seconds_per_molecule
+            + math.ceil(job_size / module.batch_size) * module.startup_time_seconds
+            for job_size in job_sizes
+        ]
+        waiting_time_seconds = sum(waiting_time_per_job)
+        waiting_time_minutes = math.ceil(waiting_time_seconds / 60)
+    else:
+        waiting_time_minutes = -1  # unknown
+
     return ModulePublic(
         **{
             **module.model_dump(),
             **dict(
                 max_num_molecules=max_num_molecules,
                 checkpoint_size=checkpoint_size,
+                waiting_time_minutes=waiting_time_minutes,
                 # logo is provided in a different route to speed up loading (and enable caching)
                 logo=None,
                 module_url=str(request.url_for("get_module", module_id=module.id)),
@@ -100,7 +129,7 @@ async def get_modules(request: Request) -> List[ModuleShort]:
 
     modules = await repository.get_all_modules()
     return [
-        ModuleShort(**(await augment_module(module, request)).model_dump())
+        ModuleShort(**(await augment_module(module, request, truncated=True)).model_dump())
         for module in modules
         if module.visible
     ]
