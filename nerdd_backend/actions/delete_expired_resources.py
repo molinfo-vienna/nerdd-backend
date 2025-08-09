@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
 
@@ -41,8 +42,11 @@ class DeleteExpiredResources(Action[LogMessage]):
                     logger.error("Error deleting expired job %s", expired_job.id, exc_info=e)
 
                 # check if we have spent too much time in this loop
-                if datetime.now() - t > timedelta(minutes=1):
+                if datetime.now() - t > timedelta(seconds=10):
                     break
+
+            # wait a bit before checking for expired jobs again
+            await asyncio.sleep(10)
 
     def _get_group_name(self):
         return "delete-expired-jobs"
