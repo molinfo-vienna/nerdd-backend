@@ -81,9 +81,9 @@ async def create_app(cfg: DictConfig):
             lambda app: TrackPredictionSpeed(app.state.channel, app.state.repository, cfg)
         ),
         ActionLifespan(lambda app: DeleteJob(app.state.channel, app.state.repository, cfg)),
-        ActionLifespan(
-            lambda app: DeleteExpiredResources(app.state.channel, app.state.repository, cfg)
-        ),
+        # ActionLifespan(
+        #     lambda app: DeleteExpiredResources(app.state.channel, app.state.repository, cfg)
+        # ),
         CreateModuleLifespan(),
     ]
 
