@@ -46,7 +46,7 @@ class DeleteExpiredResources(Action[LogMessage]):
                     break
 
             # wait a bit before checking for expired jobs again
-            await asyncio.sleep(60)
+            await asyncio.sleep(300)
 
     def _get_group_name(self):
         return "delete-expired-jobs"
