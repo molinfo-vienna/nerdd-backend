@@ -1,6 +1,23 @@
 # CHANGELOG
 
 
+## v0.5.9 (2025-08-14)
+
+### Fixes
+
+* fix: Consider active jobs when restricting jobs ([`f4d41c2`](https://github.com/molinfo-vienna/nerdd-backend/commit/f4d41c276c5f2b514904a2b3998f427e8a67f04a))
+
+* fix: Restrict values of job status ([`60d62bc`](https://github.com/molinfo-vienna/nerdd-backend/commit/60d62bc02ac18c3cbad144ebeed5f94d8acbecee))
+
+* fix: Introduce active jobs to track user quota ([`d27201d`](https://github.com/molinfo-vienna/nerdd-backend/commit/d27201dc3f516e7efb3f77d0e66458dd6bb8477f))
+
+### Unknown
+
+* Merge pull request #61 from shirte/main
+
+Consider active jobs when checking user quota ([`4818185`](https://github.com/molinfo-vienna/nerdd-backend/commit/4818185717cd35a50c523da876e3337c8af11abd))
+
+
 ## v0.5.8 (2025-08-04)
 
 ### Code Style
