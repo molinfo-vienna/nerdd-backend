@@ -5,7 +5,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Body, Header, HTTPException, Request
 from fastapi.responses import FileResponse
-from nerdd_link import Channel, FileSystem, JobMessage, SerializationRequestMessage, Tombstone
+from nerdd_link import Channel, FileSystem, JobMessage, Tombstone
 
 from ..data import RecordNotFoundError, Repository
 from ..models import (
@@ -85,6 +85,21 @@ async def create_job(
                 f"Module {job.job_type} not found. Valid options are: {', '.join(valid_options)}"
             ),
         ) from e
+
+    # check module parameters
+    try:
+        module.validate_job_parameters(job.params)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Invalid parameters for module {job.job_type}: {str(e)}",
+        ) from e
+
+    # add default values for optional parameters
+    for job_parameter in module.job_parameters:
+        if job_parameter.name not in job.params:
+            if job_parameter.default is not None:
+                job.params[job_parameter.name] = job_parameter.default
 
     # get page size (depending on module task)
     task = module.task
