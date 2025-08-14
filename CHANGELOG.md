@@ -1,6 +1,23 @@
 # CHANGELOG
 
 
+## v0.5.10 (2025-08-14)
+
+### Fixes
+
+* fix: Use default value for parameters not provided ([`48b05a5`](https://github.com/molinfo-vienna/nerdd-backend/commit/48b05a5048c34d34d48bac39afaff2451d538060))
+
+* fix: Check job parameters on job creation ([`0dee80b`](https://github.com/molinfo-vienna/nerdd-backend/commit/0dee80b6752527bae0002a19648b301739dfe12b))
+
+* fix: Bump dependencies ([`54f9e68`](https://github.com/molinfo-vienna/nerdd-backend/commit/54f9e68721d91ce7980ecada43f7ab4162b74a70))
+
+### Unknown
+
+* Merge pull request #62 from shirte/main
+
+Check job parameters on job creation ([`4d3c0a2`](https://github.com/molinfo-vienna/nerdd-backend/commit/4d3c0a22c02f3530dbb25f7ea96232b80888f685))
+
+
 ## v0.5.9 (2025-08-14)
 
 ### Fixes
