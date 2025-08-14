@@ -44,15 +44,31 @@ async def check_quota(user, request):
             ),
         )
 
-    # check if the user has reached the maximum number of molecules per day
-    if hasattr(config, "quota_anonymous"):
-        num_mols_processed = sum([job.num_entries_total for job in jobs])
-        if num_mols_processed >= config.quota_anonymous:
+    # get active jobs (job status is not "completed")
+    jobs_active = [job for job in jobs if job.status != "completed"]
+
+    if hasattr(config, "quota_active_jobs_anonymous"):
+        # check if the user has reached the maximum number of active jobs
+        if len(jobs_active) >= config.quota_active_jobs_anonymous:
             raise HTTPException(
                 status_code=403,
                 detail=(
-                    f"You have reached the maximum number of molecules ({config.quota_anonymous}) "
-                    f"that can be processed per day. Please try again tomorrow."
+                    f"You have reached the maximum number of active jobs "
+                    f"({config.quota_active_jobs_anonymous}) that can be processed at the same "
+                    f"time. Please wait until one of your jobs has finished."
+                ),
+            )
+
+    # check if the user has reached the maximum number of molecules per day
+    if hasattr(config, "quota_mols_per_day_anonymous"):
+        num_mols_processed = sum([job.num_entries_total for job in jobs])
+        if num_mols_processed >= config.quota_mols_per_day_anonymous:
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    f"You have reached the maximum number of molecules "
+                    f"({config.quota_mols_per_day_anonymous}) that can be processed per day. "
+                    f"Please try again tomorrow."
                 ),
             )
 

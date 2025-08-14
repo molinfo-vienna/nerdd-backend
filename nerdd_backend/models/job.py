@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, computed_field
 
@@ -7,6 +7,7 @@ from ..util import CompressedSet
 
 __all__ = [
     "Job",
+    "JobStatus",
     "JobCreate",
     "JobPublic",
     "JobUpdate",
@@ -29,6 +30,9 @@ class OutputFile(BaseModel):
     url: str
 
 
+JobStatus = Literal["created", "processing", "serializing", "completed", "failed"]
+
+
 class Job(BaseModel):
     id: str
     job_type: str
@@ -36,7 +40,7 @@ class Job(BaseModel):
     params: dict
     created_at: datetime = datetime.now(timezone.utc)
     page_size: int = 10
-    status: str
+    status: JobStatus = "created"
     num_entries_total: Optional[int] = None
 
 
@@ -83,7 +87,7 @@ class JobPublic(Job):
 
 class JobUpdate(BaseModel):
     id: str
-    status: Optional[str] = None
+    status: Optional[JobStatus] = None
     num_entries_total: Optional[int] = None
     num_checkpoints_total: Optional[int] = None
     # output formats update
