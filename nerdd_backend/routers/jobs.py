@@ -37,11 +37,23 @@ async def augment_job(job: JobWithResults, request: Request) -> JobPublic:
     else:
         num_pages_total = None
 
+    def _get_output_file_url(output_format: str) -> str:
+        url = request.url_for("get_output_file", job_id=job.id, format=output_format)
+
+        # When using a reverse proxy, websocket requests might have the scheme "ws" (instead of
+        # "wss"), but the request headers contain X-FORWARDED-PROTO="wss" indicating a secure
+        # connection. For http/https routes, fastapi resolves the scheme correctly, but for
+        # websocket objects, `request.url_for` returns the wrong protocol ("http"). For that
+        # reason, we replace the scheme manually.
+        if request.url.scheme == "ws" and request.headers.get("x-forwarded-proto") == "wss":
+            url = url.replace(scheme="https")
+        return str(url)
+
     # get output files
     output_files = [
         OutputFile(
             format=output_format,
-            url=str(request.url_for("get_output_file", job_id=job.id, format=output_format)),
+            url=_get_output_file_url(output_format),
         )
         for output_format in job.output_formats
     ]
