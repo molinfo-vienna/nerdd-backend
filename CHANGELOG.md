@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.11 (2025-08-15)
+
+### Fixes
+
+* fix: Replace url scheme in result file urls ([`e0d4a0e`](https://github.com/molinfo-vienna/nerdd-backend/commit/e0d4a0e1ddef34944a6cb60e9155ab68899ff3e0))
+
+### Unknown
+
+* Merge pull request #63 from shirte/main
+
+fix: Replace url scheme in result file urls ([`3de6041`](https://github.com/molinfo-vienna/nerdd-backend/commit/3de6041b06916436714046c99b533a3caa149f50))
+
+
 ## v0.5.10 (2025-08-14)
 
 ### Fixes
