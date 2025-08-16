@@ -5,7 +5,7 @@ import os
 from nerdd_link import Action, Channel, FileSystem, ModuleMessage
 
 from ..data import RecordAlreadyExistsError, Repository
-from ..models import Module
+from ..models import ModuleInternal
 
 __all__ = ["SaveModuleToDb"]
 
@@ -32,13 +32,14 @@ class SaveModuleToDb(Action[ModuleMessage]):
         with open(module_path, "r") as f:
             module_json = json.load(f)
 
-        module = Module(**module_json)
+        new_module = ModuleInternal(**module_json)
         try:
-            await self._repository.create_module(module)
+            await self._repository.create_module(new_module)
         except RecordAlreadyExistsError:
-            logger.info(f"Module with id {module.id} already exists in the database")
+            logger.info(f"Module with id {new_module.id} already exists in the database")
             logger.info("Updating existing module")
-            await self._repository.update_module(module)
+            # TODO: consider merging instead of overwriting
+            await self._repository.update_module(new_module)
 
     def _get_group_name(self):
         return "save-module-to-db"
