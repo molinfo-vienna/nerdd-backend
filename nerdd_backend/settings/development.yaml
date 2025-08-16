@@ -8,7 +8,7 @@ root_path: null
 log_requests: true
 cors: true
 
-quota_mols_per_day_anonymous: 1_000_000
+quota_mols_per_day_anonymous: 100_000
 quota_active_jobs_anonymous: 5
 
 challenge_difficulty: 1000
