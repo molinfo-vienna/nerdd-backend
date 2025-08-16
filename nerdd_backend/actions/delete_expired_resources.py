@@ -35,7 +35,7 @@ class DeleteExpiredResources(Action[LogMessage]):
 
             async for expired_job in self.repository.get_expired_jobs(deadline):
                 try:
-                    logger.info("Deleting expired job %s", expired_job.id)
+                    logger.info(f"Deleting expired job {expired_job.id}")
 
                     # send tombstone message on jobs topic (DeleteJob action will take care of the
                     # rest)
@@ -43,7 +43,7 @@ class DeleteExpiredResources(Action[LogMessage]):
                         Tombstone(JobMessage, id=expired_job.id, job_type=expired_job.job_type)
                     )
                 except Exception as e:
-                    logger.error("Error deleting expired job %s", expired_job.id, exc_info=e)
+                    logger.error(f"Error deleting expired job {expired_job.id}", exc_info=e)
 
                 # check if we have spent too much time in this loop
                 if datetime.now() - t > timedelta(seconds=5):
@@ -60,6 +60,7 @@ class DeleteExpiredResources(Action[LogMessage]):
             async for source in self.repository.get_expired_sources(deadline):
                 try:
                     uuid = source.id
+                    logger.info(f"Deleting expired source {uuid}")
 
                     # delete file from disk
                     path = self.filesystem.get_source_file_path(str(uuid))
@@ -71,7 +72,7 @@ class DeleteExpiredResources(Action[LogMessage]):
                     # delete source from database
                     await self.repository.delete_source_by_id(uuid)
                 except Exception as e:
-                    logger.error("Error deleting expired source %s", source.id, exc_info=e)
+                    logger.error(f"Error deleting expired source {source.id}", exc_info=e)
 
                 # check if we have spent too much time in this loop
                 if datetime.now() - t > timedelta(seconds=5):
