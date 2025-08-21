@@ -22,6 +22,11 @@ challenge_expiration_seconds: 3600
 max_num_molecules_per_job: 10_000
 max_job_duration_minutes: 360
 
+# Jobs are sent in checkpoints to avoid recomputing full jobs if a failure occurs. The checkpoint
+# size determines the amount of computation time we are losing (at worst), since the checkpoint has
+# to be recomputed.
+max_checkpoint_duration_minutes: 15
+
 job_expiration_days: 60
 
 page_size_molecular_property_prediction: 100
