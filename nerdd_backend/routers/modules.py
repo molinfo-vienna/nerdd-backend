@@ -68,9 +68,10 @@ async def augment_module(module: ModuleInternal, request: Request, truncated=Fal
     # Compute maximum number of molecules allowed in a checkpoint
     #
 
-    # This computation is similar to the one above, but we assume a fixed duration of 30 minutes.
-    # That is the amount of computation time we are losing at worst if a failure occurs during
-    # processing of a checkpoint (since the checkpoint has to be recomputed).
+    # This computation is similar to the one above, but we assume a fixed duration given by
+    # config.max_checkpoint_duration_minutes. That is the amount of computation time we are losing
+    # at worst if a failure occurs during processing of a checkpoint (since the checkpoint has to be
+    # recomputed).
     checkpoint_duration_minutes = config.max_checkpoint_duration_minutes
     checkpoint_size = clamp(
         int(checkpoint_duration_minutes * 60 / denominator),
