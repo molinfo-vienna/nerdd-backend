@@ -1,7 +1,5 @@
 import asyncio
 import logging
-from asyncio import Lock
-from collections import OrderedDict
 from typing import List
 
 from nerdd_link import Action, Channel, ResultMessage
@@ -16,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class SaveResultToDb(Action[ResultMessage]):
     def __init__(self, channel: Channel, repository: Repository) -> None:
-        super().__init__(channel.results_topic(), batch_size=100)
+        super().__init__(channel.results_topic(), batch_size=200)
         self.repository = repository
 
     async def _process_messages(self, messages: List[ResultMessage]) -> None:
