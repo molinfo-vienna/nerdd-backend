@@ -2,10 +2,11 @@ import asyncio
 import logging
 from asyncio import Lock
 from collections import OrderedDict
+from typing import List
 
 from nerdd_link import Action, Channel, ResultMessage
 
-from ..data import RecordAlreadyExistsError, RecordNotFoundError, Repository
+from ..data import RecordNotFoundError, Repository
 from ..models import Result
 
 __all__ = ["SaveResultToDb"]
@@ -48,54 +49,79 @@ async def get_source_by_id(source_id, repository):
 
 class SaveResultToDb(Action[ResultMessage]):
     def __init__(self, channel: Channel, repository: Repository) -> None:
-        super().__init__(channel.results_topic())
+        super().__init__(channel.results_topic(), batch_size=100)
         self.repository = repository
 
-    async def _process_message(self, message: ResultMessage) -> None:
-        job_id = message.job_id
+    async def _process_messages(self, messages: List[ResultMessage]) -> None:
+        #
+        # Validate job ids
+        #
+        valid_jobs = set()
+        invalid_jobs = set()
+        valid_messages = []
+        for message in messages:
+            job_id = message.job_id
 
-        # If a job was submitted and deleted during processing, results might still be generated.
-        # In this case, we ignore the results of the deleted job.
-        try:
-            await self.repository.get_job_by_id(job_id)
-        except RecordNotFoundError:
-            logger.warning(f"Job with id {job_id} not found. Ignoring this result.")
-            return
+            if job_id not in valid_jobs and job_id not in invalid_jobs:
+                try:
+                    await self.repository.get_job_by_id(job_id)
+                    valid_jobs.add(job_id)
+                except RecordNotFoundError:
+                    logger.warning(f"Job with id {job_id} not found. Ignoring this result.")
+                    invalid_jobs.add(job_id)
 
-        # TODO: check if corresponding module has correct task type (e.g. "derivative_prediction")
+            if job_id in valid_jobs:
+                valid_messages.append(message.model_dump())
+            elif job_id in invalid_jobs:
+                # If a job was submitted and deleted during processing, results might still be
+                # generated. In this case, we ignore the results of the deleted job.
+                continue
 
-        # map sources to original file names
-        if hasattr(message, "source") and not isinstance(message.source, str):
-            translated_sources = await asyncio.gather(
-                *(get_source_by_id(source_id, self.repository) for source_id in message.source)
-            )
-            message.source = [s for s in translated_sources if s is not None]
+        # TODO: check if corresponding modules have correct task types
+        # (e.g. "derivative_prediction")
 
-        # replace all file paths with urls
-        result = message.model_dump()
-        for k in result.keys():
-            v = result.get(k)
-            if isinstance(v, str) and v.startswith("file://"):
-                parts = v.rsplit("/", 1)
-                if len(parts) == 2:
-                    record_id = parts[1]
-                    result[k] = f"/api/jobs/{job_id}/files/{k}/{record_id}"
+        for message in valid_messages:
+            job_id = message["job_id"]
 
-        # generate an id for the result
-        if "id" not in result:
-            if hasattr(message, "atom_id"):
-                id = f"{job_id}-{message.mol_id}-{message.atom_id}"
-            elif hasattr(message, "derivative_id"):
-                id = f"{job_id}-{message.mol_id}-{message.derivative_id}"
-            else:
-                id = f"{job_id}-{message.mol_id}"
-            result["id"] = id
+            #
+            # Map sources to original file names
+            #
+            if (
+                "source" in message
+                and message["source"] is not None
+                and not isinstance(message["source"], str)
+            ):
+                translated_sources = await asyncio.gather(
+                    *(
+                        get_source_by_id(source_id, self.repository)
+                        for source_id in message["source"]
+                    )
+                )
+                message["source"] = [s for s in translated_sources if s is not None]
 
-        # save result
-        try:
-            await self.repository.create_result(Result(**result))
-        except RecordAlreadyExistsError:
-            logger.warning(f"Result with id {id} already exists. Ignoring this result.")
+            #
+            # Replace all file paths with urls
+            #
+            for k, v in message.items():
+                if isinstance(v, str) and v.startswith("file://"):
+                    parts = v.rsplit("/", 1)
+                    if len(parts) == 2:
+                        record_id = parts[1]
+                        message[k] = f"/api/jobs/{job_id}/files/{k}/{record_id}"
+
+            # generate an id for the result
+            if "id" not in message:
+                logger.info("Generating id for result")
+                if hasattr(message, "atom_id"):
+                    id = f"{job_id}-{message.mol_id}-{message.atom_id}"
+                elif hasattr(message, "derivative_id"):
+                    id = f"{job_id}-{message.mol_id}-{message.derivative_id}"
+                else:
+                    id = f"{job_id}-{message.mol_id}"
+                message["id"] = id
+
+        # save results to database
+        await self.repository.upsert_results([Result(**message) for message in valid_messages])
 
     def _get_group_name(self):
         return "save-result-to-db"
