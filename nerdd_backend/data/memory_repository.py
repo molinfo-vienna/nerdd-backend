@@ -144,10 +144,21 @@ class MemoryRepository(Repository):
             job = await self.get_job_by_id(id)
             self.jobs.remove(job)
 
-    async def get_jobs_by_status(self, status: List[JobStatus] | JobStatus) -> List[JobInternal]:
+    async def get_jobs_by_status(
+        self,
+        module_id: str,
+        status: List[JobStatus] | JobStatus,
+        deadline: Optional[datetime] = None,
+    ) -> AsyncIterable[JobWithResults]:
         if isinstance(status, str):
             status = [status]
-        return [job for job in self.jobs.get_items() if job.status in status]
+        for job in self.jobs.get_items():
+            if (
+                job.status in status
+                and job.job_type == module_id
+                and (deadline is None or job.created_at <= deadline)
+            ):
+                yield self.get_job_by_id(job.id)
 
     async def get_expired_jobs(self, deadline: datetime) -> AsyncIterable[JobInternal]:
         for job in self.jobs.get_items():
