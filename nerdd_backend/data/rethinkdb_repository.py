@@ -313,13 +313,34 @@ class RethinkDbRepository(Repository):
     async def delete_job_by_id(self, job_id: str) -> None:
         await self.r.table("jobs").get(job_id).delete().run(self.connection)
 
-    async def get_jobs_by_status(self, status: List[JobStatus] | JobStatus) -> List[JobInternal]:
+    async def get_jobs_by_status(
+        self,
+        module_id: str,
+        status: List[JobStatus] | JobStatus,
+        deadline: Optional[datetime] = None,
+    ) -> AsyncIterable[JobWithResults]:
         if isinstance(status, str):
             status = [status]
 
-        cursor = await self.r.table("jobs").get_all(*status, index="status").run(self.connection)
+        cursor = (
+            await self.r.table("jobs")
+            .get_all(*status, index="status")
+            .filter(self.r.row["job_type"] == module_id)
+            .filter((self.r.row["created_at"] < deadline) if deadline is not None else True)
+            .map(
+                lambda job: job.merge(
+                    {
+                        "entries_processed": self.r.table("results")
+                        .get_all(job["id"], index="job_id")["mol_id"]
+                        .coerce_to("array")
+                    }
+                ),
+            )
+            .run(self.connection)
+        )
 
-        return [JobInternal(**item) async for item in cursor]
+        async for item in cursor:
+            yield JobWithResults(**item)
 
     async def get_expired_jobs(self, deadline: datetime) -> AsyncIterable[JobInternal]:
         cursor = (
