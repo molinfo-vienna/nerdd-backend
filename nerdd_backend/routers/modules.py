@@ -169,7 +169,7 @@ async def get_module_queue(module_id: str, request: Request) -> QueueStats:
     #
 
     # Fetch all jobs of this module (but use a limit to keep this route responsive)
-    max_jobs_to_consider = 100
+    horizon = 100
     job_sizes = []
     estimate = "upper_bound"
     async for job in repository.get_jobs_by_status(module_id, ["created", "processing"]):
@@ -179,7 +179,7 @@ async def get_module_queue(module_id: str, request: Request) -> QueueStats:
             else 10
         )
 
-        if len(job_sizes) >= max_jobs_to_consider:
+        if len(job_sizes) >= horizon:
             estimate = "lower_bound"
             break
 
