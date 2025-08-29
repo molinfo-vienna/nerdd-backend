@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.12 (2025-08-29)
+
+### Fixes
+
+* fix: Handle nan values in results ([`361aef0`](https://github.com/molinfo-vienna/nerdd-backend/commit/361aef013991b5fea3a5ba51493fe687d3266aa8))
+
+### Unknown
+
+* Merge pull request #64 from shirte/main
+
+fix: Handle nan values in results ([`92f8265`](https://github.com/molinfo-vienna/nerdd-backend/commit/92f8265d5fc43f92923fcd4485443baa40a3e2a8))
+
+
 ## v0.5.11 (2025-08-15)
 
 ### Fixes
