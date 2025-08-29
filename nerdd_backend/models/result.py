@@ -1,6 +1,7 @@
+import math
 from typing import List, Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, model_validator
 
 from .job import JobPublic
 
@@ -13,6 +14,16 @@ class Result(BaseModel):
     mol_id: int
 
     model_config = ConfigDict(extra="allow")
+
+    @model_validator(mode="before")
+    def sanitize_floats(cls, values):
+        # convert nan values to None so that they are serialized to proper json
+        def fix(v):
+            if isinstance(v, float) and (math.isnan(v) or math.isinf(v)):
+                return None
+            return v
+
+        return {k: fix(v) for k, v in values.items()}
 
 
 class Pagination(BaseModel):
