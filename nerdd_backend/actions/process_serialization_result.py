@@ -53,4 +53,4 @@ class ProcessSerializationResult(Action[SerializationResultMessage]):
             logger.warning(f"Job with ID {job_id} not found: {e}")
 
     def _get_group_name(self):
-        return "save-result-checkpoint-to-db"
+        return "process-serialization-result"
