@@ -25,7 +25,7 @@ max_job_duration_minutes: 360
 # Jobs are sent in checkpoints to avoid recomputing full jobs if a failure occurs. The checkpoint
 # size determines the amount of computation time we are losing (at worst), since the checkpoint has
 # to be recomputed.
-max_checkpoint_duration_minutes: 15
+max_checkpoint_duration_minutes: 5
 
 job_expiration_days: 60
 
