@@ -1,3 +1,4 @@
+import logging
 from uuid import uuid4
 
 from fastapi import HTTPException
@@ -6,6 +7,8 @@ from ..data import RecordNotFoundError, Repository
 from ..models import AnonymousUser
 
 __all__ = ["get_user", "check_quota"]
+
+logger = logging.getLogger(__name__)
 
 
 async def get_user(request):
@@ -36,6 +39,11 @@ async def check_quota(user, request):
     jobs_fresh = [job for job in jobs if job.num_entries_total is None]
 
     if len(jobs_fresh) > 0:
+        if type(user) is AnonymousUser:
+            logger.info(
+                f"User {user.id} with IP {user.ip_address} has {len(jobs_fresh)} fresh jobs. "
+                f"Rejecting new job submission."
+            )
         raise HTTPException(
             status_code=429,
             detail=(
