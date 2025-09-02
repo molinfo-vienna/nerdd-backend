@@ -553,9 +553,7 @@ class RethinkDbRepository(Repository):
 
     async def get_user_by_ip_address(self, ip_address: str) -> AnonymousUser:
         result = (
-            await self.r.table("users")
-            .filter(lambda user: user["ip_address"] == ip_address)
-            .run(self.connection)
+            await self.r.table("users").get_all(ip_address, index="ip_address").run(self.connection)
         )
 
         if result is None:
@@ -594,14 +592,13 @@ class RethinkDbRepository(Repository):
         cursor = (
             await self.r.table("jobs")
             .filter(
-                lambda job: job["user_id"] == user.id
-                and job["created_at"] > self.r.now().sub(num_seconds)
+                (self.r.row["user_id"] == user.id)
+                & (self.r.row["created_at"] > self.r.now().sub(num_seconds))
             )
-            .order_by(self.r.desc("created_at"))
             .run(self.connection)
         )
 
-        return [JobInternal(**item) for item in cursor]
+        return [JobInternal(**item) async for item in cursor]
 
     #
     # CHALLENGES
