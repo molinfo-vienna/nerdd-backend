@@ -37,6 +37,7 @@ class UpdateJobSize(Action[LogMessage]):
             except RecordNotFoundError as e:
                 # The job might have been deleted in the meantime.
                 logger.warning(f"Job with ID {message.job_id} not found: {e}")
+                return
 
             # check if all checkpoints have been processed
             checkpoints = await self.repository.get_result_checkpoints_by_job_id(job_id)
