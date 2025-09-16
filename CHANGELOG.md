@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.15 (2025-09-16)
+
+### Fixes
+
+* fix: Skip fetching current module in save_result_to_db ([`1fe8441`](https://github.com/molinfo-vienna/nerdd-backend/commit/1fe844133477407888bc64f35ce8242c10e05346))
+
+### Unknown
+
+* Merge pull request #67 from shirte/main
+
+Skip fetching current module in save_result_to_db ([`35d856e`](https://github.com/molinfo-vienna/nerdd-backend/commit/35d856e1b045ff181f6cc6117d4b68cc70beac75))
+
+
 ## v0.5.14 (2025-09-16)
 
 ### Fixes
