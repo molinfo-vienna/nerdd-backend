@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.14 (2025-09-16)
+
+### Fixes
+
+* fix: Ensure that prediction speed and startup time are non-negative ([`a0b15b3`](https://github.com/molinfo-vienna/nerdd-backend/commit/a0b15b3df73e6c8d6bd868e80f5d18b8633c05fe))
+
+### Unknown
+
+* Merge pull request #66 from shirte/main
+
+Ensure that prediction speed and startup time are non-negative ([`1390e0e`](https://github.com/molinfo-vienna/nerdd-backend/commit/1390e0e48a80e28ff160e43fe697e9bd3b3f5cf9))
+
+
 ## v0.5.13 (2025-09-16)
 
 ### Fixes
