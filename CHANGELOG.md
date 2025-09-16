@@ -1,6 +1,33 @@
 # CHANGELOG
 
 
+## v0.5.13 (2025-09-16)
+
+### Fixes
+
+* fix: Pass job size limits to job processing ([`096e68c`](https://github.com/molinfo-vienna/nerdd-backend/commit/096e68c7f7283c2632f9e58868dc9c52253151bf))
+
+* fix: Compute max num molecules and checkpoint size ([`ab83b7e`](https://github.com/molinfo-vienna/nerdd-backend/commit/ab83b7ec2b0c5fd51618f35d81224e09b2136f0c))
+
+* fix: Provide speed and job size limits in ModulePublic ([`053e97a`](https://github.com/molinfo-vienna/nerdd-backend/commit/053e97a25dc12ef62f0897b4cceb45fcf57314f7))
+
+* fix: Add config variables for computing maximum job size ([`017972a`](https://github.com/molinfo-vienna/nerdd-backend/commit/017972a08c54618bfa76ce0f64b251b72fd8f79f))
+
+* fix: Add util method 'clamp' ([`33a7784`](https://github.com/molinfo-vienna/nerdd-backend/commit/33a77844ddab38e21db54401ee46be8acc623c66))
+
+### Refactoring
+
+* refactor: Extract variables in track_prediction_speed ([`c48ff27`](https://github.com/molinfo-vienna/nerdd-backend/commit/c48ff277d78fae2bf7a0ec12ca1f33ecb3741d26))
+
+* refactor: Remove unused import in process_serialization_result ([`814ba86`](https://github.com/molinfo-vienna/nerdd-backend/commit/814ba86586bd8040d71b24e9b793f240c7e72284))
+
+### Unknown
+
+* Merge pull request #65 from shirte/main
+
+Compute maximum job size based on prediction speed ([`796a9fe`](https://github.com/molinfo-vienna/nerdd-backend/commit/796a9fe2a01e38a21a779376309a6ea1528fe6a0))
+
+
 ## v0.5.12 (2025-08-29)
 
 ### Fixes
