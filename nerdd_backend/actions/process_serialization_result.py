@@ -1,6 +1,6 @@
 import logging
 
-from nerdd_link import Action, Channel, ResultCheckpointMessage, SerializationResultMessage
+from nerdd_link import Action, Channel, SerializationResultMessage
 from omegaconf import DictConfig
 
 from ..data import RecordNotFoundError, Repository
