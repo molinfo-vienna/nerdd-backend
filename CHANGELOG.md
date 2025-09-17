@@ -1,6 +1,23 @@
 # CHANGELOG
 
 
+## v0.5.16 (2025-09-17)
+
+### Fixes
+
+* fix: Use job creation date to decide on expiration ([`1ddcc8f`](https://github.com/molinfo-vienna/nerdd-backend/commit/1ddcc8f8deb7601c0ab767f066a5a5934b32efca))
+
+* fix: Delete expired jobs ([`b3f439a`](https://github.com/molinfo-vienna/nerdd-backend/commit/b3f439a9de24842e5bce878650d62f4c5cfb6d2a))
+
+* fix: Implement action deleting expired jobs ([`34d0d1f`](https://github.com/molinfo-vienna/nerdd-backend/commit/34d0d1ff315615d653f079d87acc7985d7381ede))
+
+### Unknown
+
+* Merge pull request #68 from shirte/main
+
+Delete expired jobs ([`9fc0038`](https://github.com/molinfo-vienna/nerdd-backend/commit/9fc0038682e2c463459df20dcbc867f601b5ce9b))
+
+
 ## v0.5.15 (2025-09-16)
 
 ### Fixes
