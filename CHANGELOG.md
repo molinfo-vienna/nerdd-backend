@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.18 (2025-09-17)
+
+### Fixes
+
+* fix: Let DeleteExpiredResources chill more ([`30b07dc`](https://github.com/molinfo-vienna/nerdd-backend/commit/30b07dc4339d6aa34e2fff3e2a463de86a427389))
+
+### Unknown
+
+* Merge pull request #70 from shirte/main
+
+Let DeleteExpiredResources chill more ([`ee70786`](https://github.com/molinfo-vienna/nerdd-backend/commit/ee70786ae9adf5e71e173291cf9a95b61f86e118))
+
+
 ## v0.5.17 (2025-09-17)
 
 ### Fixes
