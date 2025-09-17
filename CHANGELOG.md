@@ -1,6 +1,27 @@
 # CHANGELOG
 
 
+## v0.5.17 (2025-09-17)
+
+### Fixes
+
+* fix: Estimate waiting time ([`8154a46`](https://github.com/molinfo-vienna/nerdd-backend/commit/8154a46d4621603933e912705c0dff3b58bc9fdd))
+
+* fix: Add waiting time field to ModulePublic ([`24a5950`](https://github.com/molinfo-vienna/nerdd-backend/commit/24a595040021b9332de3c016183b85f5e236ad2a))
+
+* fix: Implement get_jobs_by_status in RethinkDbRepository ([`7f9103a`](https://github.com/molinfo-vienna/nerdd-backend/commit/7f9103aa9110c36a507ebbd531b9cb46271fd507))
+
+* fix: Implement get_jobs_by_status in MemoryRepository ([`44fa01e`](https://github.com/molinfo-vienna/nerdd-backend/commit/44fa01e7b6786139c1e35a1da7aff4d572f5a48c))
+
+* fix: Add abstract method get_jobs_by_status to Repository ([`47d482a`](https://github.com/molinfo-vienna/nerdd-backend/commit/47d482a4cb668099ef4d2dc4c353677fb21c0260))
+
+### Unknown
+
+* Merge pull request #69 from shirte/main
+
+Estimate waiting time ([`32b7240`](https://github.com/molinfo-vienna/nerdd-backend/commit/32b7240851af67e1ee5b3545a716476e14f529f9))
+
+
 ## v0.5.16 (2025-09-17)
 
 ### Fixes
