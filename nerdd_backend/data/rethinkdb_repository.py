@@ -306,7 +306,7 @@ class RethinkDbRepository(Repository):
     async def get_expired_jobs(self, deadline: datetime) -> AsyncIterable[JobInternal]:
         cursor = (
             await self.r.table("jobs")
-            .filter(lambda job: job["expires_at"] < deadline)
+            .filter(lambda job: job["created_at"] < deadline)
             .run(self.connection)
         )
 

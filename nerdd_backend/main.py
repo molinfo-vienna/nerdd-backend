@@ -13,6 +13,7 @@ from nerdd_link.utils import async_to_sync
 from omegaconf import DictConfig, OmegaConf, open_dict
 
 from .actions import (
+    DeleteExpiredResources,
     DeleteJob,
     ProcessSerializationResult,
     SaveModuleToDb,
@@ -80,6 +81,9 @@ async def create_app(cfg: DictConfig):
             lambda app: TrackPredictionSpeed(app.state.channel, app.state.repository, cfg)
         ),
         ActionLifespan(lambda app: DeleteJob(app.state.channel, app.state.repository, cfg)),
+        ActionLifespan(
+            lambda app: DeleteExpiredResources(app.state.channel, app.state.repository, cfg)
+        ),
         CreateModuleLifespan(),
     ]
 
