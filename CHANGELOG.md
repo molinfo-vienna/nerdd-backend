@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.19 (2025-09-17)
+
+### Fixes
+
+* fix: Temporarily disable DeleteExpiredResources ([`be6f2a1`](https://github.com/molinfo-vienna/nerdd-backend/commit/be6f2a11ad02e70fea5d8b7fd42eaee74cbf0ad5))
+
+### Unknown
+
+* Merge pull request #71 from shirte/main
+
+Temporarily disable DeleteExpiredResources ([`8edf4ba`](https://github.com/molinfo-vienna/nerdd-backend/commit/8edf4ba44cba25faed96755d06f077540740874d))
+
+
 ## v0.5.18 (2025-09-17)
 
 ### Fixes
