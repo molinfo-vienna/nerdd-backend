@@ -7,6 +7,7 @@ from ..models import (
     AnonymousUser,
     Challenge,
     JobInternal,
+    JobStatus,
     JobUpdate,
     JobWithResults,
     ModuleInternal,
@@ -148,6 +149,10 @@ class Repository(ABC):
 
     @abstractmethod
     async def delete_job_by_id(self, job_id: str) -> None:
+        pass
+
+    @abstractmethod
+    async def get_jobs_by_status(self, status: List[JobStatus] | JobStatus) -> List[JobInternal]:
         pass
 
     @abstractmethod

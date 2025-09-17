@@ -11,6 +11,7 @@ from ..models import (
     Challenge,
     Job,
     JobInternal,
+    JobStatus,
     JobUpdate,
     JobWithResults,
     ModuleInternal,
@@ -61,6 +62,15 @@ class RethinkDbRepository(Repository):
         await self.create_result_checkpoints_table()
         await self.create_users_table()
         await self.create_challenges_table()
+
+        # create an index on status in jobs table
+        try:
+            await self.r.table("jobs").index_create("status").run(self.connection)
+            # wait for index to be ready
+            await self.r.table("jobs").index_wait("status").run(self.connection)
+        except ReqlOpFailedError as e:
+            if not str(e).startswith("Index `status` already exists"):
+                logger.exception("Failed to create index", exc_info=e)
 
         # create an index on job_id in results table
         try:
@@ -302,6 +312,14 @@ class RethinkDbRepository(Repository):
 
     async def delete_job_by_id(self, job_id: str) -> None:
         await self.r.table("jobs").get(job_id).delete().run(self.connection)
+
+    async def get_jobs_by_status(self, status: List[JobStatus] | JobStatus) -> List[JobInternal]:
+        if isinstance(status, str):
+            status = [status]
+
+        cursor = await self.r.table("jobs").get_all(*status, index="status").run(self.connection)
+
+        return [JobInternal(**item) async for item in cursor]
 
     async def get_expired_jobs(self, deadline: datetime) -> AsyncIterable[JobInternal]:
         cursor = (
