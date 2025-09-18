@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.21 (2025-09-18)
+
+### Fixes
+
+* fix: Decrease timeout in DeleteExpiredResources ([`e5d120e`](https://github.com/molinfo-vienna/nerdd-backend/commit/e5d120ee1f578af41bca75cf2ed959b339f8509b))
+
+### Unknown
+
+* Merge pull request #73 from shirte/main
+
+Decrease timeout in DeleteExpiredResources ([`6e68013`](https://github.com/molinfo-vienna/nerdd-backend/commit/6e68013e83592ea321eed436d90b57b13ba81f26))
+
+
 ## v0.5.20 (2025-09-18)
 
 ### Fixes
