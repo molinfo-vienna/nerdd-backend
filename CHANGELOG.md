@@ -1,6 +1,23 @@
 # CHANGELOG
 
 
+## v0.5.20 (2025-09-18)
+
+### Fixes
+
+* fix: Wait even longer between job deletions ([`315c15b`](https://github.com/molinfo-vienna/nerdd-backend/commit/315c15b81c803e855c1ecabcf058c7866b5a13ac))
+
+* fix: Enable deletion of expired jobs ([`89e4948`](https://github.com/molinfo-vienna/nerdd-backend/commit/89e4948dfef1edc4412fc8484541d5675522cd73))
+
+* fix: Wait longer after deleting expired jobs ([`20b6ead`](https://github.com/molinfo-vienna/nerdd-backend/commit/20b6eadbfd83e72f6b5517360a4ce8e6760071db))
+
+### Unknown
+
+* Merge pull request #72 from shirte/main
+
+Enable deletion of expired jobs ([`82f79a5`](https://github.com/molinfo-vienna/nerdd-backend/commit/82f79a5d3d2cb5c085b84d862b29a0c9e83424d6))
+
+
 ## v0.5.19 (2025-09-17)
 
 ### Fixes
