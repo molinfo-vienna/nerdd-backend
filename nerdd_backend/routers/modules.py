@@ -88,6 +88,8 @@ async def augment_module(module: ModuleInternal, request: Request, truncated=Fal
     if not truncated:
         active_jobs = await repository.get_jobs_by_status(["created", "processing"])
         active_jobs_of_module = [job for job in active_jobs if job.job_type == module.id]
+        num_active_jobs = len(active_jobs_of_module)
+
         job_sizes = [
             job.num_entries_total if job.num_entries_total is not None else 10
             for job in active_jobs_of_module
@@ -104,6 +106,7 @@ async def augment_module(module: ModuleInternal, request: Request, truncated=Fal
         waiting_time_seconds = sum(waiting_time_per_job)
         waiting_time_minutes = math.ceil(waiting_time_seconds / 60)
     else:
+        num_active_jobs = -1  # unknown
         waiting_time_minutes = -1  # unknown
 
     return ModulePublic(
@@ -112,6 +115,7 @@ async def augment_module(module: ModuleInternal, request: Request, truncated=Fal
             **dict(
                 max_num_molecules=max_num_molecules,
                 checkpoint_size=checkpoint_size,
+                num_active_jobs=num_active_jobs,
                 waiting_time_minutes=waiting_time_minutes,
                 # logo is provided in a different route to speed up loading (and enable caching)
                 logo=None,
