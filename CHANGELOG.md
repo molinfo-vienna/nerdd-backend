@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## v0.5.22 (2025-09-19)
+
+### Fixes
+
+* fix: Compute num_active_jobs in module router ([`8c7f5d6`](https://github.com/molinfo-vienna/nerdd-backend/commit/8c7f5d6c911710b01da7032fa9317627598ac8ad))
+
+* fix: Add num_active_jobs field to ModulePublic ([`e6c97c9`](https://github.com/molinfo-vienna/nerdd-backend/commit/e6c97c94d493252ff80c4806b9b8942e22cdfa5b))
+
+### Unknown
+
+* Merge pull request #74 from shirte/main
+
+Provide number of active jobs ([`cf23991`](https://github.com/molinfo-vienna/nerdd-backend/commit/cf23991d7443d3a12f3688914ed2141c831e2263))
+
+
 ## v0.5.21 (2025-09-18)
 
 ### Fixes
