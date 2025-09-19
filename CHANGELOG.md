@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.23 (2025-09-19)
+
+### Fixes
+
+* fix: Set max num of molecules per job to 10k ([`e739165`](https://github.com/molinfo-vienna/nerdd-backend/commit/e73916567645c9d6bc72e317e04872edae146e86))
+
+### Unknown
+
+* Merge pull request #75 from shirte/main
+
+Set max num of molecules per job to 10k ([`ab6397d`](https://github.com/molinfo-vienna/nerdd-backend/commit/ab6397d75469248f3b302762665ce16da1cd0fad))
+
+
 ## v0.5.22 (2025-09-19)
 
 ### Fixes
