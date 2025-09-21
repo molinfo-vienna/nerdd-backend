@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nerdd-backend"
-version = "0.5.25"
+version = "0.5.26"
 description = "Description of your project"
 authors = [{ name = "Steffen Hirte", email = "steffen.hirte@univie.ac.at" }]
 license = "BSD-3-Clause"

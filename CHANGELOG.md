@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.26 (2025-09-21)
+
+### Fixes
+
+* fix: Decrease daily quote for anonymous users ([`cec2e55`](https://github.com/molinfo-vienna/nerdd-backend/commit/cec2e55ea03c494e764034382ee4d4bbb0ade71d))
+
+### Unknown
+
+* Merge pull request #78 from shirte/main
+
+Decrease daily quote for anonymous users ([`ba6629f`](https://github.com/molinfo-vienna/nerdd-backend/commit/ba6629fd165c06b5bcb13c5d60ac29fb44edc7ca))
+
+
 ## v0.5.25 (2025-09-21)
 
 ### Fixes
