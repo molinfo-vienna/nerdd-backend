@@ -2,7 +2,8 @@ import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
 
-from nerdd_link import Action, Channel, JobMessage, LogMessage, Tombstone
+from aiofiles import os as aio_os
+from nerdd_link import Action, Channel, FileSystem, JobMessage, LogMessage, Tombstone
 from omegaconf import DictConfig
 
 from ..data import Repository
@@ -13,9 +14,12 @@ logger = logging.getLogger(__name__)
 
 
 class DeleteExpiredResources(Action[LogMessage]):
-    def __init__(self, channel: Channel, repository: Repository, config: DictConfig) -> None:
+    def __init__(
+        self, channel: Channel, repository: Repository, filesystem: FileSystem, config: DictConfig
+    ) -> None:
         super().__init__(channel.logs_topic())
         self.repository = repository
+        self.filesystem = filesystem
         self.config = config
 
     async def _process_message(self, message: LogMessage) -> None:
@@ -25,7 +29,7 @@ class DeleteExpiredResources(Action[LogMessage]):
             #
             deadline = datetime.now(timezone.utc) - timedelta(days=self.config.job_expiration_days)
 
-            # we limit the time spent in this loop
+            # we limit the time spent in the following loop
             # -> track the start time
             t = datetime.now()
 
@@ -42,7 +46,35 @@ class DeleteExpiredResources(Action[LogMessage]):
                     logger.error("Error deleting expired job %s", expired_job.id, exc_info=e)
 
                 # check if we have spent too much time in this loop
-                if datetime.now() - t > timedelta(seconds=10):
+                if datetime.now() - t > timedelta(seconds=5):
+                    break
+
+            #
+            # delete expired sources
+            #
+
+            # we again limit the time spent in the following loop
+            # -> track the start time
+            t = datetime.now()
+
+            async for source in self.repository.get_expired_sources(deadline):
+                try:
+                    uuid = source.id
+
+                    # delete file from disk
+                    path = self.filesystem.get_source_file_path(str(uuid))
+                    try:
+                        await aio_os.remove(path)
+                    except FileNotFoundError:
+                        pass
+
+                    # delete source from database
+                    await self.repository.delete_source_by_id(uuid)
+                except Exception as e:
+                    logger.error("Error deleting expired source %s", source.id, exc_info=e)
+
+                # check if we have spent too much time in this loop
+                if datetime.now() - t > timedelta(seconds=5):
                     break
 
             # wait a bit before checking for expired jobs again
