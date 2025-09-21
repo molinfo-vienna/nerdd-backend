@@ -7,7 +7,7 @@ Feature: Jobs
     Scenario: Uploading a valid job
         When the client sends a POST request to /jobs/ with content
             {
-                "job_type": "mol_scale",
+                "job_type": "mol-scale",
                 "source_id": "1",
                 "params": { "multiplier": 10 }
             }
