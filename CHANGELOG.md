@@ -1,6 +1,25 @@
 # CHANGELOG
 
 
+## v0.5.25 (2025-09-21)
+
+### Fixes
+
+* fix: Add github workflow for testing ([`2ebe749`](https://github.com/molinfo-vienna/nerdd-backend/commit/2ebe749aed7a0bd54d5f5febd7a1e630b967cf59))
+
+* fix: Use correct type in SaveModuleToDb ([`f862369`](https://github.com/molinfo-vienna/nerdd-backend/commit/f86236983eda088c67c454ddca0c9911c9ba148d))
+
+### Testing
+
+* test: Fix typo in job feature ([`ead9ecd`](https://github.com/molinfo-vienna/nerdd-backend/commit/ead9ecd1ace26949ac1360e415de56a878b5a3c5))
+
+### Unknown
+
+* Merge pull request #77 from shirte/main
+
+Repair test suite ([`1984e53`](https://github.com/molinfo-vienna/nerdd-backend/commit/1984e5392741eb2c2acade7dd1a1c8c4a06bb640))
+
+
 ## v0.5.24 (2025-09-21)
 
 ### Fixes
