@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## v0.5.24 (2025-09-21)
+
+### Fixes
+
+* fix: Delete expired sources ([`d264f1a`](https://github.com/molinfo-vienna/nerdd-backend/commit/d264f1af1d260b24a92e1180be51c5a12b76d68f))
+
+* fix: Pass filesystem to DeleteExpiredResources ([`5a9ca92`](https://github.com/molinfo-vienna/nerdd-backend/commit/5a9ca927fe4b6dc7c665b2dfc2ccfaf42ebe5957))
+
+### Unknown
+
+* Merge pull request #76 from shirte/main
+
+Delete expired sources ([`f7251c7`](https://github.com/molinfo-vienna/nerdd-backend/commit/f7251c7e16c85b24873d6a014c27c674f2ba22e0))
+
+
 ## v0.5.23 (2025-09-19)
 
 ### Fixes
