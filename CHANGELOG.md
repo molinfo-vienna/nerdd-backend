@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.27 (2025-09-21)
+
+### Fixes
+
+* fix: Write log when deleting an expired source ([`9c4ed4a`](https://github.com/molinfo-vienna/nerdd-backend/commit/9c4ed4a0bf0ad98d917880379cb7d73d158c374c))
+
+### Unknown
+
+* Merge pull request #79 from shirte/main
+
+Write log when deleting an expired source ([`51654c4`](https://github.com/molinfo-vienna/nerdd-backend/commit/51654c4eac10876ea00aea6d7fc65648b7fe5c1d))
+
+
 ## v0.5.26 (2025-09-21)
 
 ### Fixes
