@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.30 (2025-09-23)
+
+### Fixes
+
+* fix: Handle missing ids when saving results ([`c5bfebf`](https://github.com/molinfo-vienna/nerdd-backend/commit/c5bfebf52e0e9fb5bb02e899187c8dc5730cf110))
+
+### Unknown
+
+* Merge pull request #82 from shirte/main
+
+Handle missing ids when saving results ([`6b2d87a`](https://github.com/molinfo-vienna/nerdd-backend/commit/6b2d87a1aff1dfea043be868e65c4feb3cebd5eb))
+
+
 ## v0.5.29 (2025-09-23)
 
 ### Fixes
