@@ -1,6 +1,25 @@
 # CHANGELOG
 
 
+## v0.5.28 (2025-09-23)
+
+### Code Style
+
+* style: Add a comment on checkpoint duration ([`d21df62`](https://github.com/molinfo-vienna/nerdd-backend/commit/d21df62ea5bebc438475d40e43eeddf2dc9e97c6))
+
+### Fixes
+
+* fix: Use checkpoint duration from config ([`4ad80f8`](https://github.com/molinfo-vienna/nerdd-backend/commit/4ad80f8fa0445c91342f0de98cd98f86c5387877))
+
+* fix: Store checkpoint duration in config ([`5f8367e`](https://github.com/molinfo-vienna/nerdd-backend/commit/5f8367ec71b67ce575ad392a0df55cd3be2026dd))
+
+### Unknown
+
+* Merge pull request #80 from shirte/main
+
+Use checkpoint duration from config ([`1dc3b95`](https://github.com/molinfo-vienna/nerdd-backend/commit/1dc3b95c1e622ce06ec28a55ca4bbaf3ab7bb96e))
+
+
 ## v0.5.27 (2025-09-21)
 
 ### Fixes
