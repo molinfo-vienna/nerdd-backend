@@ -87,13 +87,15 @@ class SaveResultToDb(Action[ResultMessage]):
 
             # generate an id for the result
             if "id" not in message:
-                logger.info("Generating id for result")
-                if hasattr(message, "atom_id"):
-                    id = f"{job_id}-{message.mol_id}-{message.atom_id}"
-                elif hasattr(message, "derivative_id"):
-                    id = f"{job_id}-{message.mol_id}-{message.derivative_id}"
+                mol_id = message["mol_id"]
+                if "atom_id" in message:
+                    atom_id = message["atom_id"]
+                    id = f"{job_id}-{mol_id}-{atom_id}"
+                elif "derivative_id" in message:
+                    derivative_id = message["derivative_id"]
+                    id = f"{job_id}-{mol_id}-{derivative_id}"
                 else:
-                    id = f"{job_id}-{message.mol_id}"
+                    id = f"{job_id}-{mol_id}"
                 message["id"] = id
 
         # save results to database
