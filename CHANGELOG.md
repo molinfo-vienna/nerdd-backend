@@ -1,6 +1,31 @@
 # CHANGELOG
 
 
+## v0.5.29 (2025-09-23)
+
+### Fixes
+
+* fix: Increase batch size to 200 ([`365a2cb`](https://github.com/molinfo-vienna/nerdd-backend/commit/365a2cb84b2e56b5528fbc21aaf3620da086c082))
+
+* fix: Remove source caching (and thus simplify code) ([`daed8ac`](https://github.com/molinfo-vienna/nerdd-backend/commit/daed8ac5124d9228495cec5c5a8a08810c3a3ce4))
+
+* fix: Use batching when saving results to DB ([`a32c275`](https://github.com/molinfo-vienna/nerdd-backend/commit/a32c2758c942f3970ecf9c1705e7363e461131d1))
+
+* fix: Adapt MemoryRepository ([`68cbefe`](https://github.com/molinfo-vienna/nerdd-backend/commit/68cbefe378214a7de955cc3d02acc308371828c8))
+
+* fix: Adapt RethinkDBRepository ([`fbfeb1e`](https://github.com/molinfo-vienna/nerdd-backend/commit/fbfeb1ec61e48faedd7fea22bfec4df95e8f87a9))
+
+* fix: Encourage inserting multiple results to DB at once ([`de7d6c1`](https://github.com/molinfo-vienna/nerdd-backend/commit/de7d6c12e6522e738c68d1d4f2dd86dfd76db5dc))
+
+* fix: Bump dependencies ([`343f8cd`](https://github.com/molinfo-vienna/nerdd-backend/commit/343f8cdba45a7a0d3f3dff30dbc53177b1cd2b0f))
+
+### Unknown
+
+* Merge pull request #81 from shirte/main
+
+Use batching when saving results to DB ([`eac3790`](https://github.com/molinfo-vienna/nerdd-backend/commit/eac37906e56370eec4b0f3bafc6fa0b5588dc4db))
+
+
 ## v0.5.28 (2025-09-23)
 
 ### Code Style
