@@ -410,17 +410,19 @@ class RethinkDbRepository(Repository):
 
         return [Result(**item) for item in cursor]
 
-    async def create_result(self, result: Result) -> Result:
+    async def upsert_results(self, results: List[Result]) -> None:
         changes = await (
             self.r.table("results")
-            .insert(result.model_dump(), conflict="error", return_changes=True)
+            .insert(
+                [result.model_dump() for result in results],
+                conflict="replace",
+                return_changes=False,
+            )
             .run(self.connection)
         )
 
-        if changes["changes"] is None or len(changes["changes"]) == 0:
-            raise RecordAlreadyExistsError(Result, result.id)
-
-        return Result(**changes["changes"][0]["new_val"])
+        if changes["errors"] > 0:
+            raise Exception(f"Failed to upsert results: {changes['first_error']}")
 
     async def get_result_changes(
         self,

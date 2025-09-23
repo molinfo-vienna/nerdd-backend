@@ -224,13 +224,14 @@ class MemoryRepository(Repository):
             and (end_mol_id is None or result.mol_id <= end_mol_id)
         ]
 
-    async def create_result(self, result: Result) -> None:
+    async def upsert_results(self, results: List[Result]) -> None:
         async with self.transaction_lock:
-            try:
-                await self.get_result_by_id(result.id)
-                raise RecordAlreadyExistsError(Result, result.id)
-            except RecordNotFoundError:
-                self.results.append(result)
+            for result in results:
+                try:
+                    existing = await self.get_result_by_id(result.id)
+                    self.results.update(existing, result)
+                except RecordNotFoundError:
+                    self.results.append(result)
 
     async def get_all_results_by_job_id(self, job_id: str) -> List[Result]:
         return [result for result in self.results.get_items() if result.job_id == job_id]

@@ -191,7 +191,7 @@ class Repository(ABC):
         pass
 
     @abstractmethod
-    async def create_result(self, result: Result) -> Result:
+    async def upsert_results(self, result: List[Result]) -> None:
         pass
 
     @abstractmethod
