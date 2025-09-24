@@ -2,6 +2,7 @@ from .challenge import *
 from .common import *
 from .job import *
 from .module import *
+from .queue_stats import *
 from .result import *
 from .result_checkpoint import *
 from .source import *

@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Literal, Optional
 
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel, Field, computed_field
 
 from ..util import CompressedSet
 
@@ -38,7 +38,7 @@ class Job(BaseModel):
     job_type: str
     source_id: str
     params: dict
-    created_at: datetime = datetime.now(timezone.utc)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     page_size: int = 10
     status: JobStatus = "created"
     num_entries_total: Optional[int] = None

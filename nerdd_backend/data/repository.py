@@ -152,7 +152,12 @@ class Repository(ABC):
         pass
 
     @abstractmethod
-    async def get_jobs_by_status(self, status: List[JobStatus] | JobStatus) -> List[JobInternal]:
+    async def get_jobs_by_status(
+        self,
+        module_id: str,
+        status: List[JobStatus] | JobStatus,
+        deadline: Optional[datetime] = None,
+    ) -> AsyncIterable[JobWithResults]:
         pass
 
     @abstractmethod

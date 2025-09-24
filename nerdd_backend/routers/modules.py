@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
 from ..data import RecordNotFoundError, Repository
-from ..models import ModuleInternal, ModulePublic, ModuleShort
+from ..models import ModuleInternal, ModulePublic, ModuleShort, QueueStats
 from ..util import clamp
 
 __all__ = ["modules_router"]
@@ -16,9 +16,8 @@ __all__ = ["modules_router"]
 modules_router = APIRouter(prefix="/modules")
 
 
-async def augment_module(module: ModuleInternal, request: Request, truncated=False) -> ModulePublic:
+async def augment_module(module: ModuleInternal, request: Request) -> ModulePublic:
     config = request.app.state.config
-    repository: Repository = request.app.state.repository
 
     # get output formats from config (if available)
     output_formats = config.get("output_formats", [])
@@ -81,43 +80,12 @@ async def augment_module(module: ModuleInternal, request: Request, truncated=Fal
         config.max_num_molecules_per_job,
     )
 
-    #
-    # Compute estimated waiting time
-    #
-
-    # skip this (slightly expensive) computation if we only want a truncated module representation
-    if not truncated:
-        active_jobs = await repository.get_jobs_by_status(["created", "processing"])
-        active_jobs_of_module = [job for job in active_jobs if job.job_type == module.id]
-        num_active_jobs = len(active_jobs_of_module)
-
-        job_sizes = [
-            job.num_entries_total if job.num_entries_total is not None else 10
-            for job in active_jobs_of_module
-        ]
-
-        # the waiting time is an approximation for the following reasons:
-        # * it doesn't consider the number of available workers
-        # * it uses the total number of molecules in a job, not the remaining number
-        waiting_time_per_job = [
-            job_size * module.seconds_per_molecule
-            + math.ceil(job_size / module.batch_size) * module.startup_time_seconds
-            for job_size in job_sizes
-        ]
-        waiting_time_seconds = sum(waiting_time_per_job)
-        waiting_time_minutes = math.ceil(waiting_time_seconds / 60)
-    else:
-        num_active_jobs = -1  # unknown
-        waiting_time_minutes = -1  # unknown
-
     return ModulePublic(
         **{
             **module.model_dump(),
             **dict(
                 max_num_molecules=max_num_molecules,
                 checkpoint_size=checkpoint_size,
-                num_active_jobs=num_active_jobs,
-                waiting_time_minutes=waiting_time_minutes,
                 # logo is provided in a different route to speed up loading (and enable caching)
                 logo=None,
                 module_url=str(request.url_for("get_module", module_id=module.id)),
@@ -134,7 +102,7 @@ async def get_modules(request: Request) -> List[ModuleShort]:
 
     modules = await repository.get_all_modules()
     return [
-        ModuleShort(**(await augment_module(module, request, truncated=True)).model_dump())
+        ModuleShort(**(await augment_module(module, request)).model_dump())
         for module in modules
         if module.visible
     ]
@@ -184,3 +152,50 @@ async def get_module_logo(module_id: str, request: Request) -> StreamingResponse
         mime_type = None
 
     return StreamingResponse(io.BytesIO(logo_data_decoded), media_type=mime_type)
+
+
+@modules_router.get("/{module_id}/queue")
+async def get_module_queue(module_id: str, request: Request) -> QueueStats:
+    app = request.app
+    repository: Repository = app.state.repository
+
+    try:
+        module = await repository.get_module_by_id(module_id)
+    except RecordNotFoundError as e:
+        raise HTTPException(status_code=404, detail="Module not found") from e
+
+    #
+    # Compute estimated waiting time
+    #
+
+    # Fetch all jobs of this module (but use a limit to keep this route responsive)
+    horizon = 100
+    job_sizes = []
+    estimate = "upper_bound"
+    async for job in repository.get_jobs_by_status(module_id, ["created", "processing"]):
+        job_sizes.append(
+            max(job.num_entries_total - job.num_entries_processed, 0)
+            if job.num_entries_total is not None
+            else 10
+        )
+
+        if len(job_sizes) >= horizon:
+            estimate = "lower_bound"
+            break
+
+    # the waiting time is still an approximation, because it doesn't consider the number of
+    # available workers
+    waiting_time_per_job = [
+        job_size * module.seconds_per_molecule
+        + math.ceil(job_size / module.batch_size) * module.startup_time_seconds
+        for job_size in job_sizes
+    ]
+    waiting_time_seconds = sum(waiting_time_per_job)
+    waiting_time_minutes = math.ceil(waiting_time_seconds / 60)
+
+    return QueueStats(
+        module_id=module.id,
+        num_active_jobs=len(job_sizes),
+        waiting_time_minutes=waiting_time_minutes,
+        estimate=estimate,
+    )

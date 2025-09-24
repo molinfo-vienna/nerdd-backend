@@ -15,6 +15,7 @@ from ..models import (
     JobPublic,
     JobWithResults,
     OutputFile,
+    QueueStats,
 )
 from .modules import augment_module
 from .users import check_quota, get_user
@@ -246,3 +247,59 @@ async def get_job(job_id: str, request: Request) -> JobPublic:
         raise HTTPException(status_code=404, detail="Job not found") from e
 
     return await augment_job(job, request)
+
+
+@jobs_router.get("/{job_id}/queue")
+async def get_job_queue(job_id: str, request: Request) -> QueueStats:
+    app = request.app
+    repository: Repository = app.state.repository
+
+    try:
+        job = await repository.get_job_by_id(job_id)
+    except RecordNotFoundError as e:
+        raise HTTPException(status_code=404, detail="Job not found") from e
+
+    module_id = job.job_type
+
+    try:
+        module = await repository.get_module_by_id(module_id)
+    except RecordNotFoundError as e:
+        raise HTTPException(status_code=404, detail="Module not found") from e
+
+    #
+    # Compute estimated waiting time
+    #
+
+    # Fetch all jobs of this module (but use a limit to keep this route responsive)
+    horizon = 100
+    job_sizes = []
+    estimate = "upper_bound"
+    async for earlier_job in repository.get_jobs_by_status(
+        module_id, ["created", "processing"], deadline=job.created_at
+    ):
+        job_sizes.append(
+            max(earlier_job.num_entries_total - earlier_job.num_entries_processed, 0)
+            if earlier_job.num_entries_total is not None
+            else 10
+        )
+
+        if len(job_sizes) >= horizon:
+            estimate = "lower_bound"
+            break
+
+    # the waiting time is still an approximation, because it doesn't consider the number of
+    # available workers
+    waiting_time_per_job = [
+        job_size * module.seconds_per_molecule
+        + math.ceil(job_size / module.batch_size) * module.startup_time_seconds
+        for job_size in job_sizes
+    ]
+    waiting_time_seconds = sum(waiting_time_per_job)
+    waiting_time_minutes = math.ceil(waiting_time_seconds / 60)
+
+    return QueueStats(
+        module_id=module.id,
+        num_active_jobs=len(job_sizes),
+        waiting_time_minutes=waiting_time_minutes,
+        estimate=estimate,
+    )
