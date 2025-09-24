@@ -1,6 +1,37 @@
 # CHANGELOG
 
 
+## v0.5.31 (2025-09-24)
+
+### Fixes
+
+* fix: Use pydantic Field to generate default for created_at ([`d0d1975`](https://github.com/molinfo-vienna/nerdd-backend/commit/d0d19755721220d68ac8ba7885c555b7b90bd4c9))
+
+* fix: Add route to get job waiting time ([`29850d2`](https://github.com/molinfo-vienna/nerdd-backend/commit/29850d2603c944ef39a575a690b0a2157e962881))
+
+* fix: Introduce different route for fetching module queue stats ([`43fea2e`](https://github.com/molinfo-vienna/nerdd-backend/commit/43fea2e0a5f20fec741fcd2acb6f569d6a525ce6))
+
+* fix: Extract queue stats into separate type ([`3bed02f`](https://github.com/molinfo-vienna/nerdd-backend/commit/3bed02ffd28264d376e9b6e3af1a6ce93bc307a2))
+
+* fix: Adapt RethinkDBRepository ([`dbd68d1`](https://github.com/molinfo-vienna/nerdd-backend/commit/dbd68d1c00a4d256aeb51a41a061040468dedc72))
+
+* fix: Adapt MemoryRepository ([`6762555`](https://github.com/molinfo-vienna/nerdd-backend/commit/6762555fe7bd38c085a92cd84813fdfd0034cd12))
+
+* fix: Filter by module_id in get_jobs_by_status ([`4403463`](https://github.com/molinfo-vienna/nerdd-backend/commit/44034632bf88537aead1c97761eb35b11cf1ce07))
+
+### Refactoring
+
+* refactor: Rename variable ([`7d05e3c`](https://github.com/molinfo-vienna/nerdd-backend/commit/7d05e3c51dc78283d380969c07b1dc68bb6626d6))
+
+* refactor: Use snakcase for queue_stats module ([`f5b1dfd`](https://github.com/molinfo-vienna/nerdd-backend/commit/f5b1dfdea6adf5ce83b135dceaddd625c04e0f25))
+
+### Unknown
+
+* Merge pull request #83 from shirte/main
+
+Provide waiting time for modules and individual jobs ([`74e2b82`](https://github.com/molinfo-vienna/nerdd-backend/commit/74e2b82f069048921fc20ce6b4fee3a62481c139))
+
+
 ## v0.5.30 (2025-09-23)
 
 ### Fixes
