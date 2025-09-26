@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.33 (2025-09-26)
+
+### Fixes
+
+* fix: Decrease checkpoint duration ([`cef5ce0`](https://github.com/molinfo-vienna/nerdd-backend/commit/cef5ce0d30dd59312d0de91c7273587bdb8bded4))
+
+### Unknown
+
+* Merge pull request #85 from shirte/main
+
+Decrease checkpoint duration ([`5876133`](https://github.com/molinfo-vienna/nerdd-backend/commit/5876133c017c4114b44d55be5d9f41bdd2bb665e))
+
+
 ## v0.5.32 (2025-09-26)
 
 ### Fixes
