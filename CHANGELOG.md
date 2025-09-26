@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## v0.5.32 (2025-09-26)
+
+### Fixes
+
+* fix: Update dependencies ([`91551ce`](https://github.com/molinfo-vienna/nerdd-backend/commit/91551ce0ebd3fd41ecba8f5f51073c383e80286c))
+
+* fix: Use correct group name in ProcessSerializationResult ([`4299dfb`](https://github.com/molinfo-vienna/nerdd-backend/commit/4299dfb8f595a61d9a437fddbc4bb000603ceba6))
+
+### Unknown
+
+* Merge pull request #84 from shirte/main
+
+Update dependencies ([`8969869`](https://github.com/molinfo-vienna/nerdd-backend/commit/8969869a14ce191a07213b6a5a23afc89ed9caed))
+
+
 ## v0.5.31 (2025-09-24)
 
 ### Fixes
