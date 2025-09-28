@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.34 (2025-09-28)
+
+### Fixes
+
+* fix: Improve query to fetch all results ([`46cbb50`](https://github.com/molinfo-vienna/nerdd-backend/commit/46cbb5000c2cf7b67ccb567ce5f21dca3639e72d))
+
+### Unknown
+
+* Merge pull request #86 from shirte/main
+
+Improve query to fetch all results ([`cd5d188`](https://github.com/molinfo-vienna/nerdd-backend/commit/cd5d188cf3f2e5502c4d7eb9feacda6145281ef4))
+
+
 ## v0.5.33 (2025-09-26)
 
 ### Fixes
