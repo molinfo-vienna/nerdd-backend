@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.35 (2025-09-28)
+
+### Fixes
+
+* fix: Log if job submission was rejected ([`3ada675`](https://github.com/molinfo-vienna/nerdd-backend/commit/3ada675f58b57e5cd79b3bc02ccb0459bf3ce4df))
+
+### Unknown
+
+* Merge pull request #87 from shirte/main
+
+Log if job submission was rejected ([`680c6d1`](https://github.com/molinfo-vienna/nerdd-backend/commit/680c6d1f5eb59b44eac53f43f0e8c15208a443ab))
+
+
 ## v0.5.34 (2025-09-28)
 
 ### Fixes
