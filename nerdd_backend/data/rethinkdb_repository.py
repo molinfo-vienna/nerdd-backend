@@ -296,7 +296,10 @@ class RethinkDbRepository(Repository):
                     job.merge(
                         {
                             "entries_processed": self.r.table("results")
-                            .get_all(job["id"], index="job_id")["mol_id"]
+                            .get_all(job["id"], index="job_id")
+                            .pluck("mol_id")
+                            .map(lambda row: row["mol_id"])
+                            .distinct()
                             .coerce_to("array")
                         }
                     ),
@@ -331,10 +334,13 @@ class RethinkDbRepository(Repository):
                 lambda job: job.merge(
                     {
                         "entries_processed": self.r.table("results")
-                        .get_all(job["id"], index="job_id")["mol_id"]
+                        .get_all(job["id"], index="job_id")
+                        .pluck("mol_id")
+                        .map(lambda row: row["mol_id"])
+                        .distinct()
                         .coerce_to("array")
                     }
-                ),
+                )
             )
             .run(self.connection)
         )
