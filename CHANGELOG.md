@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.36 (2025-09-28)
+
+### Fixes
+
+* fix: Fetch fresh jobs of a user correctly ([`18e5225`](https://github.com/molinfo-vienna/nerdd-backend/commit/18e52252dc60207dadf0445a1bc56f00a94ffd94))
+
+### Unknown
+
+* Merge pull request #88 from shirte/main
+
+Fetch fresh jobs of a user correctly ([`5604db9`](https://github.com/molinfo-vienna/nerdd-backend/commit/5604db9a4d5ef67d6941b6ec2eb0094460ac341b))
+
+
 ## v0.5.35 (2025-09-28)
 
 ### Fixes
