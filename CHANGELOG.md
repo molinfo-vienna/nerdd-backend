@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.37 (2025-09-29)
+
+### Fixes
+
+* fix: Handle missing jobs when updating job size ([`9d833fe`](https://github.com/molinfo-vienna/nerdd-backend/commit/9d833fe1a32b5f5307198ed6d05cd3a4072357f0))
+
+### Unknown
+
+* Merge pull request #89 from shirte/main
+
+Handle missing jobs when updating job size ([`fe47aac`](https://github.com/molinfo-vienna/nerdd-backend/commit/fe47aacc88043d18b9c143a7094b88b16ac4be0a))
+
+
 ## v0.5.36 (2025-09-28)
 
 ### Fixes
