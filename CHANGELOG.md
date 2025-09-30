@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.38 (2025-09-30)
+
+### Fixes
+
+* fix: Stream output files to the client ([`33c00fd`](https://github.com/molinfo-vienna/nerdd-backend/commit/33c00fd659283d53c29877859464cabfc4cbe635))
+
+### Unknown
+
+* Merge pull request #90 from shirte/main
+
+Stream output files to the client ([`b6de2c7`](https://github.com/molinfo-vienna/nerdd-backend/commit/b6de2c7100cee1ed74791994d62f9861b37469e6))
+
+
 ## v0.5.37 (2025-09-29)
 
 ### Fixes
