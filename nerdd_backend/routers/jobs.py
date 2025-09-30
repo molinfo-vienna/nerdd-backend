@@ -1,10 +1,12 @@
 import logging
 import math
-from typing import Optional
+import os
+from typing import AsyncGenerator, Optional
 from uuid import uuid4
 
+import aiofiles
 from fastapi import APIRouter, Body, Header, HTTPException, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import StreamingResponse
 from nerdd_link import Channel, FileSystem, JobMessage, Tombstone
 
 from ..data import RecordNotFoundError, Repository
@@ -204,7 +206,7 @@ async def delete_job(job_id: str, request: Request) -> BaseSuccessResponse:
 
 
 @jobs_router.get("/{job_id}/output.{format}")
-async def get_output_file(job_id: str, format: str, request: Request) -> FileResponse:
+async def get_output_file(job_id: str, format: str, request: Request) -> StreamingResponse:
     app = request.app
     repository = app.state.repository
     config = app.state.config
@@ -233,7 +235,29 @@ async def get_output_file(job_id: str, format: str, request: Request) -> FileRes
         )
 
     filepath = filesystem.get_output_file(job_id, format)
-    return FileResponse(filepath, filename=f"{job.job_type}-{job_id}.{format}")
+
+    filesize = os.path.getsize(filepath)
+
+    async def async_file_iterator(
+        filepath: str, chunk_size: int = 65536
+    ) -> AsyncGenerator[bytes, None]:
+        try:
+            async with aiofiles.open(filepath, mode="rb") as f:
+                while chunk := await f.read(chunk_size):
+                    yield chunk
+        except Exception as e:
+            logger.error(f"Error reading file {filepath}", exc_info=e)
+            raise HTTPException(status_code=500, detail="Error reading output file") from e
+
+    return StreamingResponse(
+        async_file_iterator(filepath),
+        media_type="application/octet-stream",
+        headers={
+            "Content-Disposition": f"attachment; filename={job.job_type}-{job_id}.{format}",
+            "Content-Length": str(filesize),
+            "Content-Type": "application/octet-stream",
+        },
+    )
 
 
 @jobs_router.get("/{job_id}")
