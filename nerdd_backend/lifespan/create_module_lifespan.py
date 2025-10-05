@@ -26,7 +26,15 @@ class CreateModuleLifespan(AbstractLifespan):
                     module = new
                     logger.info(f"Creating module {module.name}")
 
-                    self.app.include_router(get_dynamic_router(module))
+                    new_router = get_dynamic_router(module)
+                    paths = [route.path for route in new_router.routes]
+
+                    # delete old routes
+                    self.app.router.routes = [
+                        route for route in self.app.router.routes if route.path not in paths
+                    ]
+
+                    self.app.include_router(new_router)
 
                     # reload the routing table
                     self.app.openapi_schema = None
