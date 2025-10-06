@@ -48,6 +48,7 @@ class RethinkDbRepository(Repository):
 
         if self.database_name in dbs:
             logger.info(f"Using existing RethinkDB database '{self.database_name}'")
+            self.connection.use(self.database_name)
             return
 
         # create database
