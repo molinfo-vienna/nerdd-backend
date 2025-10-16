@@ -7,7 +7,7 @@ __all__ = ["ModuleInternal", "ModulePublic", "ModuleShort"]
 
 
 class ModuleInternal(Module):
-    processed_publications: List[dict]
+    processed_publications: Optional[List[dict]] = None
     seconds_per_molecule: float = 30
     # estimated time the module takes to start up before processing a *batch*
     startup_time_seconds: float = 5

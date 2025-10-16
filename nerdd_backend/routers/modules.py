@@ -164,7 +164,7 @@ async def get_module_publications(module_id: str, request: Request) -> List[dict
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail="Module not found") from e
 
-    return module.processed_publications
+    return module.processed_publications or []
 
 
 @modules_router.get("/{module_id}/queue")

@@ -59,7 +59,11 @@ class SaveModuleToDb(Action[ModuleMessage]):
 
             return metadata
 
-        processed_publications = [_f(p) for p in module_json["publications"]]
+        processed_publications = (
+            [_f(p) for p in module_json["publications"]]
+            if module_json.get("publications") is not None
+            else []
+        )
 
         new_module = ModuleInternal(**module_json, processed_publications=processed_publications)
         try:
