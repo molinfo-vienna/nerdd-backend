@@ -1,16 +1,13 @@
 from typing import List, Optional
 
-from nerdd_module.config import Module as NerddModule
+from nerdd_module.config import Module
 from pydantic import BaseModel
 
-__all__ = ["Module", "ModuleInternal", "ModulePublic", "ModuleShort"]
-
-
-class Module(NerddModule):
-    pass
+__all__ = ["ModuleInternal", "ModulePublic", "ModuleShort"]
 
 
 class ModuleInternal(Module):
+    processed_publications: List[dict]
     seconds_per_molecule: float = 30
     # estimated time the module takes to start up before processing a *batch*
     startup_time_seconds: float = 5
