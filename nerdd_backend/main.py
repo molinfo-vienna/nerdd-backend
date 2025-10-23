@@ -8,7 +8,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from nerdd_link import FileSystem, KafkaChannel, MemoryChannel, SystemMessage
+from nerdd_link import FileSystem, KafkaChannel, MemoryChannel, ModuleMessage
 from nerdd_link.utils import async_to_sync
 from omegaconf import DictConfig, OmegaConf, open_dict
 
@@ -99,7 +99,6 @@ async def create_app(cfg: DictConfig):
         from nerdd_link import (
             PredictCheckpointsAction,
             ProcessJobsAction,
-            RegisterModuleAction,
             SerializeJobAction,
         )
 
@@ -109,9 +108,6 @@ async def create_app(cfg: DictConfig):
 
         lifespans = [
             *lifespans,
-            ActionLifespan(
-                lambda app: RegisterModuleAction(app.state.channel, model, cfg.media_root)
-            ),
             ActionLifespan(
                 lambda app: PredictCheckpointsAction(app.state.channel, model, cfg.media_root)
             ),
@@ -161,7 +157,12 @@ async def create_app(cfg: DictConfig):
     await repository.initialize()
 
     if cfg.mock_infra:
-        await channel.system_topic().send(SystemMessage())
+        import json
+
+        module_id = model.config.id
+        path = app.state.filesystem.get_module_file_path(module_id)
+        json.dump(model.config.model_dump(), open(path, "w"))
+        await channel.modules_topic().send(ModuleMessage(id=module_id))
 
     #
     # Middlewares
