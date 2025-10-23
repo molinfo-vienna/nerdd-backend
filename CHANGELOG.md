@@ -1,6 +1,23 @@
 # CHANGELOG
 
 
+## v0.5.39 (2025-10-23)
+
+### Fixes
+
+* fix: Adapt mocking code to new version of nerdd-link ([`adf5500`](https://github.com/molinfo-vienna/nerdd-backend/commit/adf55006554855a6e94219634bd08933e9248d64))
+
+* fix: Remove old routes when updating module ([`6727de4`](https://github.com/molinfo-vienna/nerdd-backend/commit/6727de4688da733b982c7c4462a3fe971e0c34df))
+
+* fix: Update dependencies ([`72f3b82`](https://github.com/molinfo-vienna/nerdd-backend/commit/72f3b826e6adefb8d0ee688f9605bc4fb02a4f7d))
+
+### Unknown
+
+* Merge pull request #91 from shirte/main
+
+Remove old routes when updating module ([`004c187`](https://github.com/molinfo-vienna/nerdd-backend/commit/004c18773c342a8a15ee2fa40bd6355f39ddecc6))
+
+
 ## v0.5.38 (2025-09-30)
 
 ### Fixes
