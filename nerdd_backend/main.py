@@ -60,41 +60,13 @@ def get_repository(config: DictConfig):
 
 
 async def create_app(cfg: DictConfig):
-    lifespans = [
-        ActionLifespan(lambda app: UpdateJobSize(app.state.channel, app.state.repository, cfg)),
-        ActionLifespan(
-            lambda app: SaveModuleToDb(
-                app.state.channel, app.state.repository, app.state.filesystem
-            )
-        ),
-        ActionLifespan(lambda app: SaveResultToDb(app.state.channel, app.state.repository)),
-        ActionLifespan(
-            lambda app: SaveResultCheckpointToDb(app.state.channel, app.state.repository, cfg)
-        ),
-        ActionLifespan(
-            lambda app: StartSerialization(app.state.channel, app.state.repository, cfg)
-        ),
-        ActionLifespan(
-            lambda app: ProcessSerializationResult(app.state.channel, app.state.repository, cfg)
-        ),
-        ActionLifespan(
-            lambda app: TrackPredictionSpeed(app.state.channel, app.state.repository, cfg)
-        ),
-        ActionLifespan(lambda app: DeleteJob(app.state.channel, app.state.repository, cfg)),
-        ActionLifespan(
-            lambda app: DeleteExpiredResources(
-                app.state.channel, app.state.repository, app.state.filesystem, cfg
-            )
-        ),
-        CreateModuleLifespan(),
-    ]
-
     # Set default values for configuration options if not provided
     with open_dict(cfg):
         cfg.challenge_hmac_key = getattr(cfg, "challenge_hmac_key", os.urandom(32).hex())
         cfg.challenge_difficulty = getattr(cfg, "challenge_difficulty", 1_000_000)
         cfg.challenge_expiration_seconds = getattr(cfg, "challenge_expiration_seconds", 3600)
 
+    model = None
     if cfg.mock_infra:
         from nerdd_link import (
             PredictCheckpointsAction,
@@ -106,27 +78,11 @@ async def create_app(cfg: DictConfig):
 
         model = MolWeightModel()
 
-        lifespans = [
-            *lifespans,
-            ActionLifespan(
-                lambda app: PredictCheckpointsAction(app.state.channel, model, cfg.media_root)
-            ),
-            ActionLifespan(
-                lambda app: ProcessJobsAction(
-                    app.state.channel,
-                    num_test_entries=10,
-                    ratio_valid_entries=0.5,
-                    maximum_depth=100,
-                    max_num_lines_mol_block=10_000,
-                    data_dir=cfg.media_root,
-                )
-            ),
-            ActionLifespan(lambda app: SerializeJobAction(app.state.channel, cfg.media_root)),
-        ]
-
     @asynccontextmanager
     async def global_lifespan(app: FastAPI):
         logger.info("Starting tasks")
+        # note: lifespans is defined later and that is fine, because this function is not called
+        # until the end of the main function
         start_tasks = asyncio.gather(
             *[asyncio.create_task(lifespan.start(app)) for lifespan in lifespans]
         )
@@ -155,6 +111,42 @@ async def create_app(cfg: DictConfig):
     await channel.start()
 
     await repository.initialize()
+
+    lifespans = [
+        ActionLifespan(UpdateJobSize(app.state.channel, app.state.repository, cfg)),
+        ActionLifespan(
+            SaveModuleToDb(app.state.channel, app.state.repository, app.state.filesystem)
+        ),
+        ActionLifespan(SaveResultToDb(app.state.channel, app.state.repository)),
+        ActionLifespan(SaveResultCheckpointToDb(app.state.channel, app.state.repository, cfg)),
+        ActionLifespan(StartSerialization(app.state.channel, app.state.repository, cfg)),
+        ActionLifespan(ProcessSerializationResult(app.state.channel, app.state.repository, cfg)),
+        ActionLifespan(TrackPredictionSpeed(app.state.channel, app.state.repository, cfg)),
+        ActionLifespan(DeleteJob(app.state.channel, app.state.repository, cfg)),
+        ActionLifespan(
+            DeleteExpiredResources(
+                app.state.channel, app.state.repository, app.state.filesystem, cfg
+            )
+        ),
+        CreateModuleLifespan(),
+    ]
+
+    if cfg.mock_infra:
+        lifespans = [
+            *lifespans,
+            ActionLifespan(PredictCheckpointsAction(app.state.channel, model, cfg.media_root)),
+            ActionLifespan(
+                ProcessJobsAction(
+                    app.state.channel,
+                    num_test_entries=10,
+                    ratio_valid_entries=0.5,
+                    maximum_depth=100,
+                    max_num_lines_mol_block=10_000,
+                    data_dir=cfg.media_root,
+                )
+            ),
+            ActionLifespan(SerializeJobAction(app.state.channel, cfg.media_root)),
+        ]
 
     if cfg.mock_infra:
         import json
