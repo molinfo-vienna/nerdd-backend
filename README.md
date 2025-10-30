@@ -32,19 +32,30 @@
 
 <br/>
 
+`nerdd-backend` is the central component of NERDD - a platform providing machine learning models
+for cheminformatics. The backend
+* accepts HTTP / websocket requests,
+* communicates with all components of the platform via a message broker, and
+* stores persistent information on the file system or in a database.
+
 
 ## Usage
 
 ```sh
+# clone repository
+git clone https://github.com/molinfo-vienna/nerdd-backend
+
 # create conda environment
+cd nerdd-backend
 conda env create -f environment.yml
 conda activate nerdd_backend
 
 # install dependencies
-cd nerdd-backend
 pip install .
 
-# run with a toy communication channel, database backend and a basic computational module (quickstart)
+# run the server using development settings
+# (this works without any prerequisites; it uses a toy communication channel, 
+# a fake database backend and a basic computational module for demonstration)
 python -m nerdd_backend.main
 
 # use localhost:8000 for api requests
@@ -57,7 +68,14 @@ xdg-open http://localhost:8000/docs
 
 ## Settings
 
+Custom options can be passed by providing a predefined configuration (see `nerdd_backend/settings`)
+or overwriting individual options using `++`. By default, the development settings (
+`nerdd_backend/settings/development.yaml`) are loaded.
+
 ```sh
+# switch to production settings
+python -m nerdd_backend.main --config-name production
+
 # change port
 python -m nerdd_backend.main ++port=7999
 
