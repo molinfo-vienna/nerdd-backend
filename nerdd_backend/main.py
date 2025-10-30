@@ -211,13 +211,13 @@ async def main(cfg: DictConfig) -> None:
         host=cfg.host,
         port=cfg.port,
         log_level="info",
-        # Use the url (protocol, host) provided in the X-Forwarded-* headers. This is important,
-        # because nerdd-backend runs behind a reverse proxy (traefik) and the normal request
-        # headers (host, port, protocol) do not contain the correct values.
+        # Use the url (protocol, host) provided in the X-Forwarded-* headers. This is important
+        # when nerdd-backend runs behind a reverse proxy (e.g. traefik, haproxy, etc.) and the
+        # normal request headers (host, port, protocol) do not contain the correct values.
         proxy_headers=True,
         forwarded_allow_ips="*",
-        # do not use root_path here, because it breaks local development (and it doesn't improve
-        # a production setup either)
+        # Do not use root_path here, because it breaks local development (and it doesn't improve
+        # the production setup either)
         # root_path=cfg.root_path,
     )
     server = uvicorn.Server(config)
