@@ -3,24 +3,18 @@ import logging
 from datetime import datetime, timedelta, timezone
 
 from aiofiles import os as aio_os
-from nerdd_link import Action, Channel, FileSystem, JobMessage, LogMessage, Tombstone
-from omegaconf import DictConfig
+from nerdd_link import JobMessage, LogMessage, Tombstone
 
-from ..data import Repository
+from .action_with_context import ActionWithContext
 
 __all__ = ["DeleteExpiredResources"]
 
 logger = logging.getLogger(__name__)
 
 
-class DeleteExpiredResources(Action[LogMessage]):
-    def __init__(
-        self, channel: Channel, repository: Repository, filesystem: FileSystem, config: DictConfig
-    ) -> None:
-        super().__init__(channel.logs_topic())
-        self.repository = repository
-        self.filesystem = filesystem
-        self.config = config
+class DeleteExpiredResources(ActionWithContext[LogMessage]):
+    def __init__(self, app) -> None:
+        super().__init__(app, app.state.channel.logs_topic())
 
     async def _process_message(self, message: LogMessage) -> None:
         if message.message_type == "all_checkpoints_processed":

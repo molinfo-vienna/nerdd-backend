@@ -2,20 +2,20 @@ import asyncio
 import logging
 from typing import List
 
-from nerdd_link import Action, Channel, ResultMessage
+from nerdd_link import ResultMessage
 
-from ..data import RecordNotFoundError, Repository
+from ..data import RecordNotFoundError
 from ..models import Result
+from .action_with_context import ActionWithContext
 
 __all__ = ["SaveResultToDb"]
 
 logger = logging.getLogger(__name__)
 
 
-class SaveResultToDb(Action[ResultMessage]):
-    def __init__(self, channel: Channel, repository: Repository) -> None:
-        super().__init__(channel.results_topic(), batch_size=200)
-        self.repository = repository
+class SaveResultToDb(ActionWithContext[ResultMessage]):
+    def __init__(self, app) -> None:
+        super().__init__(app, app.state.channel.results_topic(), batch_size=200)
 
     async def _process_messages(self, messages: List[ResultMessage]) -> None:
         #

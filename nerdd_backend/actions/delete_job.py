@@ -1,20 +1,17 @@
 import logging
 
-from nerdd_link import Action, Channel, JobMessage, SerializationRequestMessage, Tombstone
-from omegaconf import DictConfig
+from nerdd_link import JobMessage, SerializationRequestMessage, Tombstone
 
-from ..data import Repository
+from .action_with_context import ActionWithContext
 
 __all__ = ["DeleteJob"]
 
 logger = logging.getLogger(__name__)
 
 
-class DeleteJob(Action[JobMessage]):
-    def __init__(self, channel: Channel, repository: Repository, config: DictConfig) -> None:
-        super().__init__(channel.jobs_topic())
-        self.repository = repository
-        self.config = config
+class DeleteJob(ActionWithContext[JobMessage]):
+    def __init__(self, app) -> None:
+        super().__init__(app, app.state.channel.jobs_topic())
 
     async def _process_message(self, message: JobMessage) -> None:
         pass
@@ -25,6 +22,15 @@ class DeleteJob(Action[JobMessage]):
 
         # delete job (if not already deleted)
         await self.repository.delete_job_by_id(job_id)
+
+        # send tombstone messages on results topic
+        # for result in self.repository.get_results_by_job_id(job_id):
+        #     await self.channel.results_topic().send(
+        #         Tombstone(
+        #             ResultMessage,
+        #             id=result.id,
+        #         )
+        #     )
 
         # delete corresponding results
         await self.repository.delete_results_by_job_id(job_id)

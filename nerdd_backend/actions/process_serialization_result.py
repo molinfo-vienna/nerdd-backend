@@ -1,21 +1,19 @@
 import logging
 
-from nerdd_link import Action, Channel, SerializationResultMessage
-from omegaconf import DictConfig
+from nerdd_link import SerializationResultMessage
 
-from ..data import RecordNotFoundError, Repository
+from ..data import RecordNotFoundError
 from ..models import JobUpdate
+from .action_with_context import ActionWithContext
 
 __all__ = ["ProcessSerializationResult"]
 
 logger = logging.getLogger(__name__)
 
 
-class ProcessSerializationResult(Action[SerializationResultMessage]):
-    def __init__(self, channel: Channel, repository: Repository, config: DictConfig) -> None:
-        super().__init__(channel.serialization_results_topic())
-        self.repository = repository
-        self.config = config
+class ProcessSerializationResult(ActionWithContext[SerializationResultMessage]):
+    def __init__(self, app) -> None:
+        super().__init__(app, app.state.channel.serialization_results_topic())
 
     async def _process_message(self, message: SerializationResultMessage) -> None:
         job_id = message.job_id

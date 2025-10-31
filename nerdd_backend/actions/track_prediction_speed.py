@@ -1,23 +1,21 @@
 import logging
 
 import numpy as np
-from nerdd_link import Action, Channel, LogMessage
-from omegaconf import DictConfig
+from nerdd_link import LogMessage
 from sklearn.linear_model import LinearRegression
 
-from ..data import RecordNotFoundError, Repository
+from ..data import RecordNotFoundError
 from ..models import ModuleInternal, ResultCheckpoint
+from .action_with_context import ActionWithContext
 
 __all__ = ["TrackPredictionSpeed"]
 
 logger = logging.getLogger(__name__)
 
 
-class TrackPredictionSpeed(Action[LogMessage]):
-    def __init__(self, channel: Channel, repository: Repository, config: DictConfig) -> None:
-        super().__init__(channel.logs_topic())
-        self.repository = repository
-        self.config = config
+class TrackPredictionSpeed(ActionWithContext[LogMessage]):
+    def __init__(self, app) -> None:
+        super().__init__(app, app.state.channel.logs_topic())
 
     async def _process_message(self, message: LogMessage) -> None:
         job_id = message.job_id
