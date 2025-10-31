@@ -9,9 +9,10 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from hydra.core.config_store import ConfigStore
 from nerdd_link import FileSystem, KafkaChannel, MemoryChannel, ModuleMessage
 from nerdd_link.utils import async_to_sync
-from omegaconf import DictConfig, OmegaConf, open_dict
+from omegaconf import OmegaConf, open_dict
 
 from .actions import (
     DeleteExpiredResources,
@@ -24,6 +25,7 @@ from .actions import (
     TrackPredictionSpeed,
     UpdateJobSize,
 )
+from .config import AppConfig, ChannelConfig, DbConfig
 from .data import MemoryRepository, RethinkDbRepository
 from .lifespan import AbstractLifespan, ActionLifespan, CreateModuleLifespan
 from .routers import (
@@ -41,26 +43,29 @@ logging.basicConfig(level=logging.INFO)
 
 logger = logging.getLogger(__name__)
 
+cs = ConfigStore.instance()
+cs.store(name="config", node=AppConfig)
 
-def get_channel(config: DictConfig):
-    if config.channel.name == "kafka":
-        return KafkaChannel(config.channel.broker_url)
-    elif config.channel.name == "memory":
+
+def get_channel(config: ChannelConfig):
+    if config.name == "kafka":
+        return KafkaChannel(config.broker_url)
+    elif config.name == "memory":
         return MemoryChannel()
     else:
-        raise ValueError(f"Unsupported channel name: {config.channel.name}")
+        raise ValueError(f"Unsupported channel name: {config.name}")
 
 
-def get_repository(config: DictConfig):
-    if config.db.name == "rethinkdb":
-        return RethinkDbRepository(config.db.host, config.db.port, config.db.database_name)
-    elif config.db.name == "memory":
+def get_repository(config: DbConfig):
+    if config.name == "rethinkdb":
+        return RethinkDbRepository(config.host, config.port, config.database_name)
+    elif config.name == "memory":
         return MemoryRepository()
     else:
-        raise ValueError(f"Unsupported database: {config.db.name}")
+        raise ValueError(f"Unsupported database: {config.name}")
 
 
-async def create_app(cfg: DictConfig):
+async def create_app(cfg: AppConfig):
     # Set default values for configuration options if not provided
     with open_dict(cfg):
         cfg.challenge_hmac_key = getattr(cfg, "challenge_hmac_key", os.urandom(32).hex())
@@ -104,8 +109,8 @@ async def create_app(cfg: DictConfig):
             logger.info("Tasks successfully cancelled")
 
     app = FastAPI(lifespan=global_lifespan, root_path=cfg.root_path)
-    app.state.repository = repository = get_repository(cfg)
-    app.state.channel = channel = get_channel(cfg)
+    app.state.repository = repository = get_repository(cfg.db)
+    app.state.channel = channel = get_channel(cfg.channel)
     app.state.filesystem = FileSystem(cfg.media_root)
     app.state.config = cfg
 
@@ -187,9 +192,9 @@ async def create_app(cfg: DictConfig):
     return app
 
 
-@hydra.main(version_base=None, config_path="settings", config_name="development")
+@hydra.main(version_base=None, config_path="config", config_name="development")
 @async_to_sync
-async def main(cfg: DictConfig) -> None:
+async def main(cfg: AppConfig) -> None:
     logger.info(f"Starting server with the following configuration:\n{OmegaConf.to_yaml(cfg)}")
     app = await create_app(cfg)
 
@@ -204,7 +209,7 @@ async def main(cfg: DictConfig) -> None:
         proxy_headers=True,
         forwarded_allow_ips="*",
         # Do not use root_path here, because it breaks local development (and it doesn't improve
-        # the production setup either)
+        # the production setup either).
         # root_path=cfg.root_path,
     )
     server = uvicorn.Server(config)
