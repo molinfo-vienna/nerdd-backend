@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from nerdd_module.config import Partner
 
+from ..config import AppConfig
 from ..data import RecordNotFoundError, Repository
 from ..models import ModuleInternal, ModulePublic, ModuleShort, QueueStats
 from ..util import clamp
@@ -18,10 +19,9 @@ modules_router = APIRouter(prefix="/modules")
 
 
 async def augment_module(module: ModuleInternal, request: Request) -> ModulePublic:
-    config = request.app.state.config
+    config: AppConfig = request.app.state.config
 
-    # get output formats from config (if available)
-    output_formats = config.get("output_formats", [])
+    output_formats = config.output_formats
 
     #
     # Compute maximum number of molecules allowed in a single job
