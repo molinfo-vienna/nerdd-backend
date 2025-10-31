@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 from contextlib import asynccontextmanager
+from typing import List
 
 import hydra
 import uvicorn
@@ -24,7 +25,7 @@ from .actions import (
     UpdateJobSize,
 )
 from .data import MemoryRepository, RethinkDbRepository
-from .lifespan import ActionLifespan, CreateModuleLifespan
+from .lifespan import AbstractLifespan, ActionLifespan, CreateModuleLifespan
 from .routers import (
     challenges_router,
     files_router,
@@ -112,22 +113,16 @@ async def create_app(cfg: DictConfig):
 
     await repository.initialize()
 
-    lifespans = [
-        ActionLifespan(UpdateJobSize(app.state.channel, app.state.repository, cfg)),
-        ActionLifespan(
-            SaveModuleToDb(app.state.channel, app.state.repository, app.state.filesystem)
-        ),
-        ActionLifespan(SaveResultToDb(app.state.channel, app.state.repository)),
-        ActionLifespan(SaveResultCheckpointToDb(app.state.channel, app.state.repository, cfg)),
-        ActionLifespan(StartSerialization(app.state.channel, app.state.repository, cfg)),
-        ActionLifespan(ProcessSerializationResult(app.state.channel, app.state.repository, cfg)),
-        ActionLifespan(TrackPredictionSpeed(app.state.channel, app.state.repository, cfg)),
-        ActionLifespan(DeleteJob(app.state.channel, app.state.repository, cfg)),
-        ActionLifespan(
-            DeleteExpiredResources(
-                app.state.channel, app.state.repository, app.state.filesystem, cfg
-            )
-        ),
+    lifespans: List[AbstractLifespan] = [
+        ActionLifespan(UpdateJobSize),
+        ActionLifespan(SaveModuleToDb),
+        ActionLifespan(SaveResultToDb),
+        ActionLifespan(SaveResultCheckpointToDb),
+        ActionLifespan(StartSerialization),
+        ActionLifespan(ProcessSerializationResult),
+        ActionLifespan(TrackPredictionSpeed),
+        ActionLifespan(DeleteJob),
+        ActionLifespan(DeleteExpiredResources),
         CreateModuleLifespan(),
     ]
 
