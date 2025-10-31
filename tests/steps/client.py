@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 @pytest_asyncio.fixture
 async def client(data_dir):
     # load correct config file
-    with initialize(version_base=None, config_path="../../nerdd_backend/settings"):
+    with initialize(version_base=None, config_path="../../nerdd_backend/config"):
         cfg = compose(config_name="testing")
 
     cfg.media_root = data_dir
