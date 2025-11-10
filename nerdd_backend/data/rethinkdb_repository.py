@@ -44,6 +44,12 @@ class RethinkDbRepository(Repository):
     async def initialize(self) -> None:
         self.connection = await self.r.connect(self.host, self.port)
 
+        dbs = await self.r.db_list().run(self.connection)
+
+        if self.database_name in dbs:
+            logger.info(f"Using existing RethinkDB database '{self.database_name}'")
+            return
+
         # create database
         try:
             await self.r.db_create(self.database_name).run(self.connection)
