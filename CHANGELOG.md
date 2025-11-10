@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.41 (2025-11-10)
+
+### Fixes
+
+* fix: Temporarilly log requests ([`3966646`](https://github.com/molinfo-vienna/nerdd-backend/commit/3966646fde22e6d9a89b9bae5debe4b6417e6d1e))
+
+### Unknown
+
+* Merge pull request #93 from shirte/main
+
+Log requests ([`c390701`](https://github.com/molinfo-vienna/nerdd-backend/commit/c390701189d6b85922bf59d5618426e129a84d9b))
+
+
 ## v0.5.40 (2025-11-10)
 
 ### Fixes
