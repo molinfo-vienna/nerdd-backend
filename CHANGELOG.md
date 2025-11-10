@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.40 (2025-11-10)
+
+### Fixes
+
+* fix: Create database only if it does not exist ([`c094ef7`](https://github.com/molinfo-vienna/nerdd-backend/commit/c094ef72aa966bf071cb49af2ed9619fa46ee8c0))
+
+### Unknown
+
+* Merge pull request #92 from shirte/main
+
+Create database only if it does not exist ([`c50cf55`](https://github.com/molinfo-vienna/nerdd-backend/commit/c50cf55060132b546b891aab4487d4ad05803009))
+
+
 ## v0.5.39 (2025-10-23)
 
 ### Fixes
