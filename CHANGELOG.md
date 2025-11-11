@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.42 (2025-11-11)
+
+### Fixes
+
+* fix: Disable logging requests ([`10aea8b`](https://github.com/molinfo-vienna/nerdd-backend/commit/10aea8b329d733597efa74c8d142b605eb1271cc))
+
+### Unknown
+
+* Merge pull request #94 from shirte/main
+
+Disable logging requests ([`9e1d6c9`](https://github.com/molinfo-vienna/nerdd-backend/commit/9e1d6c96d31e3700b476c9674bcb414b0677be6f))
+
+
 ## v0.5.41 (2025-11-10)
 
 ### Fixes
