@@ -10,7 +10,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from hydra.core.config_store import ConfigStore
-from nerdd_link import FileSystem, KafkaChannel, MemoryChannel, ModuleMessage
+from nerdd_link import Channel, FileSystem, ModuleMessage
 from nerdd_link.utils import async_to_sync
 from omegaconf import OmegaConf, open_dict
 
@@ -48,12 +48,12 @@ cs.store(name="config", node=AppConfig)
 
 
 def get_channel(config: ChannelConfig):
-    if config.name == "kafka":
-        return KafkaChannel(config.broker_url)
-    elif config.name == "memory":
-        return MemoryChannel()
-    else:
-        raise ValueError(f"Unsupported channel name: {config.name}")
+    return Channel.create_channel(
+        config.name,
+        broker_url=config.broker_url,
+        broker_username=config.broker_username,
+        broker_password=config.broker_password,
+    )
 
 
 def get_repository(config: DbConfig):
