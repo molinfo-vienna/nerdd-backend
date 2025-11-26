@@ -1,2 +1,4 @@
 name: kafka
 broker_url: my-cluster-kafka-bootstrap.kafka:9092
+broker_username:
+broker_password:
