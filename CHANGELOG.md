@@ -1,6 +1,29 @@
 # CHANGELOG
 
 
+## v0.5.43 (2025-11-26)
+
+### Fixes
+
+* fix: Make processed_publications optional ([`3eb6373`](https://github.com/molinfo-vienna/nerdd-backend/commit/3eb6373ef0fd1567f630374a40596db9715de120))
+
+* fix: Add route to get full publication info ([`124e00e`](https://github.com/molinfo-vienna/nerdd-backend/commit/124e00ef655871a6d6e55e840cab8dbf542187d4))
+
+* fix: Fetch publication info from doi.org ([`447795d`](https://github.com/molinfo-vienna/nerdd-backend/commit/447795d5bc3905972599e76ffebdfde408c289da))
+
+* fix: Add field for publication info fetched from doi.org ([`b8def63`](https://github.com/molinfo-vienna/nerdd-backend/commit/b8def63dc12d847a3d1c9049159cefd5d87cc3df))
+
+* fix: Use correct type in get_dynamic_router ([`e81c589`](https://github.com/molinfo-vienna/nerdd-backend/commit/e81c5898f3600a04059e3ac9e8fcdb2bb699e049))
+
+* fix: Install requests package ([`453b34e`](https://github.com/molinfo-vienna/nerdd-backend/commit/453b34e197d41e22afb5e7d72e0f265989d41539))
+
+### Unknown
+
+* Merge pull request #95 from shirte/main
+
+Fetch publication info automatically from doi.org ([`9e02494`](https://github.com/molinfo-vienna/nerdd-backend/commit/9e024949d605bc42dabd0f5a161e1db38e091238))
+
+
 ## v0.5.42 (2025-11-11)
 
 ### Fixes
