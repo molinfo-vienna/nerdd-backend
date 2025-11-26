@@ -154,6 +154,19 @@ async def get_module_logo(module_id: str, request: Request) -> StreamingResponse
     return StreamingResponse(io.BytesIO(logo_data_decoded), media_type=mime_type)
 
 
+@modules_router.get("/{module_id}/publications")
+async def get_module_publications(module_id: str, request: Request) -> List[dict]:
+    app = request.app
+    repository: Repository = app.state.repository
+
+    try:
+        module = await repository.get_module_by_id(module_id)
+    except RecordNotFoundError as e:
+        raise HTTPException(status_code=404, detail="Module not found") from e
+
+    return module.processed_publications or []
+
+
 @modules_router.get("/{module_id}/queue")
 async def get_module_queue(module_id: str, request: Request) -> QueueStats:
     app = request.app

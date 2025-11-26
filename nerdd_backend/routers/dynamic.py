@@ -7,7 +7,7 @@ from nerdd_module.config import JobParameter
 from pydantic import Field, create_model
 from stringcase import pascalcase, snakecase
 
-from ..models import JobCreate, JobPublic, Module
+from ..models import JobCreate, JobPublic, ModuleInternal
 from .jobs import create_job, delete_job, get_job
 from .results import get_results
 from .sources import put_multiple_sources
@@ -50,7 +50,7 @@ def validate_to_json(cls, value):
     return value
 
 
-def get_dynamic_router(module: Module):
+def get_dynamic_router(module: ModuleInternal):
     logger.info(f"Creating router for module {module.id}")
 
     # all methods will be available at /module_name e.g. /cypstrate

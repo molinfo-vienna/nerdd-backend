@@ -14,3 +14,4 @@ rethinkdb==2.4.10.post1
 uvicorn[standard]==0.23.2
 altcha==0.1.9
 scikit-learn==1.7.1
+requests==2.32.5
