@@ -65,6 +65,45 @@ def get_repository(config: DbConfig):
         raise ValueError(f"Unsupported database: {config.name}")
 
 
+def _get_lifespan_label(lifespan: AbstractLifespan):
+    action = getattr(lifespan, "action", None)
+    if action is not None:
+        return f"{lifespan.__class__.__name__}({action.__class__.__name__})"
+
+    action_or_factory = getattr(lifespan, "action_or_factory", None)
+    if action_or_factory is not None:
+        name = getattr(action_or_factory, "__name__", action_or_factory.__class__.__name__)
+        return f"{lifespan.__class__.__name__}({name})"
+
+    return lifespan.__class__.__name__
+
+
+async def _run_lifespan_with_restart(
+    lifespan: AbstractLifespan,
+):
+    label = _get_lifespan_label(lifespan)
+
+    while True:
+        try:
+            await lifespan.run()
+        except asyncio.CancelledError:
+            logger.info("Cancelled lifespan worker %s", label)
+            raise
+        except Exception:
+            logger.exception(
+                "Lifespan worker %s failed",
+                label,
+            )
+        else:
+            logger.error(
+                "Lifespan worker %s stopped unexpectedly",
+                label,
+            )
+
+        # wait for a minute before restarting
+        await asyncio.sleep(60)
+
+
 async def create_app(cfg: AppConfig):
     # Set default values for configuration options if not provided
     with open_dict(cfg):
@@ -96,16 +135,22 @@ async def create_app(cfg: AppConfig):
         await start_tasks
 
         logger.info("Running tasks")
-        run_tasks = asyncio.gather(*[asyncio.create_task(lifespan.run()) for lifespan in lifespans])
-
-        yield
-
-        logger.info("Attempting to cancel all tasks")
-        run_tasks.cancel()
+        run_tasks = [
+            asyncio.create_task(
+                _run_lifespan_with_restart(lifespan),
+                name=f"lifespan-worker-{_get_lifespan_label(lifespan)}",
+            )
+            for lifespan in lifespans
+        ]
 
         try:
-            await run_tasks
-        except asyncio.CancelledError:
+            yield
+        finally:
+            logger.info("Attempting to cancel all tasks")
+            for task in run_tasks:
+                task.cancel()
+
+            await asyncio.gather(*run_tasks, return_exceptions=True)
             logger.info("Tasks successfully cancelled")
 
     app = FastAPI(lifespan=global_lifespan, root_path=cfg.root_path)
