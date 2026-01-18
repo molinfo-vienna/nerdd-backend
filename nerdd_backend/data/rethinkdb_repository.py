@@ -43,9 +43,10 @@ class RethinkDbRepository(Repository):
         self._connection_lock = asyncio.Lock()
 
     @asynccontextmanager
-    async def _get_connection(self) -> AsyncIterator:
+    async def _get_connection(self, use_database: bool = True) -> AsyncIterator:
         connection = await self.r.connect(self.host, self.port)
-        connection.use(self.database_name)
+        if use_database:
+            connection.use(self.database_name)
 
         try:
             yield connection
