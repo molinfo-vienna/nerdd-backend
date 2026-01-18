@@ -83,24 +83,18 @@ class RethinkDbRepository(Repository):
     # INITIALIZATION
     #
     async def initialize(self) -> None:
-        self.connection = await self.r.connect(self.host, self.port)
-
-        dbs = await self.r.db_list().run(self.connection)
+        dbs = await self._run(self.r.db_list())
 
         if self.database_name in dbs:
             logger.info(f"Using existing RethinkDB database '{self.database_name}'")
-            self.connection.use(self.database_name)
             return
 
         # create database
         try:
-            await self.r.db_create(self.database_name).run(self.connection)
+            await self._run(self.r.db_create(self.database_name))
         except ReqlOpFailedError as e:
             if not str(e).startswith("Database `nerdd` already exists"):
                 logger.exception("Failed to create database", exc_info=e)
-
-        # use the same database for all queries
-        self.connection.use(self.database_name)
 
         # create tables
         await self.create_module_table()
@@ -113,39 +107,39 @@ class RethinkDbRepository(Repository):
 
         # create an index on status in jobs table
         try:
-            await self.r.table("jobs").index_create("status").run(self.connection)
+            await self._run(self.r.table("jobs").index_create("status"))
             # wait for index to be ready
-            await self.r.table("jobs").index_wait("status").run(self.connection)
+            await self._run(self.r.table("jobs").index_wait("status"))
         except ReqlOpFailedError as e:
             if not str(e).startswith("Index `status` already exists"):
                 logger.exception("Failed to create index", exc_info=e)
 
         # create an index on job_id in results table
         try:
-            await self.r.table("results").index_create("job_id").run(self.connection)
+            await self._run(self.r.table("results").index_create("job_id"))
 
             # wait for index to be ready
-            await self.r.table("results").index_wait("job_id").run(self.connection)
+            await self._run(self.r.table("results").index_wait("job_id"))
         except ReqlOpFailedError as e:
             if not str(e).startswith("Index `job_id` already exists"):
                 logger.exception("Failed to create index", exc_info=e)
 
         # create an index on job_id in checkpoints table
         try:
-            await self.r.table("checkpoints").index_create("job_id").run(self.connection)
+            await self._run(self.r.table("checkpoints").index_create("job_id"))
 
             # wait for index to be ready
-            await self.r.table("checkpoints").index_wait("job_id").run(self.connection)
+            await self._run(self.r.table("checkpoints").index_wait("job_id"))
         except ReqlOpFailedError as e:
             if not str(e).startswith("Index `job_id` already exists"):
                 logger.exception("Failed to create index", exc_info=e)
 
         # create an index on ip_address in anonymous_users table
         try:
-            await self.r.table("users").index_create("ip_address").run(self.connection)
+            await self._run(self.r.table("users").index_create("ip_address"))
 
             # wait for index to be ready
-            await self.r.table("users").index_wait("ip_address").run(self.connection)
+            await self._run(self.r.table("users").index_wait("ip_address"))
         except ReqlOpFailedError as e:
             if not str(e).startswith("Index `ip_address` already exists"):
                 logger.exception("Failed to create index", exc_info=e)
@@ -172,11 +166,11 @@ class RethinkDbRepository(Repository):
             yield old_module, new_module
 
     async def get_all_modules(self) -> List[ModuleInternal]:
-        cursor = await self.r.table("modules").run(self.connection)
+        cursor = await self._run(self.r.table("modules"))
         return [ModuleInternal(**item) async for item in cursor]
 
     async def get_module_by_id(self, module_id: str) -> ModuleInternal:
-        result = await self.r.table("modules").get(module_id).run(self.connection)
+        result = await self._run(self.r.table("modules").get(module_id))
 
         if result is None:
             raise RecordNotFoundError(ModuleInternal, module_id)
@@ -185,15 +179,14 @@ class RethinkDbRepository(Repository):
 
     async def create_module_table(self) -> None:
         try:
-            await self.r.table_create("modules", primary_key="id").run(self.connection)
+            await self._run(self.r.table_create("modules", primary_key="id"))
         except ReqlOpFailedError:
             pass
 
     async def create_module(self, module: ModuleInternal) -> ModuleInternal:
-        result = await (
+        result = await self._run(
             self.r.table("modules")
             .insert(module.model_dump(), conflict="error", return_changes=True)
-            .run(self.connection)
         )
 
         if len(result["changes"]) == 0:
@@ -202,11 +195,10 @@ class RethinkDbRepository(Repository):
         return ModuleInternal(**result["changes"][0]["new_val"])
 
     async def update_module(self, module: ModuleInternal) -> ModuleInternal:
-        result = await (
+        result = await self._run(
             self.r.table("modules")
             .get(module.id)
             .update(module.model_dump(), return_changes="always")
-            .run(self.connection)
         )
 
         if result["changes"] is None or len(result["changes"]) == 0:
@@ -290,15 +282,14 @@ class RethinkDbRepository(Repository):
 
     async def create_jobs_table(self) -> None:
         try:
-            await self.r.table_create("jobs", primary_key="id").run(self.connection)
+            await self._run(self.r.table_create("jobs", primary_key="id"))
         except ReqlOpFailedError:
             pass
 
     async def create_job(self, job: JobInternal) -> JobWithResults:
-        result = await (
+        result = await self._run(
             self.r.table("jobs")
             .insert(job.model_dump(), conflict="error", return_changes=True)
-            .run(self.connection)
         )
         # JobWithResults adds the entries_processed field, which is not part of JobInternal.
         return JobWithResults(**result["changes"][0]["new_val"])
@@ -319,11 +310,10 @@ class RethinkDbRepository(Repository):
             )
 
         # update the job in the database
-        changes = (
-            await self.r.table("jobs")
+        changes = await self._run(
+            self.r.table("jobs")
             .get(job_update.id)
             .update(update_set, return_changes="always")
-            .run(self.connection)
         )
 
         updated_job = changes["changes"][0]["new_val"] if len(changes["changes"]) > 0 else None
@@ -334,8 +324,8 @@ class RethinkDbRepository(Repository):
         return JobInternal(**updated_job)
 
     async def get_job_by_id(self, job_id: str) -> JobWithResults:
-        result = (
-            await self.r.table("jobs")
+        result = await self._run(
+            self.r.table("jobs")
             .get(job_id)
             .do(
                 lambda job: self.r.branch(
@@ -353,7 +343,6 @@ class RethinkDbRepository(Repository):
                     ),
                 )
             )
-            .run(self.connection)
         )
 
         if result is None:
@@ -362,7 +351,7 @@ class RethinkDbRepository(Repository):
         return JobWithResults(**result)
 
     async def delete_job_by_id(self, job_id: str) -> None:
-        await self.r.table("jobs").get(job_id).delete().run(self.connection)
+        await self._run(self.r.table("jobs").get(job_id).delete())
 
     async def get_jobs_by_status(
         self,
@@ -373,8 +362,8 @@ class RethinkDbRepository(Repository):
         if isinstance(status, str):
             status = [status]
 
-        cursor = (
-            await self.r.table("jobs")
+        cursor = await self._run(
+            self.r.table("jobs")
             .get_all(*status, index="status")
             .filter(self.r.row["job_type"] == module_id)
             .filter((self.r.row["created_at"] < deadline) if deadline is not None else True)
@@ -390,17 +379,15 @@ class RethinkDbRepository(Repository):
                     }
                 )
             )
-            .run(self.connection)
         )
 
         async for item in cursor:
             yield JobWithResults(**item)
 
     async def get_expired_jobs(self, deadline: datetime) -> AsyncIterable[JobInternal]:
-        cursor = (
-            await self.r.table("jobs")
+        cursor = await self._run(
+            self.r.table("jobs")
             .filter(lambda job: job["created_at"] < deadline)
-            .run(self.connection)
         )
 
         async for item in cursor:
@@ -411,15 +398,14 @@ class RethinkDbRepository(Repository):
     #
     async def create_sources_table(self) -> None:
         try:
-            await self.r.table_create("sources", primary_key="id").run(self.connection)
+            await self._run(self.r.table_create("sources", primary_key="id"))
         except ReqlOpFailedError:
             pass
 
     async def create_source(self, source: Source) -> Source:
-        result = await (
+        result = await self._run(
             self.r.table("sources")
             .insert(source.model_dump(), conflict="error", return_changes=True)
-            .run(self.connection)
         )
 
         if len(result["changes"]) == 0:
@@ -428,7 +414,7 @@ class RethinkDbRepository(Repository):
         return Source(**result["changes"][0]["new_val"])
 
     async def get_source_by_id(self, source_id: str) -> Source:
-        result = await self.r.table("sources").get(source_id).run(self.connection)
+        result = await self._run(self.r.table("sources").get(source_id))
 
         if result is None:
             raise RecordNotFoundError(Source, source_id)
@@ -436,13 +422,12 @@ class RethinkDbRepository(Repository):
         return Source(**result)
 
     async def delete_source_by_id(self, source_id: str) -> None:
-        await self.r.table("sources").get(source_id).delete().run(self.connection)
+        await self._run(self.r.table("sources").get(source_id).delete())
 
     async def get_expired_sources(self, deadline: datetime) -> AsyncIterable[Source]:
-        cursor = (
-            await self.r.table("sources")
+        cursor = await self._run(
+            self.r.table("sources")
             .filter(lambda source: source["created_at"] < deadline)
-            .run(self.connection)
         )
 
         async for item in cursor:
@@ -453,12 +438,12 @@ class RethinkDbRepository(Repository):
     #
     async def create_results_table(self) -> None:
         try:
-            await self.r.table_create("results", primary_key="id").run(self.connection)
+            await self._run(self.r.table_create("results", primary_key="id"))
         except ReqlOpFailedError:
             pass
 
     async def get_all_results_by_job_id(self, job_id: str) -> List[Result]:
-        cursor = await self.r.table("results").get_all(job_id, index="job_id").run(self.connection)
+        cursor = await self._run(self.r.table("results").get_all(job_id, index="job_id"))
         return [Result(**item) async for item in cursor]
 
     async def get_results_by_job_id(
@@ -472,12 +457,11 @@ class RethinkDbRepository(Repository):
         )
         end_condition = (self.r.row["mol_id"] <= end_mol_id) if end_mol_id is not None else True
 
-        cursor = (
-            await self.r.table("results")
+        cursor = await self._run(
+            self.r.table("results")
             .get_all(job_id, index="job_id")
             .filter(start_condition & end_condition)
             .order_by("mol_id")
-            .run(self.connection)
         )
 
         if cursor is None:
@@ -486,14 +470,13 @@ class RethinkDbRepository(Repository):
         return [Result(**item) for item in cursor]
 
     async def upsert_results(self, results: List[Result]) -> None:
-        changes = await (
+        changes = await self._run(
             self.r.table("results")
             .insert(
                 [result.model_dump() for result in results],
                 conflict="replace",
                 return_changes=False,
             )
-            .run(self.connection)
         )
 
         if changes["errors"] > 0:
@@ -532,22 +515,21 @@ class RethinkDbRepository(Repository):
             yield old_result, new_result
 
     async def delete_results_by_job_id(self, job_id: str) -> None:
-        await self.r.table("results").get_all(job_id, index="job_id").delete().run(self.connection)
+        await self._run(self.r.table("results").get_all(job_id, index="job_id").delete())
 
     #
     # CHECKPOINTS
     #
     async def create_result_checkpoints_table(self) -> None:
         try:
-            await self.r.table_create("checkpoints", primary_key="id").run(self.connection)
+            await self._run(self.r.table_create("checkpoints", primary_key="id"))
         except ReqlOpFailedError:
             pass
 
     async def create_result_checkpoint(self, checkpoint: ResultCheckpoint) -> ResultCheckpoint:
-        result = await (
+        result = await self._run(
             self.r.table("checkpoints")
             .insert(checkpoint.model_dump(), conflict="error", return_changes=True)
-            .run(self.connection)
         )
 
         if len(result["changes"]) == 0:
@@ -556,11 +538,10 @@ class RethinkDbRepository(Repository):
         return ResultCheckpoint(**result["changes"][0]["new_val"])
 
     async def update_result_checkpoint(self, checkpoint: ResultCheckpoint) -> ResultCheckpoint:
-        result = await (
+        result = await self._run(
             self.r.table("checkpoints")
             .get(checkpoint.id)
             .update(checkpoint.model_dump(), return_changes="always")
-            .run(self.connection)
         )
 
         if result["changes"] is None or len(result["changes"]) == 0:
@@ -569,25 +550,23 @@ class RethinkDbRepository(Repository):
         return ResultCheckpoint(**result["changes"][0]["new_val"])
 
     async def get_result_checkpoints_by_job_id(self, job_id: str) -> List[ResultCheckpoint]:
-        cursor = (
-            await self.r.table("checkpoints").get_all(job_id, index="job_id").run(self.connection)
+        cursor = await self._run(
+            self.r.table("checkpoints").get_all(job_id, index="job_id")
         )
         return [ResultCheckpoint(**item) async for item in cursor]
 
     async def get_result_checkpoints_by_module_id(self, module_id: str) -> List[ResultCheckpoint]:
-        cursor = (
-            await self.r.table("checkpoints")
+        cursor = await self._run(
+            self.r.table("checkpoints")
             .filter(self.r.row["job_type"] == module_id)
-            .run(self.connection)
         )
         return [ResultCheckpoint(**item) async for item in cursor]
 
     async def delete_result_checkpoints_by_job_id(self, job_id: str) -> None:
-        await (
+        await self._run(
             self.r.table("checkpoints")
             .get_all(job_id, index="job_id")
             .delete()
-            .run(self.connection)
         )
 
     #
@@ -595,13 +574,13 @@ class RethinkDbRepository(Repository):
     #
     async def create_users_table(self) -> None:
         try:
-            await self.r.table_create("users", primary_key="id").run(self.connection)
+            await self._run(self.r.table_create("users", primary_key="id"))
         except ReqlOpFailedError:
             pass
 
     async def get_user_by_ip_address(self, ip_address: str) -> AnonymousUser:
-        result = (
-            await self.r.table("users").get_all(ip_address, index="ip_address").run(self.connection)
+        result = await self._run(
+            self.r.table("users").get_all(ip_address, index="ip_address")
         )
 
         if result is None:
@@ -614,7 +593,7 @@ class RethinkDbRepository(Repository):
         return users[0]
 
     async def get_user_by_id(self, user_id: str) -> User:
-        result = await self.r.table("users").get(user_id).run(self.connection)
+        result = await self._run(self.r.table("users").get(user_id))
 
         if result is None:
             raise RecordNotFoundError(User, user_id)
@@ -625,10 +604,9 @@ class RethinkDbRepository(Repository):
             raise ValueError(f"Unknown user type: {result['user_type']}")
 
     async def create_user(self, user: User) -> User:
-        result = await (
+        result = await self._run(
             self.r.table("users")
             .insert(user.model_dump(), conflict="error", return_changes=True)
-            .run(self.connection)
         )
 
         if len(result["changes"]) == 0:
@@ -637,13 +615,12 @@ class RethinkDbRepository(Repository):
         return user
 
     async def get_recent_jobs_by_user(self, user, num_seconds):
-        cursor = (
-            await self.r.table("jobs")
+        cursor = await self._run(
+            self.r.table("jobs")
             .filter(
                 (self.r.row["user_id"] == user.id)
                 & (self.r.row["created_at"] > self.r.now().sub(num_seconds))
             )
-            .run(self.connection)
         )
 
         return [JobInternal(**item) async for item in cursor]
@@ -653,15 +630,14 @@ class RethinkDbRepository(Repository):
     #
     async def create_challenges_table(self) -> None:
         try:
-            await self.r.table_create("challenges", primary_key="id").run(self.connection)
+            await self._run(self.r.table_create("challenges", primary_key="id"))
         except ReqlOpFailedError:
             pass
 
     async def create_challenge(self, challenge: Challenge) -> Challenge:
-        result = await (
+        result = await self._run(
             self.r.table("challenges")
             .insert(challenge.model_dump(), conflict="error", return_changes=True)
-            .run(self.connection)
         )
 
         if len(result["changes"]) == 0:
@@ -670,10 +646,9 @@ class RethinkDbRepository(Repository):
         return Challenge(**result["changes"][0]["new_val"])
 
     async def get_challenge_by_salt(self, salt: str) -> Challenge:
-        result = (
-            await self.r.table("challenges")
+        result = await self._run(
+            self.r.table("challenges")
             .filter(lambda challenge: challenge["salt"] == salt)
-            .run(self.connection)
         )
 
         if result is None:
@@ -686,15 +661,14 @@ class RethinkDbRepository(Repository):
         return challenges[0]
 
     async def delete_challenge_by_id(self, id: str) -> None:
-        result = await self.r.table("challenges").get(id).delete().run(self.connection)
+        result = await self._run(self.r.table("challenges").get(id).delete())
 
         if result["deleted"] == 0:
             raise RecordNotFoundError(Challenge, id)
 
     async def delete_expired_challenges(self, deadline: datetime) -> None:
-        await (
+        await self._run(
             self.r.table("challenges")
             .filter(lambda challenge: challenge["expires_at"] < deadline)
             .delete()
-            .run(self.connection)
         )
