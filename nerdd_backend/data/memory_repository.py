@@ -43,6 +43,9 @@ class MemoryRepository(Repository):
         self.users = ObservableList[User]()
         self.challenges = ObservableList[Challenge]()
 
+    async def close(self) -> None:
+        pass
+
     #
     # MODULES
     #
