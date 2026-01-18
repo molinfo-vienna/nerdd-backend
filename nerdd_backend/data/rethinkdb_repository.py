@@ -1,10 +1,11 @@
+import asyncio
 import copy
 import logging
 from datetime import datetime
 from typing import AsyncIterable, List, Optional, Tuple
 
 from rethinkdb import RethinkDB
-from rethinkdb.errors import ReqlOpFailedError
+from rethinkdb.errors import ReqlDriverError, ReqlOpFailedError
 
 from ..models import (
     AnonymousUser,
@@ -37,6 +38,29 @@ class RethinkDbRepository(Repository):
         self.host = host
         self.port = port
         self.database_name = database_name
+        self._connection = None
+        self._connection_lock = asyncio.Lock()
+
+    async def _run(self, query):
+        for attempt in range(2):
+            async with self._connection_lock:
+                if self._connection is None or not self._connection.is_open():
+                    self._connection = await self.r.connect(self.host, self.port)
+                    self._connection.use(self.database_name)
+
+                connection = self._connection
+
+            try:
+                return await query.run(connection)
+            except ReqlDriverError:
+                if attempt == 1 or connection.is_open():
+                    raise
+
+                async with self._connection_lock:
+                    if self._connection is connection:
+                        self._connection = None
+
+        raise RuntimeError("Unreachable")
 
     #
     # INITIALIZATION
