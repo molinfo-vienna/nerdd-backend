@@ -152,6 +152,7 @@ async def create_app(cfg: AppConfig):
 
             await asyncio.gather(*run_tasks, return_exceptions=True)
             logger.info("Tasks successfully cancelled")
+            await repository.close()
 
     app = FastAPI(lifespan=global_lifespan, root_path=cfg.root_path)
     app.state.repository = repository = get_repository(cfg.db)
