@@ -29,6 +29,10 @@ class Repository(ABC):
     async def initialize(self):
         pass
 
+    @abstractmethod
+    async def close(self) -> None:
+        pass
+
     #
     # MODULES
     #
