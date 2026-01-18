@@ -62,6 +62,12 @@ class RethinkDbRepository(Repository):
 
         raise RuntimeError("Unreachable")
 
+    async def close(self) -> None:
+        async with self._connection_lock:
+            if self._connection is not None:
+                await self._connection.close()
+                self._connection = None
+
     #
     # INITIALIZATION
     #
