@@ -1,8 +1,9 @@
 import asyncio
 import copy
 import logging
+from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import AsyncIterable, List, Optional, Tuple
+from typing import AsyncIterable, AsyncIterator, List, Optional, Tuple
 
 from rethinkdb import RethinkDB
 from rethinkdb.errors import ReqlDriverError, ReqlOpFailedError
@@ -40,6 +41,16 @@ class RethinkDbRepository(Repository):
         self.database_name = database_name
         self._connection = None
         self._connection_lock = asyncio.Lock()
+
+    @asynccontextmanager
+    async def _get_connection(self) -> AsyncIterator:
+        connection = await self.r.connect(self.host, self.port)
+        connection.use(self.database_name)
+
+        try:
+            yield connection
+        finally:
+            await connection.close()
 
     async def _run(self, query):
         for attempt in range(2):
