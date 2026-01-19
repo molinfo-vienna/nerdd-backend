@@ -54,8 +54,15 @@ class RethinkDbRepository(Repository):
             await connection.close()
 
     async def _run(self, query):
+        """
+        Run a RethinkDB query on a shared connection. If the connection is closed, it will be
+        re-established automatically.
+        """
+
+        # rethinkdb might close the shared connection -> try a second attempt with a new connection
         for attempt in range(2):
             async with self._connection_lock:
+                # establish the shared connection if it doesn't exist yet or is closed
                 if self._connection is None or not self._connection.is_open():
                     self._connection = await self.r.connect(self.host, self.port)
                     self._connection.use(self.database_name)
@@ -65,14 +72,18 @@ class RethinkDbRepository(Repository):
             try:
                 return await query.run(connection)
             except ReqlDriverError:
+                # If the connection is closed and this was the first attempt, try again with a new
+                # connection. Otherwise, re-raise the exception.
                 if attempt == 1 or connection.is_open():
                     raise
 
+                # In the meantime, the connection might have been re-opened by another coroutine.
+                # -> check if the connection is still the same as the one we used for the query
+                # -> if yes: set it to None and create a new one in the next attempt
+                # -> if no: use the connection created by the other coroutine in the next attempt
                 async with self._connection_lock:
                     if self._connection is connection:
                         self._connection = None
-
-        raise RuntimeError("Unreachable")
 
     async def close(self) -> None:
         async with self._connection_lock:
