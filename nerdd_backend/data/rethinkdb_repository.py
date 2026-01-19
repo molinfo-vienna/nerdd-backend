@@ -217,8 +217,9 @@ class RethinkDbRepository(Repository):
 
     async def create_module(self, module: ModuleInternal) -> ModuleInternal:
         result = await self._run(
-            self.r.table("modules")
-            .insert(module.model_dump(), conflict="error", return_changes=True)
+            self.r.table("modules").insert(
+                module.model_dump(), conflict="error", return_changes=True
+            )
         )
 
         if len(result["changes"]) == 0:
@@ -322,8 +323,7 @@ class RethinkDbRepository(Repository):
 
     async def create_job(self, job: JobInternal) -> JobWithResults:
         result = await self._run(
-            self.r.table("jobs")
-            .insert(job.model_dump(), conflict="error", return_changes=True)
+            self.r.table("jobs").insert(job.model_dump(), conflict="error", return_changes=True)
         )
         # JobWithResults adds the entries_processed field, which is not part of JobInternal.
         return JobWithResults(**result["changes"][0]["new_val"])
@@ -345,9 +345,7 @@ class RethinkDbRepository(Repository):
 
         # update the job in the database
         changes = await self._run(
-            self.r.table("jobs")
-            .get(job_update.id)
-            .update(update_set, return_changes="always")
+            self.r.table("jobs").get(job_update.id).update(update_set, return_changes="always")
         )
 
         updated_job = changes["changes"][0]["new_val"] if len(changes["changes"]) > 0 else None
@@ -420,8 +418,7 @@ class RethinkDbRepository(Repository):
 
     async def get_expired_jobs(self, deadline: datetime) -> AsyncIterable[JobInternal]:
         cursor = await self._run(
-            self.r.table("jobs")
-            .filter(lambda job: job["created_at"] < deadline)
+            self.r.table("jobs").filter(lambda job: job["created_at"] < deadline)
         )
 
         async for item in cursor:
@@ -438,8 +435,9 @@ class RethinkDbRepository(Repository):
 
     async def create_source(self, source: Source) -> Source:
         result = await self._run(
-            self.r.table("sources")
-            .insert(source.model_dump(), conflict="error", return_changes=True)
+            self.r.table("sources").insert(
+                source.model_dump(), conflict="error", return_changes=True
+            )
         )
 
         if len(result["changes"]) == 0:
@@ -460,8 +458,7 @@ class RethinkDbRepository(Repository):
 
     async def get_expired_sources(self, deadline: datetime) -> AsyncIterable[Source]:
         cursor = await self._run(
-            self.r.table("sources")
-            .filter(lambda source: source["created_at"] < deadline)
+            self.r.table("sources").filter(lambda source: source["created_at"] < deadline)
         )
 
         async for item in cursor:
@@ -505,8 +502,7 @@ class RethinkDbRepository(Repository):
 
     async def upsert_results(self, results: List[Result]) -> None:
         changes = await self._run(
-            self.r.table("results")
-            .insert(
+            self.r.table("results").insert(
                 [result.model_dump() for result in results],
                 conflict="replace",
                 return_changes=False,
@@ -563,8 +559,9 @@ class RethinkDbRepository(Repository):
 
     async def create_result_checkpoint(self, checkpoint: ResultCheckpoint) -> ResultCheckpoint:
         result = await self._run(
-            self.r.table("checkpoints")
-            .insert(checkpoint.model_dump(), conflict="error", return_changes=True)
+            self.r.table("checkpoints").insert(
+                checkpoint.model_dump(), conflict="error", return_changes=True
+            )
         )
 
         if len(result["changes"]) == 0:
@@ -585,24 +582,17 @@ class RethinkDbRepository(Repository):
         return ResultCheckpoint(**result["changes"][0]["new_val"])
 
     async def get_result_checkpoints_by_job_id(self, job_id: str) -> List[ResultCheckpoint]:
-        cursor = await self._run(
-            self.r.table("checkpoints").get_all(job_id, index="job_id")
-        )
+        cursor = await self._run(self.r.table("checkpoints").get_all(job_id, index="job_id"))
         return [ResultCheckpoint(**item) async for item in cursor]
 
     async def get_result_checkpoints_by_module_id(self, module_id: str) -> List[ResultCheckpoint]:
         cursor = await self._run(
-            self.r.table("checkpoints")
-            .filter(self.r.row["job_type"] == module_id)
+            self.r.table("checkpoints").filter(self.r.row["job_type"] == module_id)
         )
         return [ResultCheckpoint(**item) async for item in cursor]
 
     async def delete_result_checkpoints_by_job_id(self, job_id: str) -> None:
-        await self._run(
-            self.r.table("checkpoints")
-            .get_all(job_id, index="job_id")
-            .delete()
-        )
+        await self._run(self.r.table("checkpoints").get_all(job_id, index="job_id").delete())
 
     #
     # USERS
@@ -614,9 +604,7 @@ class RethinkDbRepository(Repository):
             pass
 
     async def get_user_by_ip_address(self, ip_address: str) -> AnonymousUser:
-        result = await self._run(
-            self.r.table("users").get_all(ip_address, index="ip_address")
-        )
+        result = await self._run(self.r.table("users").get_all(ip_address, index="ip_address"))
 
         if result is None:
             raise RecordNotFoundError(AnonymousUser, ip_address)
@@ -640,8 +628,7 @@ class RethinkDbRepository(Repository):
 
     async def create_user(self, user: User) -> User:
         result = await self._run(
-            self.r.table("users")
-            .insert(user.model_dump(), conflict="error", return_changes=True)
+            self.r.table("users").insert(user.model_dump(), conflict="error", return_changes=True)
         )
 
         if len(result["changes"]) == 0:
@@ -651,8 +638,7 @@ class RethinkDbRepository(Repository):
 
     async def get_recent_jobs_by_user(self, user, num_seconds):
         cursor = await self._run(
-            self.r.table("jobs")
-            .filter(
+            self.r.table("jobs").filter(
                 (self.r.row["user_id"] == user.id)
                 & (self.r.row["created_at"] > self.r.now().sub(num_seconds))
             )
@@ -671,8 +657,9 @@ class RethinkDbRepository(Repository):
 
     async def create_challenge(self, challenge: Challenge) -> Challenge:
         result = await self._run(
-            self.r.table("challenges")
-            .insert(challenge.model_dump(), conflict="error", return_changes=True)
+            self.r.table("challenges").insert(
+                challenge.model_dump(), conflict="error", return_changes=True
+            )
         )
 
         if len(result["changes"]) == 0:
@@ -682,8 +669,7 @@ class RethinkDbRepository(Repository):
 
     async def get_challenge_by_salt(self, salt: str) -> Challenge:
         result = await self._run(
-            self.r.table("challenges")
-            .filter(lambda challenge: challenge["salt"] == salt)
+            self.r.table("challenges").filter(lambda challenge: challenge["salt"] == salt)
         )
 
         if result is None:
