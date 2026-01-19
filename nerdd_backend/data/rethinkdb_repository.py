@@ -84,66 +84,96 @@ class RethinkDbRepository(Repository):
     # INITIALIZATION
     #
     async def initialize(self) -> None:
-        dbs = await self._run(self.r.db_list())
+        async with self._get_connection(use_database=False) as connection:
+            dbs = await self.r.db_list().run(connection)
 
-        if self.database_name in dbs:
-            logger.info(f"Using existing RethinkDB database '{self.database_name}'")
-            return
+            if self.database_name in dbs:
+                logger.info(f"Using existing RethinkDB database '{self.database_name}'")
+            else:
+                # create database
+                try:
+                    await self.r.db_create(self.database_name).run(connection)
+                except ReqlOpFailedError as e:
+                    if not str(e).startswith("Database `nerdd` already exists"):
+                        logger.exception("Failed to create database", exc_info=e)
 
-        # create database
-        try:
-            await self._run(self.r.db_create(self.database_name))
-        except ReqlOpFailedError as e:
-            if not str(e).startswith("Database `nerdd` already exists"):
-                logger.exception("Failed to create database", exc_info=e)
+            # use the same database for all table and index queries below
+            connection.use(self.database_name)
 
-        # create tables
-        await self.create_module_table()
-        await self.create_sources_table()
-        await self.create_jobs_table()
-        await self.create_results_table()
-        await self.create_result_checkpoints_table()
-        await self.create_users_table()
-        await self.create_challenges_table()
+            # create tables
+            try:
+                await self.r.table_create("modules", primary_key="id").run(connection)
+            except ReqlOpFailedError:
+                pass
 
-        # create an index on status in jobs table
-        try:
-            await self._run(self.r.table("jobs").index_create("status"))
-            # wait for index to be ready
-            await self._run(self.r.table("jobs").index_wait("status"))
-        except ReqlOpFailedError as e:
-            if not str(e).startswith("Index `status` already exists"):
-                logger.exception("Failed to create index", exc_info=e)
+            try:
+                await self.r.table_create("sources", primary_key="id").run(connection)
+            except ReqlOpFailedError:
+                pass
 
-        # create an index on job_id in results table
-        try:
-            await self._run(self.r.table("results").index_create("job_id"))
+            try:
+                await self.r.table_create("jobs", primary_key="id").run(connection)
+            except ReqlOpFailedError:
+                pass
 
-            # wait for index to be ready
-            await self._run(self.r.table("results").index_wait("job_id"))
-        except ReqlOpFailedError as e:
-            if not str(e).startswith("Index `job_id` already exists"):
-                logger.exception("Failed to create index", exc_info=e)
+            try:
+                await self.r.table_create("results", primary_key="id").run(connection)
+            except ReqlOpFailedError:
+                pass
 
-        # create an index on job_id in checkpoints table
-        try:
-            await self._run(self.r.table("checkpoints").index_create("job_id"))
+            try:
+                await self.r.table_create("checkpoints", primary_key="id").run(connection)
+            except ReqlOpFailedError:
+                pass
 
-            # wait for index to be ready
-            await self._run(self.r.table("checkpoints").index_wait("job_id"))
-        except ReqlOpFailedError as e:
-            if not str(e).startswith("Index `job_id` already exists"):
-                logger.exception("Failed to create index", exc_info=e)
+            try:
+                await self.r.table_create("users", primary_key="id").run(connection)
+            except ReqlOpFailedError:
+                pass
 
-        # create an index on ip_address in anonymous_users table
-        try:
-            await self._run(self.r.table("users").index_create("ip_address"))
+            try:
+                await self.r.table_create("challenges", primary_key="id").run(connection)
+            except ReqlOpFailedError:
+                pass
 
-            # wait for index to be ready
-            await self._run(self.r.table("users").index_wait("ip_address"))
-        except ReqlOpFailedError as e:
-            if not str(e).startswith("Index `ip_address` already exists"):
-                logger.exception("Failed to create index", exc_info=e)
+            # create an index on status in jobs table
+            try:
+                await self.r.table("jobs").index_create("status").run(connection)
+                # wait for index to be ready
+                await self.r.table("jobs").index_wait("status").run(connection)
+            except ReqlOpFailedError as e:
+                if not str(e).startswith("Index `status` already exists"):
+                    logger.exception("Failed to create index", exc_info=e)
+
+            # create an index on job_id in results table
+            try:
+                await self.r.table("results").index_create("job_id").run(connection)
+
+                # wait for index to be ready
+                await self.r.table("results").index_wait("job_id").run(connection)
+            except ReqlOpFailedError as e:
+                if not str(e).startswith("Index `job_id` already exists"):
+                    logger.exception("Failed to create index", exc_info=e)
+
+            # create an index on job_id in checkpoints table
+            try:
+                await self.r.table("checkpoints").index_create("job_id").run(connection)
+
+                # wait for index to be ready
+                await self.r.table("checkpoints").index_wait("job_id").run(connection)
+            except ReqlOpFailedError as e:
+                if not str(e).startswith("Index `job_id` already exists"):
+                    logger.exception("Failed to create index", exc_info=e)
+
+            # create an index on ip_address in anonymous_users table
+            try:
+                await self.r.table("users").index_create("ip_address").run(connection)
+
+                # wait for index to be ready
+                await self.r.table("users").index_wait("ip_address").run(connection)
+            except ReqlOpFailedError as e:
+                if not str(e).startswith("Index `ip_address` already exists"):
+                    logger.exception("Failed to create index", exc_info=e)
 
     #
     # MODULES
