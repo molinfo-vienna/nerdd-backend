@@ -72,7 +72,7 @@ class MemoryRepository(Repository):
         async with self.transaction_lock:
             existing_module = await self.get_module_by_id(module.id)
             self.modules.update(existing_module, module)
-            return await self.get_module_by_id(module)
+            return await self.get_module_by_id(module.id)
 
     async def get_module_by_id(self, id: str) -> ModuleInternal:
         try:
