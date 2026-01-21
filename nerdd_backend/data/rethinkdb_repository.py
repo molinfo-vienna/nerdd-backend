@@ -334,10 +334,18 @@ class RethinkDbRepository(Repository):
 
     async def create_job(self, job: JobInternal) -> JobWithResults:
         result = await self._run(
-            self.r.table("jobs").insert(job.model_dump(), conflict="error", return_changes=True)
+            self.r.table("jobs").insert(job.model_dump(), conflict="error", return_changes=False)
         )
+
+        if result["errors"] > 0:
+            first_error = result.get("first_error", "")
+            if first_error.startswith("Duplicate primary key "):
+                raise RecordAlreadyExistsError(JobInternal, job.id)
+
+            raise Exception(f"Failed to create job: {first_error}")
+
         # JobWithResults adds the entries_processed field, which is not part of JobInternal.
-        return JobWithResults(**result["changes"][0]["new_val"])
+        return JobWithResults(**job.model_dump())
 
     async def update_job(self, job_update: JobUpdate) -> JobInternal:
         # all fields can be updated in a single query
