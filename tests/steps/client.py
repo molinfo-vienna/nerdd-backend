@@ -8,11 +8,16 @@ from asgi_lifespan import LifespanManager
 from fastapi.testclient import TestClient
 from hydra import compose, initialize
 from nerdd_link.tests import async_step
-from pytest_bdd import parsers, then, when
+from pytest_bdd import given, parsers, then, when
 
 from nerdd_backend.main import create_app
 
 logger = logging.getLogger(__name__)
+
+
+@given(parsers.parse("an environment variable {name} is set to {value}"))
+def set_env_var(monkeypatch, name, value):
+    monkeypatch.setenv(name, value)
 
 
 @pytest_asyncio.fixture
