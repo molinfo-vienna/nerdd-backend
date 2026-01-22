@@ -591,8 +591,12 @@ class RethinkDbRepository(Repository):
             )
         )
 
-        if len(result["changes"]) == 0:
-            raise RecordAlreadyExistsError(ResultCheckpoint, checkpoint.id)
+        if result["errors"] > 0:
+            first_error = result.get("first_error", "")
+            if first_error.startswith("Duplicate primary key "):
+                raise RecordAlreadyExistsError(ResultCheckpoint, checkpoint.id)
+
+            raise Exception(f"Failed to create result checkpoint: {first_error}")
 
         return ResultCheckpoint(**result["changes"][0]["new_val"])
 
