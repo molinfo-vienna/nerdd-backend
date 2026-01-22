@@ -662,8 +662,12 @@ class RethinkDbRepository(Repository):
             self.r.table("users").insert(user.model_dump(), conflict="error", return_changes=True)
         )
 
-        if len(result["changes"]) == 0:
-            raise RecordAlreadyExistsError(User, user.id)
+        if result["errors"] > 0:
+            first_error = result.get("first_error", "")
+            if first_error.startswith("Duplicate primary key "):
+                raise RecordAlreadyExistsError(User, user.id)
+
+            raise Exception(f"Failed to create user: {first_error}")
 
         return user
 
