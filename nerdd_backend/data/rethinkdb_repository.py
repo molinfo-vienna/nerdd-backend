@@ -233,8 +233,12 @@ class RethinkDbRepository(Repository):
             )
         )
 
-        if len(result["changes"]) == 0:
-            raise RecordAlreadyExistsError(ModuleInternal, module.id)
+        if result["errors"] > 0:
+            first_error = result.get("first_error", "")
+            if first_error.startswith("Duplicate primary key "):
+                raise RecordAlreadyExistsError(ModuleInternal, module.id)
+
+            raise Exception(f"Failed to create module: {first_error}")
 
         return ModuleInternal(**result["changes"][0]["new_val"])
 
