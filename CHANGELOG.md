@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.45 (2026-01-28)
+
+### Fixes
+
+* fix: Update nerdd-link ([`bd74075`](https://github.com/molinfo-vienna/nerdd-backend/commit/bd740759fcf066f2ee185d1bf15b6aa7a8502ecf))
+
+### Unknown
+
+* Merge pull request #97 from shirte/main
+
+Update nerdd-link ([`4f374bd`](https://github.com/molinfo-vienna/nerdd-backend/commit/4f374bde8807b88c5f3ddd2d320d723faac019c0))
+
+
 ## v0.5.44 (2026-01-26)
 
 ### Fixes
