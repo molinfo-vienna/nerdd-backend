@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.46 (2026-01-30)
+
+### Fixes
+
+* fix: Patch partner logos with URLs to decrease response size ([`8077473`](https://github.com/molinfo-vienna/nerdd-backend/commit/807747330f53e036d8ae47327b6fd8cbe66793ed))
+
+### Unknown
+
+* Merge pull request #98 from shirte/main
+
+Patch partner logos with URLs to decrease response size ([`73c17ee`](https://github.com/molinfo-vienna/nerdd-backend/commit/73c17ee2dfeaab14f9ce4ba64cd73030ad5f9721))
+
+
 ## v0.5.45 (2026-01-28)
 
 ### Fixes
