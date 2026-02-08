@@ -1,6 +1,6 @@
 from typing import Generic, TypeVar
 
-from nerdd_link import Action
+from nerdd_link import Action, Storage
 
 __all__ = ["ActionWithContext"]
 
@@ -15,5 +15,5 @@ class ActionWithContext(Action[TMessage], Generic[TMessage]):
         # would raise an exception.
         # self.channel = app.state.channel
         self.repository = app.state.repository
-        self.filesystem = app.state.filesystem
+        self.storage: Storage = app.state.storage
         self.config = app.state.config

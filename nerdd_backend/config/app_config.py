@@ -37,8 +37,8 @@ class AppConfig:
     media_root: Optional[str] = None
     s3_url: Optional[str] = None
     s3_bucket: Optional[str] = None
-    s3_username: Optional[str] = None
-    s3_password: Optional[str] = None
+    s3_access_key_id: Optional[str] = None
+    s3_secret_access_key: Optional[str] = None
     mock_infra: bool = False
 
     # note: output_formats: List[str] = ["sdf", "csv"] would raise a ValueError (mutable

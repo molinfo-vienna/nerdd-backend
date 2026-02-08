@@ -1,14 +1,12 @@
 import asyncio
 import json
-import os
 from io import BytesIO
 from typing import List, Optional
 from uuid import uuid4
 
-import aiofiles
 from fastapi import APIRouter, HTTPException, Request, UploadFile
 from fastapi.encoders import jsonable_encoder
-from nerdd_link import FileSystem
+from nerdd_link import Storage
 
 from ..data import RecordNotFoundError, Repository
 from ..models import BaseSuccessResponse, Source, SourcePublic
@@ -24,18 +22,18 @@ async def put_source(
 ) -> SourcePublic:
     app = request.app
     repository: Repository = app.state.repository
-    filesystem: FileSystem = app.state.filesystem
+    storage: Storage = app.state.storage
 
     # create uuid
     uuid = uuid4()
 
-    # create path to new file
-    path = filesystem.get_source_file_path(str(uuid))
-
     # store file
-    async with aiofiles.open(path, "wb") as out_file:
+    out_file = await asyncio.to_thread(storage.get_source_file_handle, str(uuid), "wb")
+    try:
         while content := await file.read(10 * 1024 * 1024):  # read in 10MB chunks
-            await out_file.write(content)
+            await asyncio.to_thread(out_file.write, content)
+    finally:
+        await asyncio.to_thread(out_file.close)
 
     # create media object
     source = Source(
@@ -64,16 +62,14 @@ async def get_source(uuid: str, request: Request) -> SourcePublic:
 async def delete_source(uuid: str, request: Request) -> BaseSuccessResponse:
     app = request.app
     repository: Repository = app.state.repository
-    filesystem: FileSystem = app.state.filesystem
+    storage: Storage = app.state.storage
 
     try:
         await repository.get_source_by_id(uuid)
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail="Source not found") from e
 
-    # delete file from disk
-    path = filesystem.get_source_file_path(str(uuid))
-    os.remove(path)
+    await asyncio.to_thread(storage.delete_source_file, str(uuid))
 
     # delete source from database
     await repository.delete_source_by_id(uuid)

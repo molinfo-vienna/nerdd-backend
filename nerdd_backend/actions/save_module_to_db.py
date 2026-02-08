@@ -1,6 +1,6 @@
+import asyncio
 import json
 import logging
-import os
 
 import requests
 from nerdd_link import ModuleMessage
@@ -22,15 +22,15 @@ class SaveModuleToDb(ActionWithContext[ModuleMessage]):
         module_id = message.id
         logger.info(f"Creating a new module called {module_id}")
 
-        # load json config from file
-        module_path = self.filesystem.get_module_file_path(module_id)
-
-        if not os.path.exists(module_path):
-            logger.error(f"Module file {module_path} does not exist")
+        if not await asyncio.to_thread(self.storage.module_file_exists, module_id):
+            logger.error(f"Module file for {module_id} does not exist")
             return
 
-        with open(module_path, "r") as f:
-            module_json = json.load(f)
+        def load_module_config() -> dict:
+            with self.storage.get_module_file_handle(module_id, "r") as f:
+                return json.load(f)
+
+        module_json = await asyncio.to_thread(load_module_config)
 
         # fetch publication information from doi.org
         def _f(publication: dict) -> dict:
