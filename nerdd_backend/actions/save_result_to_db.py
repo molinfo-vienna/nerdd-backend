@@ -79,11 +79,22 @@ class SaveResultToDb(ActionWithContext[ResultMessage]):
             # Replace all file paths with urls
             #
             for k, v in message.items():
-                if isinstance(v, str) and v.startswith("file://"):
-                    parts = v.rsplit("/", 1)
-                    if len(parts) == 2:
-                        record_id = parts[1]
-                        message[k] = f"/api/jobs/{job_id}/files/{k}/{record_id}"
+                if not isinstance(v, str):
+                    continue
+
+                try:
+                    property_file = self.storage.parse_property_file_path(v)
+                except ValueError:
+                    continue
+
+                path = self.app.url_path_for(
+                    "get_job_file",
+                    job_id=property_file.job_id,
+                    property=property_file.property_name,
+                    record_id=property_file.record_id,
+                )
+                root_path = self.config.root_path or ""
+                message[k] = f"{root_path.rstrip('/')}{path}"
 
             # generate an id for the result
             if "id" not in message:
