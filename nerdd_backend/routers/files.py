@@ -1,9 +1,8 @@
-import asyncio
-from typing import AsyncGenerator
-
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from nerdd_link import Storage
+
+from ..util import AsyncStorageWrapper
 
 __all__ = ["files_router"]
 
@@ -16,23 +15,12 @@ async def get_job_file(
 ) -> StreamingResponse:
     app = request.app
     storage: Storage = app.state.storage
+    async_storage = AsyncStorageWrapper(storage)
 
-    path = storage.get_property_file_path(job_id, property, record_id)
-    if not await asyncio.to_thread(storage.file_exists, path):
+    if not await async_storage.property_file_exists(job_id, property, record_id):
         raise HTTPException(status_code=404, detail="File not found")
 
-    file_handle = await asyncio.to_thread(
-        storage.get_property_file_handle, job_id, property, record_id, "rb"
-    )
-
-    async def async_file_iterator(chunk_size: int = 65536) -> AsyncGenerator[bytes, None]:
-        try:
-            while chunk := await asyncio.to_thread(file_handle.read, chunk_size):
-                yield chunk
-        finally:
-            await asyncio.to_thread(file_handle.close)
-
     return StreamingResponse(
-        async_file_iterator(),
+        async_storage.iter_property_file_chunks(job_id, property, record_id, "rb"),
         media_type="application/octet-stream",
     )

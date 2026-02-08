@@ -1,5 +1,4 @@
 import asyncio
-import json
 import logging
 import os
 from contextlib import asynccontextmanager
@@ -46,6 +45,7 @@ from .routers import (
     sources_router,
     websockets_router,
 )
+from .util import AsyncStorageWrapper
 
 logging.basicConfig(level=logging.INFO)
 
@@ -238,14 +238,8 @@ async def create_app(cfg: AppConfig):
             ActionLifespan(SerializeJobAction(app.state.channel, storage)),
         ]
 
-        module_id = model.config.id
-
-        def write_module_config() -> None:
-            with storage.get_module_file_handle(module_id, "w") as f:
-                json.dump(model.config.model_dump(), f)
-
-        await asyncio.to_thread(write_module_config)
-        await channel.modules_topic().send(ModuleMessage(id=module_id))
+        await AsyncStorageWrapper(storage).write_model_config(model.config)
+        await channel.modules_topic().send(ModuleMessage(id=model.config.id))
 
     #
     # Middlewares

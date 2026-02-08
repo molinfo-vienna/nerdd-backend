@@ -10,6 +10,7 @@ from nerdd_link import Storage
 
 from ..data import RecordNotFoundError, Repository
 from ..models import BaseSuccessResponse, Source, SourcePublic
+from ..util import AsyncStorageWrapper
 
 __all__ = ["sources_router", "put_multiple_sources"]
 
@@ -69,7 +70,7 @@ async def delete_source(uuid: str, request: Request) -> BaseSuccessResponse:
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail="Source not found") from e
 
-    await asyncio.to_thread(storage.delete_source_file, str(uuid))
+    await AsyncStorageWrapper(storage).delete_source_file(str(uuid))
 
     # delete source from database
     await repository.delete_source_by_id(uuid)

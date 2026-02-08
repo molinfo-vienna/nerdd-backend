@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 
 from nerdd_link import JobMessage, LogMessage, Tombstone
 
+from ..util import AsyncStorageWrapper
 from .action_with_context import ActionWithContext
 
 __all__ = ["DeleteExpiredResources"]
@@ -55,7 +56,7 @@ class DeleteExpiredResources(ActionWithContext[LogMessage]):
                     uuid = source.id
                     logger.info(f"Deleting expired source {uuid}")
 
-                    await asyncio.to_thread(self.storage.delete_source_file, str(uuid))
+                    await AsyncStorageWrapper(self.storage).delete_source_file(str(uuid))
 
                     # delete source from database
                     await self.repository.delete_source_by_id(uuid)

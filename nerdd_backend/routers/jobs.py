@@ -1,7 +1,6 @@
-import asyncio
 import logging
 import math
-from typing import AsyncGenerator, Optional
+from typing import Optional
 from uuid import uuid4
 
 from fastapi import APIRouter, Body, Header, HTTPException, Request
@@ -19,6 +18,7 @@ from ..models import (
     OutputFile,
     QueueStats,
 )
+from ..util import AsyncStorageWrapper
 from .modules import augment_module
 from .users import check_quota, get_user
 
@@ -235,23 +235,12 @@ async def get_output_file(job_id: str, format: str, request: Request) -> Streami
             ),
         )
 
-    if not await asyncio.to_thread(storage.output_file_exists, job_id, format):
+    async_storage = AsyncStorageWrapper(storage)
+    if not await async_storage.output_file_exists(job_id, format):
         raise HTTPException(status_code=404, detail="Output file not found")
 
-    file_handle = await asyncio.to_thread(storage.get_output_file_handle, job_id, format, "rb")
-
-    async def async_file_iterator(chunk_size: int = 65536) -> AsyncGenerator[bytes, None]:
-        try:
-            while chunk := await asyncio.to_thread(file_handle.read, chunk_size):
-                yield chunk
-        except Exception as e:
-            logger.error("Error reading output file", exc_info=e)
-            raise HTTPException(status_code=500, detail="Error reading output file") from e
-        finally:
-            await asyncio.to_thread(file_handle.close)
-
     return StreamingResponse(
-        async_file_iterator(),
+        async_storage.iter_output_file_chunks(job_id, format, "rb"),
         media_type="application/octet-stream",
         headers={
             "Content-Disposition": f"attachment; filename={job.job_type}-{job_id}.{format}",
