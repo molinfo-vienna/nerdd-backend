@@ -5,7 +5,8 @@ Feature: Modules
         And a mocked repository
 
     Scenario: Get modules after initialization
-        When the client requests /modules
+        When the module 'mol-scale' becomes available
+        And the client requests /modules
         Then the client receives a response of length 1
         And the client receives a response containing
             {"name": "mol_scale", "version": "0.1"}
@@ -21,6 +22,7 @@ Feature: Modules
             {
                 "id": "test-1.0.0"
             }
+        And the module 'test' becomes available
         And the client requests /modules
         Then the client receives a response containing 
             {"name": "test", "version": "1.0.0"}

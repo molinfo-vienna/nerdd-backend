@@ -1,5 +1,8 @@
+import asyncio
+
 import pytest_asyncio
-from pytest_bdd import given
+from nerdd_link.tests import async_step
+from pytest_bdd import given, parsers, when
 
 from nerdd_backend.data import MemoryRepository
 
@@ -17,9 +20,17 @@ def mocked_repository(mocker, repository):
     )
 
 
-# TODO move this to the correct file
-# @given("the repository contains the mol weight module")
-# @async_step
-# async def mol_weight_module(repository):
-#     model = MolWeightModel()
-#     await repository.upsert_module(Module(**model.get_config().model_dump()))
+@when(parsers.parse("the module '{module_id}' becomes available"))
+@async_step
+async def wait_for_module(client, module_id):
+    repository = client.app.state.repository
+
+    try:
+        async with asyncio.timeout(5):
+            async for _, module in repository.get_module_changes():
+                if module is not None and module.id == module_id:
+                    return
+    except TimeoutError:
+        raise AssertionError(
+            f"Module {module_id!r} was not registered within 5 seconds."
+        ) from None
