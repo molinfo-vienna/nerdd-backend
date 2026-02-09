@@ -8,12 +8,15 @@ logger = logging.getLogger(__name__)
 
 
 class ActionLifespan(AbstractLifespan):
-    def __init__(self, action_creator):
+    def __init__(self, action_or_factory):
         super().__init__()
-        self.action_creator = action_creator
+        self.action_or_factory = action_or_factory
 
     async def start(self, app):
-        self.action = self.action_creator(app)
+        if callable(self.action_or_factory):
+            self.action = self.action_or_factory(app)
+        else:
+            self.action = self.action_or_factory
         logger.info(f"Start action {self.action}")
 
     async def run(self):

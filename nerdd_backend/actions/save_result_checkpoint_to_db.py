@@ -1,21 +1,19 @@
 import logging
 
-from nerdd_link import Action, Channel, LogMessage, ResultCheckpointMessage
-from omegaconf import DictConfig
+from nerdd_link import LogMessage, ResultCheckpointMessage
 
-from ..data import RecordAlreadyExistsError, RecordNotFoundError, Repository
+from ..data import RecordAlreadyExistsError, RecordNotFoundError
 from ..models import JobUpdate, ResultCheckpoint
+from .action_with_context import ActionWithContext
 
 __all__ = ["SaveResultCheckpointToDb"]
 
 logger = logging.getLogger(__name__)
 
 
-class SaveResultCheckpointToDb(Action[ResultCheckpointMessage]):
-    def __init__(self, channel: Channel, repository: Repository, config: DictConfig) -> None:
-        super().__init__(channel.result_checkpoints_topic())
-        self.repository = repository
-        self.config = config
+class SaveResultCheckpointToDb(ActionWithContext[ResultCheckpointMessage]):
+    def __init__(self, app) -> None:
+        super().__init__(app, app.state.channel.result_checkpoints_topic())
 
     async def _process_message(self, message: ResultCheckpointMessage) -> None:
         job_id = message.job_id
