@@ -1,6 +1,51 @@
 # CHANGELOG
 
 
+## v0.5.47 (2026-02-09)
+
+### Chores
+
+* chore: Drop support for Python 3.9 ([`8311251`](https://github.com/molinfo-vienna/nerdd-backend/commit/83112518974dcb43c4dad06f291e625cd85b9a20))
+
+### Documentation
+
+* docs: Rewrite comment in main ([`4599ba0`](https://github.com/molinfo-vienna/nerdd-backend/commit/4599ba0f079802e0955279645a8fb2701b57edfb))
+
+* docs: Add introduction to readme ([`76695f5`](https://github.com/molinfo-vienna/nerdd-backend/commit/76695f58635616b6973051be96641bb7d12faac4))
+
+* docs: Add readme section describing the module architecture ([`db6ba42`](https://github.com/molinfo-vienna/nerdd-backend/commit/db6ba42023603873ae9cc66a0654f884e4fd0e29))
+
+* docs: Add infrastructure diagram (dark mode) ([`c79b538`](https://github.com/molinfo-vienna/nerdd-backend/commit/c79b5384ae200eea17ae373b7a2ddc3c81949f9a))
+
+* docs: Add infrastructure diagram (light mode) ([`31bbd1e`](https://github.com/molinfo-vienna/nerdd-backend/commit/31bbd1e8db4ab92e8fd28a9b10d2266a9fc157ac))
+
+### Fixes
+
+* fix: Simplify code in main ([`e60788f`](https://github.com/molinfo-vienna/nerdd-backend/commit/e60788fd245bd58a6ac5a361811b833b62d02ea3))
+
+* fix: Let all actions inherit from ActionWithContext ([`1c85bbe`](https://github.com/molinfo-vienna/nerdd-backend/commit/1c85bbee75f2940b466be5678a08211b6bcce75e))
+
+* fix: Introduce ActionWithContext class ([`26e10cd`](https://github.com/molinfo-vienna/nerdd-backend/commit/26e10cd33a19cbb21464680041ed5fdac371ae5c))
+
+* fix: Export AbstractLifespan ([`c148a5d`](https://github.com/molinfo-vienna/nerdd-backend/commit/c148a5d40ce220237a6eb448c5d133c22e9f798e))
+
+* fix: Avoid lambda function in lifespan creation ([`3151a76`](https://github.com/molinfo-vienna/nerdd-backend/commit/3151a765b39d2f83e9e0b201ebef93e3e39b8785))
+
+### Unknown
+
+* Merge pull request #101 from shirte/main
+
+Simplify code for creating lifespans ([`c13514a`](https://github.com/molinfo-vienna/nerdd-backend/commit/c13514a4b6ea9ede85863d0de9d996dea5a9c245))
+
+* Merge pull request #100 from shirte/main
+
+Improve readme ([`9f6ebb1`](https://github.com/molinfo-vienna/nerdd-backend/commit/9f6ebb12da0e55ed10828268827a8683055b1a99))
+
+* Merge pull request #99 from shirte/main
+
+Drop support for Python 3.9 ([`34b3294`](https://github.com/molinfo-vienna/nerdd-backend/commit/34b3294a07c453f15d6fb08767139f6647b5f1b4))
+
+
 ## v0.5.46 (2026-01-30)
 
 ### Fixes
