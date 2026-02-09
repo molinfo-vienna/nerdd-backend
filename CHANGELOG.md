@@ -1,6 +1,31 @@
 # CHANGELOG
 
 
+## v0.5.48 (2026-02-09)
+
+### Documentation
+
+* docs: Adapt readme ([`09d6dea`](https://github.com/molinfo-vienna/nerdd-backend/commit/09d6dea418f6d96736cdf8c349a4b0c11e1b59e9))
+
+### Fixes
+
+* fix: Use config types in routes ([`8d91800`](https://github.com/molinfo-vienna/nerdd-backend/commit/8d91800e4ceb8c27e744b2e26a0ef328282d6eb2))
+
+* fix: Use config types in main ([`37e16c1`](https://github.com/molinfo-vienna/nerdd-backend/commit/37e16c115eea21e4fbae2875d8493de0381b36b6))
+
+* fix: Move settings to config ([`f4c0187`](https://github.com/molinfo-vienna/nerdd-backend/commit/f4c01878c951a5f4e30e160294668b9de5585202))
+
+* fix: Introduce types for hydra configs ([`dab6aa4`](https://github.com/molinfo-vienna/nerdd-backend/commit/dab6aa4d68c44b25548d8f16df38c1a5600aa941))
+
+### Unknown
+
+* Merge pull request #102 from shirte/main
+
+Specify types for hydra config ([`4bf8fb8`](https://github.com/molinfo-vienna/nerdd-backend/commit/4bf8fb8df7ac74ab855341cc37153c5fbf6c988f))
+
+* tests: Adapt client to new config dir ([`c1c57ae`](https://github.com/molinfo-vienna/nerdd-backend/commit/c1c57ae8533cf478a77bc8e89d6a28857e014d70))
+
+
 ## v0.5.47 (2026-02-09)
 
 ### Chores
