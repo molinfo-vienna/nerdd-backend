@@ -9,6 +9,7 @@ from fastapi import APIRouter, Body, Header, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from nerdd_link import Channel, FileSystem, JobMessage, Tombstone
 
+from ..config import AppConfig
 from ..data import RecordNotFoundError, Repository
 from ..models import (
     BaseSuccessResponse,
@@ -81,6 +82,7 @@ async def create_job(
     app = request.app
     repository: Repository = app.state.repository
     channel: Channel = app.state.channel
+    config: AppConfig = app.state.config
 
     # create a job id
     job_id = uuid4()
@@ -123,12 +125,12 @@ async def create_job(
     # get page size (depending on module task)
     task = module.task
     if task == "atom_property_prediction":
-        page_size = app.state.config.page_size_atom_property_prediction
+        page_size = config.page_size_atom_property_prediction
     elif task == "derivative_property_prediction":
-        page_size = app.state.config.page_size_derivative_property_prediction
+        page_size = config.page_size_derivative_property_prediction
     else:
         # task == "molecular_property_prediction" or unknown task
-        page_size = app.state.config.page_size_molecular_property_prediction
+        page_size = config.page_size_molecular_property_prediction
 
     # check if source exists
     try:
@@ -209,7 +211,7 @@ async def delete_job(job_id: str, request: Request) -> BaseSuccessResponse:
 async def get_output_file(job_id: str, format: str, request: Request) -> StreamingResponse:
     app = request.app
     repository = app.state.repository
-    config = app.state.config
+    config: AppConfig = app.state.config
     filesystem: FileSystem = app.state.filesystem
 
     try:

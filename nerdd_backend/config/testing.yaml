@@ -1,11 +1,13 @@
 defaults:
+  - config
   - channel: memory
   - db: memory
+  - _self_
 
-host: 0.0.0.0
+host: localhost
 port: 8000
 root_path: null
-log_requests: true
+log_requests: false
 cors: true
 
 quota_mols_per_day_anonymous: 100_000

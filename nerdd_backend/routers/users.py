@@ -3,6 +3,7 @@ from uuid import uuid4
 
 from fastapi import HTTPException
 
+from ..config import AppConfig
 from ..data import RecordNotFoundError, Repository
 from ..models import AnonymousUser
 
@@ -29,7 +30,7 @@ async def get_user(request):
 
 async def check_quota(user, request):
     app = request.app
-    config = app.state.config
+    config: AppConfig = app.state.config
     repository: Repository = app.state.repository
 
     # get all jobs started in the last 24 hours by the user

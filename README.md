@@ -53,7 +53,7 @@ conda activate nerdd_backend
 # install dependencies
 pip install .
 
-# run the server using development settings
+# run the server using development config
 # (this works without any prerequisites; it uses a toy communication channel, 
 # a fake database backend and a basic computational module for demonstration)
 python -m nerdd_backend.main
@@ -66,14 +66,14 @@ xdg-open http://localhost:8000/docs
 ```
 
 
-## Settings
+## Config
 
-Custom options can be passed by providing a predefined configuration (see `nerdd_backend/settings`)
-or overwriting individual options using `++`. By default, the development settings (
-`nerdd_backend/settings/development.yaml`) are loaded.
+Custom options can be passed by providing a predefined configuration (see `nerdd_backend/config`)
+or overwriting individual options using `++`. By default, the development config (
+`nerdd_backend/config/development.yaml`) is loaded.
 
 ```sh
-# switch to production settings
+# switch to production config
 python -m nerdd_backend.main --config-name production
 
 # change port
@@ -86,7 +86,7 @@ python -m nerdd_backend.main ++mock_infra=false
 python -m nerdd_backend.main ++media_root=./media
 
 # run on existing kafka cluster as communication channel and rethinkdb database backend
-# (see all options in config files in settings folder)
+# (see all options in config files in config folder)
 python -m nerdd_backend.main --config-name production \
   ++db.host=localhost ++db.port=31562 \
   ++channel.broker=localhost:31624
@@ -104,7 +104,7 @@ python -m nerdd_backend.main --config-name production \
   * `state.channel`: an object for sending messages to the message broker, and
   * `state.filesystem`: an object for storing and retrieving files.
 * Application settings are managed using [Hydra](https://github.com/facebookresearch/hydra). 
-  Predefined configurations are defined in `/settings`, but individual options may be overridden 
+  Predefined configurations are defined in `/config`, but individual options may be overridden 
   when starting the server application.
 * All schemas of requests, responses and records persisted to the database are declared as Pydantic 
   models (deriving from `pydantic.BaseModel`) in `nerdd_backend.models`.

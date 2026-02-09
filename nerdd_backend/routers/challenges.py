@@ -7,6 +7,7 @@ from uuid import uuid4
 import altcha
 from fastapi import APIRouter, HTTPException, Query, Request
 
+from ..config import AppConfig
 from ..data import RecordNotFoundError, Repository
 from ..models import BaseSuccessResponse, Challenge
 
@@ -18,7 +19,7 @@ challenges_router = APIRouter(prefix="/challenges")
 @challenges_router.get("/create", include_in_schema=False)
 async def create_challenge(request: Request = None):
     app = request.app
-    config = app.state.config
+    config: AppConfig = app.state.config
     repository = app.state.repository
 
     # delete all expired challenges
@@ -53,7 +54,7 @@ async def verify_solution(
     request: Request = None,
 ):
     app = request.app
-    config = app.state.config
+    config: AppConfig = app.state.config
     repository: Repository = app.state.repository
 
     # delete all expired challenges
