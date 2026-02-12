@@ -34,8 +34,8 @@ async def put_source(
 
     # store file
     async with aiofiles.open(path, "wb") as out_file:
-        while content := await file.read(1024):  # async read chunk
-            await out_file.write(content)  # async write chunk
+        while content := await file.read(10 * 1024 * 1024):  # read in 10MB chunks
+            await out_file.write(content)
 
     # create media object
     source = Source(
