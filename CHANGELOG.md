@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.49 (2026-02-12)
+
+### Fixes
+
+* fix: Write upload files in larger chunks ([`b012db4`](https://github.com/molinfo-vienna/nerdd-backend/commit/b012db4d5e34b9957b1624b275c063194eb49c9c))
+
+### Unknown
+
+* Merge pull request #103 from shirte/main
+
+Write upload files in larger chunks ([`43e5f78`](https://github.com/molinfo-vienna/nerdd-backend/commit/43e5f78e604ce8a24b9914fc9a8956749f987b9d))
+
+
 ## v0.5.48 (2026-02-09)
 
 ### Documentation
