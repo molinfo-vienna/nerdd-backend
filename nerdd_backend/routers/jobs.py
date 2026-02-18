@@ -76,7 +76,7 @@ async def augment_job(job: JobWithResults, request: Request) -> JobPublic:
 async def create_job(
     job: JobCreate = Body(),
     referer: Optional[str] = Header(None, include_in_schema=False),
-    request: Request = None,
+    request: Optional[Request] = None,
 ) -> JobPublic:
     app = request.app
     repository: Repository = app.state.repository

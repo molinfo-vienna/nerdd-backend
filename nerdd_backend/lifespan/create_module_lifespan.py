@@ -1,6 +1,8 @@
 import asyncio
 import logging
 
+from fastapi import FastAPI
+
 from ..routers import get_dynamic_router
 from .abstract_lifespan import AbstractLifespan
 
@@ -10,13 +12,13 @@ logger = logging.getLogger(__name__)
 
 
 class CreateModuleLifespan(AbstractLifespan):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
-    async def start(self, app):
+    async def start(self, app: FastAPI) -> None:
         self.app = app
 
-    async def run(self):
+    async def run(self) -> None:
         logger.info("Starting CreateModuleLifespan")
         repository = self.app.state.repository
 

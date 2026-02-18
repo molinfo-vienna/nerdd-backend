@@ -1,5 +1,6 @@
 import logging
 
+from fastapi import FastAPI
 from nerdd_link import LogMessage, ResultCheckpointMessage
 
 from ..data import RecordAlreadyExistsError, RecordNotFoundError
@@ -12,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class SaveResultCheckpointToDb(ActionWithContext[ResultCheckpointMessage]):
-    def __init__(self, app) -> None:
+    def __init__(self, app: FastAPI) -> None:
         super().__init__(app, app.state.channel.result_checkpoints_topic())
 
     async def _process_message(self, message: ResultCheckpointMessage) -> None:
@@ -50,5 +51,5 @@ class SaveResultCheckpointToDb(ActionWithContext[ResultCheckpointMessage]):
                 )
             )
 
-    def _get_group_name(self):
+    def _get_group_name(self) -> str:
         return "save-result-checkpoint-to-db"

@@ -3,7 +3,7 @@ import copy
 import logging
 from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import AsyncIterable, AsyncIterator, List, Optional, Tuple
+from typing import Any, AsyncGenerator, AsyncIterable, List, Optional, Tuple
 
 from rethinkdb import RethinkDB
 from rethinkdb.errors import ReqlDriverError, ReqlOpFailedError
@@ -43,7 +43,7 @@ class RethinkDbRepository(Repository):
         self._connection_lock = asyncio.Lock()
 
     @asynccontextmanager
-    async def _get_connection(self, use_database: bool = True) -> AsyncIterator:
+    async def _get_connection(self, use_database: bool = True) -> AsyncGenerator:
         connection = await self.r.connect(self.host, self.port)
         if use_database:
             connection.use(self.database_name)
@@ -53,7 +53,7 @@ class RethinkDbRepository(Repository):
         finally:
             await connection.close()
 
-    async def _run(self, query):
+    async def _run(self, query: Any) -> Any:
         """
         Run a RethinkDB query on a shared connection. If the connection is closed, it will be
         re-established automatically.
@@ -354,7 +354,7 @@ class RethinkDbRepository(Repository):
     async def update_job(self, job_update: JobUpdate) -> JobInternal:
         # all fields can be updated in a single query
         # --> prepare an object with all fields that should be updated
-        update_set = {}
+        update_set: dict[str, Any] = {}
         if job_update.status is not None:
             update_set["status"] = job_update.status
         if job_update.num_entries_total is not None:
@@ -671,7 +671,7 @@ class RethinkDbRepository(Repository):
 
         return user
 
-    async def get_recent_jobs_by_user(self, user, num_seconds):
+    async def get_recent_jobs_by_user(self, user: User, num_seconds: int) -> List[JobInternal]:
         cursor = await self._run(
             self.r.table("jobs").filter(
                 (self.r.row["user_id"] == user.id)

@@ -1,5 +1,5 @@
 import math
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
@@ -16,9 +16,9 @@ class Result(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     @model_validator(mode="before")
-    def sanitize_floats(cls, values):
+    def sanitize_floats(cls, values: Any) -> Any:
         # convert nan values to None so that they are serialized to proper json
-        def fix(v):
+        def fix(v: Any) -> Any:
             if isinstance(v, float) and (math.isnan(v) or math.isinf(v)):
                 return None
             return v

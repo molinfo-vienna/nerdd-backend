@@ -19,7 +19,7 @@ sources_router = APIRouter(prefix="/sources")
 
 @sources_router.put("")
 async def put_source(
-    file: UploadFile, format: Optional[str] = None, request: Request = None
+    file: UploadFile, format: Optional[str] = None, request: Optional[Request] = None
 ) -> SourcePublic:
     app = request.app
     repository: Repository = app.state.repository
@@ -87,12 +87,12 @@ async def put_multiple_sources(
     app = request.app
     repository: Repository = app.state.repository
 
-    all_sources = []
+    all_sources: list[Source | SourcePublic] = []
 
     # create source from inputs list
     if len(inputs) > 0:
 
-        async def _put_input(index: int, input: str):
+        async def _put_input(index: int, input: str) -> SourcePublic:
             file_stream = BytesIO(input.encode("utf-8"))
             file = UploadFile(file_stream, filename=f"user_input_{index}")
             return await put_source(file=file, request=request)

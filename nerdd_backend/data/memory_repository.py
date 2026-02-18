@@ -250,7 +250,7 @@ class MemoryRepository(Repository):
     async def get_all_results_by_job_id(self, job_id: str) -> List[Result]:
         return [result for result in self.results.get_items() if result.job_id == job_id]
 
-    async def delete_results_by_job_id(self, job_id) -> None:
+    async def delete_results_by_job_id(self, job_id: str) -> None:
         async with self.transaction_lock:
             results_to_delete = [
                 result for result in self.results.get_items() if result.job_id == job_id
@@ -286,7 +286,7 @@ class MemoryRepository(Repository):
             checkpoint for checkpoint in self.checkpoints.get_items() if checkpoint.job_id == job_id
         ]
 
-    async def get_result_checkpoints_by_module_id(self, module_id):
+    async def get_result_checkpoints_by_module_id(self, module_id: str) -> List[ResultCheckpoint]:
         return [
             checkpoint
             for checkpoint in self.checkpoints.get_items()
@@ -329,7 +329,7 @@ class MemoryRepository(Repository):
                 self.users.append(result)
                 return result
 
-    async def get_recent_jobs_by_user(self, user, num_seconds):
+    async def get_recent_jobs_by_user(self, user: User, num_seconds: int) -> List[JobInternal]:
         return [
             job
             for job in self.jobs.get_items()

@@ -1,10 +1,10 @@
 import json
 import logging
-from typing import Annotated, List, Optional
+from typing import Annotated, Any, List, Optional
 
 from fastapi import APIRouter, File, Form, Header, HTTPException, Query, Request, UploadFile
 from nerdd_module.config import JobParameter
-from pydantic import Field, create_model
+from pydantic import BaseModel, Field, create_model
 from stringcase import pascalcase, snakecase
 
 from ..models import JobCreate, JobPublic, ModuleInternal
@@ -35,7 +35,18 @@ FILES_DESCRIPTION = "Optional: List of files to use as input for the job."
 SWAGGER_WARNING = '**Uncheck "Send empty value" if sending from Swagger UI.**'
 
 
-def get_query_param(job_parameter: JobParameter):
+class BaseQueryGet(BaseModel):
+    inputs: Optional[List[str]] = None
+    sources: Optional[List[str]] = None
+
+
+class BaseQueryPost(BaseModel):
+    inputs: Optional[List[str]] = None
+    sources: Optional[List[str]] = None
+    files: Optional[List[UploadFile]] = None
+
+
+def get_query_param(job_parameter: JobParameter) -> Any:
     requested_type = job_parameter.type
     actual_type = type_mapping.get(requested_type, str)
     default_value = job_parameter.default or None
@@ -44,13 +55,13 @@ def get_query_param(job_parameter: JobParameter):
     return Annotated[actual_type, field]
 
 
-def validate_to_json(cls, value):
+def validate_to_json(cls: Any, value: Any) -> Any:
     if isinstance(value, str):
         return cls(**json.loads(value))
     return value
 
 
-def get_dynamic_router(module: ModuleInternal):
+def get_dynamic_router(module: ModuleInternal) -> APIRouter:
     logger.info(f"Creating router for module {module.id}")
 
     # all methods will be available at /module_name e.g. /cypstrate
@@ -72,6 +83,7 @@ def get_dynamic_router(module: ModuleInternal):
     module_name = pascalcase(snakecase(module.id))
     QueryModelGet = create_model(
         f"{module_name}JobCreate",
+        __base__=BaseQueryGet,
         inputs=Annotated[Optional[List[str]], Field(default=None, description=INPUTS_DESCRIPTION)],
         sources=Annotated[
             Optional[List[str]], Field(default=None, description=SOURCES_DESCRIPTION)
@@ -80,6 +92,7 @@ def get_dynamic_router(module: ModuleInternal):
     )
     QueryModelPost = create_model(
         f"{module_name}ComplexJobCreate",
+        __base__=BaseQueryPost,
         inputs=Annotated[
             List[str],
             Form(
@@ -124,8 +137,8 @@ def get_dynamic_router(module: ModuleInternal):
         files: Optional[List[UploadFile]],
         params: dict,
         referer: Optional[str] = None,
-        request: Request = None,
-    ):
+        request: Optional[Request] = None,
+    ) -> JobPublic:
         if inputs is None:
             inputs = []
         if sources is None:
@@ -160,7 +173,7 @@ def get_dynamic_router(module: ModuleInternal):
         # /cypstrate/jobs?prediction_mode=best_performance&inputs=CCO&inputs=CC
         job: Annotated[QueryModelGet, Query()],
         referer: Annotated[Optional[str], Header(include_in_schema=False)] = None,
-        request: Request = None,
+        request: Optional[Request] = None,
     ) -> JobPublic:
         params = {k: getattr(job, k) for k in field_definitions}
         return await _create_job(job.inputs, job.sources, None, params, referer, request)
@@ -174,7 +187,7 @@ def get_dynamic_router(module: ModuleInternal):
         # media_type="multipart/form-data": important for Swagger UI to upload files correctly
         job: Annotated[QueryModelPost, Form(media_type="multipart/form-data")],
         referer: Annotated[Optional[str], Header(include_in_schema=False)] = None,
-        request: Request = None,
+        request: Optional[Request] = None,
     ) -> JobPublic:
         return await _create_job(
             job.inputs,

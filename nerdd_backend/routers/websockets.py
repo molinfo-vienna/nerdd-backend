@@ -15,7 +15,7 @@ websockets_router = APIRouter(prefix="/websocket")
 # from the slash-less version to the slash version (as in normal routes).
 @websockets_router.websocket("/jobs/{job_id}")
 @websockets_router.websocket("/jobs/{job_id}/")
-async def get_job_ws(websocket: WebSocket, job_id: str):
+async def get_job_ws(websocket: WebSocket, job_id: str) -> None:
     app = websocket.app
     repository: Repository = app.state.repository
 
@@ -44,7 +44,7 @@ async def get_job_ws(websocket: WebSocket, job_id: str):
 # from the slash-less version to the slash version (as in normal routes).
 @websockets_router.websocket("/jobs/{job_id}/results")
 @websockets_router.websocket("/jobs/{job_id}/results/")
-async def get_results_ws(websocket: WebSocket, job_id: str, page: int = Query()):
+async def get_results_ws(websocket: WebSocket, job_id: str, page: int = Query()) -> None:
     app = websocket.app
     repository: Repository = app.state.repository
 

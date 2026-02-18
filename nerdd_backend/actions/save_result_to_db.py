@@ -1,7 +1,8 @@
 import asyncio
 import logging
-from typing import List
+from typing import Any, List
 
+from fastapi import FastAPI
 from nerdd_link import ResultMessage
 
 from ..data import RecordNotFoundError
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class SaveResultToDb(ActionWithContext[ResultMessage]):
-    def __init__(self, app) -> None:
+    def __init__(self, app: FastAPI) -> None:
         super().__init__(app, app.state.channel.results_topic(), batch_size=200)
 
     async def _process_messages(self, messages: List[ResultMessage]) -> None:
@@ -23,7 +24,7 @@ class SaveResultToDb(ActionWithContext[ResultMessage]):
         #
         valid_jobs = set()
         invalid_jobs = set()
-        valid_messages = []
+        valid_messages: list[dict[str, Any]] = []
         for message in messages:
             job_id = message.job_id
 
@@ -46,9 +47,9 @@ class SaveResultToDb(ActionWithContext[ResultMessage]):
         # (e.g. "derivative_prediction")
 
         # we cache sources to minimize database lookups
-        source_cache = {}
+        source_cache: dict[str, str | None] = {}
 
-        async def _get_source(source_id):
+        async def _get_source(source_id: str) -> str | None:
             if source_id in source_cache:
                 return source_cache[source_id]
             try:
@@ -112,5 +113,5 @@ class SaveResultToDb(ActionWithContext[ResultMessage]):
         # save results to database
         await self.repository.upsert_results([Result(**message) for message in valid_messages])
 
-    def _get_group_name(self):
+    def _get_group_name(self) -> str:
         return "save-result-to-db"

@@ -1,18 +1,18 @@
 import logging
 from uuid import uuid4
 
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 
 from ..config import AppConfig
 from ..data import RecordNotFoundError, Repository
-from ..models import AnonymousUser
+from ..models import AnonymousUser, User
 
 __all__ = ["get_user", "check_quota"]
 
 logger = logging.getLogger(__name__)
 
 
-async def get_user(request):
+async def get_user(request: Request) -> User:
     app = request.app
     repository: Repository = app.state.repository
 
@@ -28,7 +28,7 @@ async def get_user(request):
         return await repository.create_user(AnonymousUser(id=str(uuid), ip_address=ip_address))
 
 
-async def check_quota(user, request):
+async def check_quota(user: User, request: Request) -> bool:
     app = request.app
     config: AppConfig = app.state.config
     repository: Repository = app.state.repository
