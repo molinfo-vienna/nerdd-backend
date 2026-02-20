@@ -1,7 +1,7 @@
 import base64
 import json
 from datetime import datetime, timedelta, timezone
-from typing import Any, Optional
+from typing import Annotated, Any
 from uuid import uuid4
 
 import altcha
@@ -17,7 +17,7 @@ challenges_router = APIRouter(prefix="/challenges")
 
 
 @challenges_router.get("/create", include_in_schema=False)
-async def create_challenge(request: Optional[Request] = None) -> dict[str, Any]:
+async def create_challenge(request: Request) -> dict[str, Any]:
     app = request.app
     config: AppConfig = app.state.config
     repository = app.state.repository
@@ -50,8 +50,8 @@ async def create_challenge(request: Optional[Request] = None) -> dict[str, Any]:
 
 @challenges_router.get("/verify", include_in_schema=False)
 async def verify_solution(
-    payload: str = Query(alias="altcha"),
-    request: Optional[Request] = None,
+    payload: Annotated[str, Query(alias="altcha")],
+    request: Request,
 ) -> BaseSuccessResponse:
     app = request.app
     config: AppConfig = app.state.config

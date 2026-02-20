@@ -1,5 +1,3 @@
-from typing import Optional
-
 from fastapi import APIRouter, HTTPException, Request
 
 from ..data import RecordNotFoundError, Repository
@@ -13,7 +11,7 @@ results_router = APIRouter(prefix="")
 
 @results_router.get("/jobs/{job_id}/results")
 async def get_results(
-    job_id: str, page: int = 1, return_incomplete: bool = False, request: Optional[Request] = None
+    request: Request, job_id: str, page: int = 1, return_incomplete: bool = False
 ) -> ResultSet:
     app = request.app
     repository: Repository = app.state.repository
@@ -61,6 +59,6 @@ async def get_results(
         next_url=(page_url(page_zero_based + 1) if last_mol_id < num_entries - 1 else None),
     )
 
-    job_public = await augment_job(job, request)
+    job_public = await augment_job(request, job)
 
     return ResultSet(data=results, pagination=pagination, job=job_public)

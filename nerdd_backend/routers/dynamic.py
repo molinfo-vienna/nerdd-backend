@@ -132,12 +132,12 @@ def get_dynamic_router(module: ModuleInternal) -> APIRouter:
     #   - all params from module (e.g. metabolism_phase)
     #
     async def _create_job(
+        request: Request,
         inputs: Optional[List[str]],
         sources: Optional[List[str]],
         files: Optional[List[UploadFile]],
         params: dict,
         referer: Optional[str] = None,
-        request: Optional[Request] = None,
     ) -> JobPublic:
         if inputs is None:
             inputs = []
@@ -171,12 +171,12 @@ def get_dynamic_router(module: ModuleInternal) -> APIRouter:
         # Annotated[QueryModelGet, Query()] converts all model fields to GET parameters
         # a valid request looks like this:
         # /cypstrate/jobs?prediction_mode=best_performance&inputs=CCO&inputs=CC
+        request: Request,
         job: Annotated[QueryModelGet, Query()],
         referer: Annotated[Optional[str], Header(include_in_schema=False)] = None,
-        request: Optional[Request] = None,
     ) -> JobPublic:
         params = {k: getattr(job, k) for k in field_definitions}
-        return await _create_job(job.inputs, job.sources, None, params, referer, request)
+        return await _create_job(request, job.inputs, job.sources, None, params, referer)
 
     router.get(f"/{module.id}/jobs")(create_simple_job)
 
@@ -184,18 +184,18 @@ def get_dynamic_router(module: ModuleInternal) -> APIRouter:
     # POST /jobs
     #
     async def create_complex_job(
+        request: Request,
         # media_type="multipart/form-data": important for Swagger UI to upload files correctly
         job: Annotated[QueryModelPost, Form(media_type="multipart/form-data")],
         referer: Annotated[Optional[str], Header(include_in_schema=False)] = None,
-        request: Optional[Request] = None,
     ) -> JobPublic:
         return await _create_job(
+            request,
             job.inputs,
             job.sources,
             job.files,
             {k: getattr(job, k) for k in field_definitions},
             referer,
-            request,
         )
 
     router.post(f"/{module.id}/jobs")(create_complex_job)

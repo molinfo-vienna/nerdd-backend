@@ -17,7 +17,7 @@ __all__ = ["modules_router"]
 modules_router = APIRouter(prefix="/modules")
 
 
-async def augment_module(module: ModuleInternal, request: Request) -> ModulePublic:
+async def augment_module(request: Request, module: ModuleInternal) -> ModulePublic:
     config: AppConfig = request.app.state.config
 
     output_formats = config.output_formats
@@ -131,14 +131,14 @@ async def get_modules(request: Request) -> List[ModuleShort]:
 
     modules = await repository.get_all_modules()
     return [
-        ModuleShort(**(await augment_module(module, request)).model_dump())
+        ModuleShort(**(await augment_module(request, module)).model_dump())
         for module in modules
         if module.visible
     ]
 
 
 @modules_router.get("/{module_id}")
-async def get_module(module_id: str, request: Request) -> ModulePublic:
+async def get_module(request: Request, module_id: str) -> ModulePublic:
     app = request.app
     repository: Repository = app.state.repository
 
@@ -147,11 +147,11 @@ async def get_module(module_id: str, request: Request) -> ModulePublic:
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail="Module not found") from e
 
-    return await augment_module(module, request)
+    return await augment_module(request, module)
 
 
 @modules_router.get("/{module_id}/logo", include_in_schema=False)
-async def get_module_logo(module_id: str, request: Request) -> StreamingResponse:
+async def get_module_logo(request: Request, module_id: str) -> StreamingResponse:
     app = request.app
     repository: Repository = app.state.repository
 
@@ -186,9 +186,7 @@ async def get_module_logo(module_id: str, request: Request) -> StreamingResponse
 
 
 @modules_router.get("/{module_id}/partners/{partner_id}/logo", include_in_schema=False)
-async def get_partner_logo(
-    module_id: str, partner_id: str, request: Request
-) -> StreamingResponse:
+async def get_partner_logo(request: Request, module_id: str, partner_id: str) -> StreamingResponse:
     app = request.app
     repository: Repository = app.state.repository
 
@@ -233,7 +231,7 @@ async def get_partner_logo(
 
 
 @modules_router.get("/{module_id}/publications")
-async def get_module_publications(module_id: str, request: Request) -> List[dict]:
+async def get_module_publications(request: Request, module_id: str) -> List[dict]:
     app = request.app
     repository: Repository = app.state.repository
 
@@ -246,7 +244,7 @@ async def get_module_publications(module_id: str, request: Request) -> List[dict
 
 
 @modules_router.get("/{module_id}/queue")
-async def get_module_queue(module_id: str, request: Request) -> QueueStats:
+async def get_module_queue(request: Request, module_id: str) -> QueueStats:
     app = request.app
     repository: Repository = app.state.repository
 
