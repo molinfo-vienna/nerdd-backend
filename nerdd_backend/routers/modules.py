@@ -208,16 +208,14 @@ async def get_partner_logo(request: Request, module_id: str, partner_id: str) ->
         )
     else:
         try:
-            partner_id = int(partner_id)
+            partner_index = int(partner_id)
         except ValueError as e:
-            raise HTTPException(
-                status_code=400, detail="Partner ID must be an integer"
-            ) from e
+            raise HTTPException(status_code=400, detail="Partner ID must be an integer") from e
 
-        if partner_id < 0 or partner_id >= len(module.partners or []):
+        if partner_index < 0 or partner_index >= len(module.partners or []):
             raise HTTPException(status_code=404, detail="Partner not found")
 
-        prefix, logo_data = module.partners[partner_id].logo.split(",")
+        prefix, logo_data = module.partners[partner_index].logo.split(",")
         logo_data_decoded = base64.b64decode(logo_data)
 
     # figure out the mime type

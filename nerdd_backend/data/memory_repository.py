@@ -205,16 +205,19 @@ class MemoryRepository(Repository):
         start_mol_id: Optional[int] = None,
         end_mol_id: Optional[int] = None,
     ) -> AsyncIterable[Tuple[Optional[Result], Optional[Result]]]:
+        start_mol_id_val = start_mol_id if start_mol_id is not None else float("-inf")
+        end_mol_id_val = end_mol_id if end_mol_id is not None else float("inf")
+
         async for change in self.results.changes():
             old, new = change
             if (
                 old is not None
                 and old.job_id == job_id
-                and start_mol_id <= old.mol_id <= end_mol_id
+                and start_mol_id_val <= old.mol_id <= end_mol_id_val
             ) or (
                 new is not None
                 and new.job_id == job_id
-                and start_mol_id <= new.mol_id <= end_mol_id
+                and start_mol_id_val <= new.mol_id <= end_mol_id_val
             ):
                 yield change
 
@@ -306,11 +309,17 @@ class MemoryRepository(Repository):
     #
     # USERS
     #
-    async def get_user_by_ip_address(self, ip_address: str) -> User:
+    async def get_user_by_ip_address(self, ip_address: str) -> AnonymousUser:
         try:
-            return next((user for user in self.users.get_items() if user.ip_address == ip_address))
+            return next(
+                (
+                    user
+                    for user in self.users.get_items()
+                    if isinstance(user, AnonymousUser) and user.ip_address == ip_address
+                )
+            )
         except StopIteration as e:
-            raise RecordNotFoundError(User, ip_address) from e
+            raise RecordNotFoundError(AnonymousUser, ip_address) from e
 
     # Note: this method is not mandatory for the repository interface.
     async def get_user_by_id(self, id: str) -> User:

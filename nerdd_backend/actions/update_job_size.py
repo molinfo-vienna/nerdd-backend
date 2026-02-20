@@ -19,6 +19,11 @@ class UpdateJobSize(ActionWithContext[LogMessage]):
     async def _process_message(self, message: LogMessage) -> None:
         job_id = message.job_id
         if message.message_type == "report_job_size":
+            if not hasattr(message, "num_entries") or not hasattr(message, "num_checkpoints"):
+                raise ValueError(
+                    "Both num_entries and num_checkpoints must be provided in the message"
+                )
+
             logger.info(
                 f"Update job size for job {job_id}: {message.num_entries} entries, "
                 f"{message.num_checkpoints} checkpoints"

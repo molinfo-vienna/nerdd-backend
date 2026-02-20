@@ -37,9 +37,9 @@ async def get_results(
         raise HTTPException(status_code=404, detail="Page out of range")
 
     first_mol_id = page_zero_based * page_size
-    last_mol_id = min(first_mol_id + page_size, num_entries) - 1
+    last_mol_id = int(min(first_mol_id + page_size, num_entries) - 1)
     results = await repository.get_results_by_job_id(job_id, first_mol_id, last_mol_id)
-    is_incomplete = len(results) < last_mol_id - first_mol_id + 1
+    is_incomplete = len(results) < (last_mol_id - first_mol_id + 1)
 
     # if return_incomplete is not set, then we need to have all results on that page
     if not return_incomplete and is_incomplete:

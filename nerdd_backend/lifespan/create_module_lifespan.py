@@ -29,11 +29,13 @@ class CreateModuleLifespan(AbstractLifespan):
                     logger.info(f"Creating module {module.name}")
 
                     new_router = get_dynamic_router(module)
-                    paths = [route.path for route in new_router.routes]
+                    paths = [route.path for route in new_router.routes if hasattr(route, "path")]
 
                     # delete old routes
                     self.app.router.routes = [
-                        route for route in self.app.router.routes if route.path not in paths
+                        route
+                        for route in self.app.router.routes
+                        if getattr(route, "path", None) not in paths
                     ]
 
                     self.app.include_router(new_router)

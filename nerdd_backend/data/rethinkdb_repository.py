@@ -65,6 +65,7 @@ class RethinkDbRepository(Repository):
                 # establish the shared connection if it doesn't exist yet or is closed
                 if self._connection is None or not self._connection.is_open():
                     self._connection = await self.r.connect(self.host, self.port)
+                    assert self._connection is not None
                     self._connection.use(self.database_name)
 
                 connection = self._connection
@@ -274,11 +275,13 @@ class RethinkDbRepository(Repository):
                 .run(connection)
             )
 
-            job = await self.get_job_by_id(job_id)
+            job: Optional[JobWithResults] = await self.get_job_by_id(job_id)
 
             yield None, job
 
             async for change in cursor:
+                assert job is not None
+
                 if "new_val" not in change or change["new_val"] is None:
                     new_job = None
                 elif "mol_id" in change["new_val"]:

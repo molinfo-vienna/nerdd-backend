@@ -17,7 +17,10 @@ async def get_user(request: Request) -> User:
     repository: Repository = app.state.repository
 
     # get ip address of the request
-    ip_address = request.client.host
+    if request.client is None:
+        ip_address = "unknown"
+    else:
+        ip_address = request.client.host
 
     # get user by ip
     try:
@@ -70,7 +73,9 @@ async def check_quota(user: User, request: Request) -> bool:
 
     # check if the user has reached the maximum number of molecules per day
     if hasattr(config, "quota_mols_per_day_anonymous"):
-        num_mols_processed = sum([job.num_entries_total for job in jobs])
+        num_mols_processed = sum(
+            [job.num_entries_total for job in jobs if job.num_entries_total is not None]
+        )
         if num_mols_processed >= config.quota_mols_per_day_anonymous:
             raise HTTPException(
                 status_code=403,

@@ -66,14 +66,12 @@ def get_channel(config: ChannelConfig) -> Channel:
 
 
 def get_storage(config: AppConfig) -> Storage:
-    has_s3 = (
+    if (
         config.s3_url is not None
         and config.s3_bucket is not None
         and config.s3_access_key_id is not None
         and config.s3_secret_access_key is not None
-    )
-
-    if has_s3:
+    ):
         s3_storage = S3Storage(
             url=config.s3_url,
             bucket_name=config.s3_bucket,
@@ -100,6 +98,8 @@ def get_storage(config: AppConfig) -> Storage:
 
 def get_repository(config: DbConfig) -> Repository:
     if config.name == "rethinkdb":
+        if config.host is None or config.port is None or config.database_name is None:
+            raise ValueError("RethinkDB configuration requires host, port, and database_name")
         return RethinkDbRepository(config.host, config.port, config.database_name)
     elif config.name == "memory":
         return MemoryRepository()
@@ -199,7 +199,7 @@ async def create_app(cfg: AppConfig) -> FastAPI:
             logger.info("Tasks successfully cancelled")
             await repository.close()
 
-    app = FastAPI(lifespan=global_lifespan, root_path=cfg.root_path)
+    app = FastAPI(lifespan=global_lifespan, root_path=cfg.root_path or "")
     app.state.repository = repository = get_repository(cfg.db)
     app.state.channel = channel = get_channel(cfg.channel)
     app.state.storage = storage = get_storage(cfg)
@@ -239,8 +239,9 @@ async def create_app(cfg: AppConfig) -> FastAPI:
             ActionLifespan(SerializeJobAction(app.state.channel, storage)),
         ]
 
-        await AsyncStorageWrapper(storage).write_model_config(model.config)
-        await channel.modules_topic().send(ModuleMessage(id=model.config.id))
+        if model is not None:
+            await AsyncStorageWrapper(storage).write_model_config(model.config)
+            await channel.modules_topic().send(ModuleMessage(id=model.config.id))
 
     #
     # Middlewares
