@@ -92,6 +92,26 @@ extend-immutable-calls = [
     "fastapi.Depends",
 ]
 
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+disallow_untyped_defs = true
+exclude = ["^tests/*"]
+# no_implicit_optional = True
+# check_untyped_defs = True
+# show_error_codes = True
+
+[[tool.mypy.overrides]]
+module = [
+    "rdkit.*",
+    "nerdd_module.*",
+    "rethinkdb.*",
+    "sklearn.*",
+    "stringcase.*",
+]
+ignore_missing_imports = true
+follow_imports = "skip"
+follow_imports_for_stubs = true
+
 [tool.pytest.ini_options]
 log_cli = 1
 log_cli_level = "INFO"
