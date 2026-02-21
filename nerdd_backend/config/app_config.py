@@ -24,6 +24,7 @@ class AppConfig:
 
     challenge_difficulty: int = 1_000_000
     challenge_expiration_seconds: int = 3600
+    challenge_hmac_key: Optional[str] = None  # set this to enable challenge verification
 
     max_num_molecules_per_job: int = 10_000
     max_job_duration_minutes: int = 360

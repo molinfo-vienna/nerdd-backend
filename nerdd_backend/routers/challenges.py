@@ -22,6 +22,12 @@ async def create_challenge(request: Request) -> dict[str, Any]:
     config: AppConfig = app.state.config
     repository = app.state.repository
 
+    if config.challenge_hmac_key is None:
+        raise HTTPException(
+            status_code=500,
+            detail="Challenge verification is not configured on the server.",
+        )
+
     # delete all expired challenges
     await repository.delete_expired_challenges(datetime.now(timezone.utc))
 
@@ -56,6 +62,12 @@ async def verify_solution(
     app = request.app
     config: AppConfig = app.state.config
     repository: Repository = app.state.repository
+
+    if config.challenge_hmac_key is None:
+        raise HTTPException(
+            status_code=500,
+            detail="Challenge verification is not configured on the server.",
+        )
 
     # delete all expired challenges
     await repository.delete_expired_challenges(datetime.now(timezone.utc))

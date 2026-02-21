@@ -150,8 +150,6 @@ async def create_app(cfg: AppConfig) -> FastAPI:
     # Set default values for configuration options if not provided
     with open_dict(cast(DictConfig, cfg)):
         cfg.challenge_hmac_key = getattr(cfg, "challenge_hmac_key", os.urandom(32).hex())
-        cfg.challenge_difficulty = getattr(cfg, "challenge_difficulty", 1_000_000)
-        cfg.challenge_expiration_seconds = getattr(cfg, "challenge_expiration_seconds", 3600)
         cfg.maintenance_mode = getattr(cfg, "maintenance_mode", False) or (
             os.environ.get("MAINTENANCE_MODE", "false").lower() in ("true", "1", "yes")
         )
