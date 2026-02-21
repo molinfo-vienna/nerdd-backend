@@ -31,7 +31,7 @@ dependencies = [
     "rethinkdb~=2.4.10.post1",
     "python-multipart~=0.0.6",
     "hydra-core>=1.3.2",
-    "altcha>=0.1.9",
+    "altcha~=0.1.9",
     "scikit-learn>=1.7.1",
     "requests>=2",
     # for older python versions:
