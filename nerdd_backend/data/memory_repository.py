@@ -161,7 +161,7 @@ class MemoryRepository(Repository):
                 and job.job_type == module_id
                 and (deadline is None or job.created_at <= deadline)
             ):
-                yield self.get_job_by_id(job.id)
+                yield await self.get_job_by_id(job.id)
 
     async def get_expired_jobs(self, deadline: datetime) -> AsyncIterable[JobInternal]:
         for job in self.jobs.get_items():
@@ -282,7 +282,7 @@ class MemoryRepository(Repository):
                 raise RecordNotFoundError(ResultCheckpoint, checkpoint.id)
 
             self.checkpoints.update(existing_checkpoint, checkpoint)
-            return await self.get_result_checkpoints_by_job_id(checkpoint.job_id)
+            return checkpoint
 
     async def get_result_checkpoints_by_job_id(self, job_id: str) -> List[ResultCheckpoint]:
         return [
