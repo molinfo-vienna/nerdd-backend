@@ -161,12 +161,10 @@ async def get_module_logo(request: Request, module_id: str) -> StreamingResponse
 
         prefix = "data:image/svg+xml;base64,"
         logo_path = importlib.resources.files("assets").joinpath("default_logo.svg")
-        with open(logo_path, "rb") as f:
+        with logo_path.open("rb") as f:
             logo_data_decoded = f.read()
     elif not module.logo.startswith("data:"):
-        raise HTTPException(
-            status_code=400, detail="Module logo is not a valid base64 data URL"
-        )
+        raise HTTPException(status_code=400, detail="Module logo is not a valid base64 data URL")
     else:
         prefix, logo_data = module.logo.split(",")
         logo_data_decoded = base64.b64decode(logo_data)
@@ -196,12 +194,10 @@ async def get_partner_logo(request: Request, module_id: str, partner_id: str) ->
 
         prefix = "data:image/svg+xml;base64,"
         logo_path = importlib.resources.files("assets").joinpath("default_logo.svg")
-        with open(logo_path, "rb") as f:
+        with logo_path.open("rb") as f:
             logo_data_decoded = f.read()
     elif not module.logo.startswith("data:"):
-        raise HTTPException(
-            status_code=400, detail="Module logo is not a valid base64 data URL"
-        )
+        raise HTTPException(status_code=400, detail="Module logo is not a valid base64 data URL")
     else:
         try:
             partner_index = int(partner_id)
