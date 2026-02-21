@@ -56,7 +56,7 @@ class JobInternal(Job):
 class JobWithResults(JobInternal):
     entries_processed: CompressedSet = CompressedSet()
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def num_entries_processed(self) -> int:
         return self.entries_processed.count()
@@ -79,7 +79,7 @@ class JobPublic(Job):
     job_url: str
     results_url: str
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def num_entries_processed(self) -> int:
         return self.entries_processed.count()
