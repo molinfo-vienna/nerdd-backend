@@ -40,7 +40,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["mypy~=0.981", "ruff", "ipykernel~=6.19.4"]
+dev = ["mypy>=1.10.0", "ruff", "pre-commit>=2", "ipykernel~=6.19.4"]
 test = [
     "pytest",
     "pytest-watcher",
