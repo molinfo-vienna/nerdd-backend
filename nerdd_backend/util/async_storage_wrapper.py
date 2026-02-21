@@ -72,7 +72,6 @@ class AsyncStorageWrapper:
         return self._iter_file_chunks(file_path, mode, chunk_size=chunk_size)
 
     async def write_model_config(self, model_config: Module) -> None:
-
         def _write() -> None:
             with self.storage.get_module_file_handle(model_config.id, "w") as file_handle:
                 json.dump(model_config.model_dump(), file_handle)
@@ -80,7 +79,6 @@ class AsyncStorageWrapper:
         await asyncio.to_thread(_write)
 
     async def load_model_config(self, module_id: str) -> Module:
-
         def _load() -> Module:
             with self.storage.get_module_file_handle(module_id, "r") as file_handle:
                 return Module.model_validate(json.load(file_handle))

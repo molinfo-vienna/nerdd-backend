@@ -56,7 +56,11 @@ async def get_results(
         first_mol_id_on_page=first_mol_id,
         last_mol_id_on_page=last_mol_id,
         previous_url=page_url(page_zero_based - 1) if page_zero_based > 0 else None,
-        next_url=(page_url(page_zero_based + 1) if last_mol_id < num_entries - 1 else None),
+        next_url=(
+            page_url(page_zero_based + 1)
+            if (last_mol_id is not None and last_mol_id < num_entries - 1)
+            else None
+        ),
     )
 
     job_public = await augment_job(request, job)

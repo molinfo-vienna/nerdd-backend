@@ -44,14 +44,10 @@ async def augment_module(request: Request, module: ModuleInternal) -> ModulePubl
 
     # The denominator is the average time it takes to process one molecule (including the startup
     # time).
-    total_seconds_per_molecule = (
-        seconds_per_molecule + startup_time_seconds / batch_size
-    )
+    total_seconds_per_molecule = seconds_per_molecule + startup_time_seconds / batch_size
 
     # We make sure that the denominator is not (close to) zero to avoid extremely large values.
-    min_seconds_per_molecule = (
-        max_job_duration_minutes * 60 / config.max_num_molecules_per_job
-    )
+    min_seconds_per_molecule = max_job_duration_minutes * 60 / config.max_num_molecules_per_job
     if total_seconds_per_molecule <= min_seconds_per_molecule:
         total_seconds_per_molecule = min_seconds_per_molecule
 
@@ -259,9 +255,7 @@ async def get_module_queue(request: Request, module_id: str) -> QueueStats:
     horizon = 100
     job_sizes = []
     estimate = "upper_bound"
-    async for job in repository.get_jobs_by_status(
-        module_id, ["created", "processing"]
-    ):
+    async for job in repository.get_jobs_by_status(module_id, ["created", "processing"]):
         job_sizes.append(
             max(job.num_entries_total - job.num_entries_processed, 0)
             if job.num_entries_total is not None
