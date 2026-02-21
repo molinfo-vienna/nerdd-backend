@@ -154,18 +154,6 @@ async def create_app(cfg: AppConfig) -> FastAPI:
             os.environ.get("MAINTENANCE_MODE", "false").lower() in ("true", "1", "yes")
         )
 
-    model = None
-    if cfg.mock_infra:
-        from nerdd_link.actions import (
-            PredictCheckpointsAction,
-            ProcessJobsAction,
-            SerializeJobAction,
-        )
-
-        from .util import MolWeightModel
-
-        model = MolWeightModel()
-
     @asynccontextmanager
     async def global_lifespan(app: FastAPI) -> AsyncGenerator[None]:
         logger.info("Starting tasks")
@@ -221,25 +209,35 @@ async def create_app(cfg: AppConfig) -> FastAPI:
     ]
 
     if cfg.mock_infra:
-        lifespans = [
-            *lifespans,
-            ActionLifespan(PredictCheckpointsAction(app.state.channel, model, storage)),
-            ActionLifespan(
-                ProcessJobsAction(
-                    app.state.channel,
-                    num_test_entries=10,
-                    ratio_valid_entries=0.5,
-                    maximum_depth=100,
-                    max_num_lines_mol_block=10_000,
-                    storage=storage,
-                )
-            ),
-            ActionLifespan(SerializeJobAction(app.state.channel, storage)),
-        ]
+        from nerdd_link.actions import (
+            PredictCheckpointsAction,
+            ProcessJobsAction,
+            SerializeJobAction,
+        )
 
-        if model is not None:
-            await AsyncStorageWrapper(storage).write_model_config(model.config)
-            await channel.modules_topic().send(ModuleMessage(id=model.config.id))
+        from .util import MolWeightModel
+
+        model = MolWeightModel()
+
+        lifespans.extend(
+            [
+                ActionLifespan(PredictCheckpointsAction(app.state.channel, model, storage)),
+                ActionLifespan(
+                    ProcessJobsAction(
+                        app.state.channel,
+                        num_test_entries=10,
+                        ratio_valid_entries=0.5,
+                        maximum_depth=100,
+                        max_num_lines_mol_block=10_000,
+                        storage=storage,
+                    )
+                ),
+                ActionLifespan(SerializeJobAction(app.state.channel, storage)),
+            ]
+        )
+
+        await AsyncStorageWrapper(storage).write_model_config(model.config)
+        await channel.modules_topic().send(ModuleMessage(id=model.config.id))
 
     #
     # Middlewares
