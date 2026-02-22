@@ -79,11 +79,11 @@ def get_storage(config: AppConfig) -> Storage:
             secret_access_key=config.s3_secret_access_key,
         )
         if config.media_root is not None:
-            # During a transition period, we still write to the file system. However, we have the
-            # option to *read* from S3 as fallback if files are not found on the file system.
+            # During a transition period, we still write to S3. However, we have the option to
+            # *read* from file system as fallback if files are not found on S3.
             storage: Storage = ChainedStorage(
-                FileSystemStorage(config.media_root),
                 s3_storage,
+                FileSystemStorage(config.media_root),
             )
         else:
             storage = s3_storage
