@@ -19,3 +19,6 @@ class ActionWithContext(Action[TMessage], Generic[TMessage]):
         self.repository = app.state.repository
         self.storage: Storage = app.state.storage
         self.config = app.state.config
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"
