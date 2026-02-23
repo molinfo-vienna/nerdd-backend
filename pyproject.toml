@@ -67,20 +67,33 @@ nerdd_module = ["py.typed"]
 [tool.ruff]
 line-length = 100
 extend-exclude = ["tests", "nerdd_backend/tests"]
+# enable preview / unstable version for fastapi rules
+preview = true
 
 [tool.ruff.lint]
 select = [
-    "E",   # pycodestyle errors
-    "W",   # pycodestyle warnings
-    "F",   # pyflakes
-    "I",   # isort
-    "B",   # flake8-bugbear
-    "C4",  # flake8-comprehensions
-    "T20", # no print statements
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "SIM",  # flake8-simplify
+    "TCH",  # flake8-type-checking
+    "S",    # flake8-bandit
+    "RUF",  # Ruff-specific rules
+    "FAST", # FastAPI rules
+    "T20",  # no print statements
 ]
 ignore = [
-    "F403", # I often use 'from .submodule import *' in __init__.py files
-    "C408", # I prefer dict(a=5) over {'a': 5}
+    "F403",   # I often use 'from .submodule import *' in __init__.py files
+    "C408",   # I prefer dict(a=5) over {'a': 5}
+    "S101",   # Assertions establish internal invariants in repository implementations
+    "S104",   # The application is deliberately configurable to listen on all interfaces
+    "SIM105", # Explicit try/except blocks make ignored database errors clearer
+    "SIM108", # Ternary expressions are not always more readable
+    "TCH001", # Application types are used at runtime through FastAPI application state
+    "TCH002", # Third-party types are used at runtime through FastAPI application state
 ]
 
 [tool.ruff.lint.flake8-bugbear]
