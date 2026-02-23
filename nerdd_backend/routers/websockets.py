@@ -26,7 +26,7 @@ async def get_job_ws(websocket: WebSocket, job_id: str) -> None:
             if internal_job is None:
                 break
 
-            job = await augment_job(websocket, internal_job)
+            job = augment_job(websocket, internal_job)
             await websocket.send_json(jsonable_encoder(job))
 
         if websocket.application_state != WebSocketState.DISCONNECTED:

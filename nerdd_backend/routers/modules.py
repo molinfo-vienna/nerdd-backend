@@ -17,7 +17,7 @@ __all__ = ["modules_router"]
 modules_router = APIRouter(prefix="/modules")
 
 
-async def augment_module(request: Request, module: ModuleInternal) -> ModulePublic:
+def augment_module(request: Request, module: ModuleInternal) -> ModulePublic:
     config: AppConfig = request.app.state.config
 
     output_formats = config.output_formats
@@ -125,7 +125,7 @@ async def get_modules(request: Request) -> List[ModuleShort]:
 
     modules = await repository.get_all_modules()
     return [
-        ModuleShort(**(await augment_module(request, module)).model_dump())
+        ModuleShort(**augment_module(request, module).model_dump())
         for module in modules
         if module.visible
     ]
@@ -141,7 +141,7 @@ async def get_module(request: Request, module_id: str) -> ModulePublic:
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail="Module not found") from e
 
-    return await augment_module(request, module)
+    return augment_module(request, module)
 
 
 @modules_router.get("/{module_id}/logo", include_in_schema=False)

@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 jobs_router = APIRouter(prefix="/jobs")
 
 
-async def augment_job(request: Request | WebSocket, job: JobWithResults) -> JobPublic:
+def augment_job(request: Request | WebSocket, job: JobWithResults) -> JobPublic:
     # The number of processed pages is only valid if the computation has not finished yet. We adapt
     # this number in the if statement below.
     num_pages_processed = job.num_entries_processed // job.page_size
@@ -113,7 +113,7 @@ async def create_job(
         ) from e
 
     # get additional module information (for max_num_molecules)
-    augmented_module = await augment_module(request, module)
+    augmented_module = augment_module(request, module)
 
     # add default values for optional parameters
     for job_parameter in module.job_parameters:
@@ -182,7 +182,7 @@ async def create_job(
         ) from e
 
     # return the response
-    return await augment_job(request, job_with_results)
+    return augment_job(request, job_with_results)
 
 
 @jobs_router.delete("/{job_id}")
@@ -258,7 +258,7 @@ async def get_job(request: Request, job_id: str) -> JobPublic:
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail="Job not found") from e
 
-    return await augment_job(request, job)
+    return augment_job(request, job)
 
 
 @jobs_router.get("/{job_id}/queue")
