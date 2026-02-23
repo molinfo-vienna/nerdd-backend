@@ -1,6 +1,6 @@
 from typing import Any
 
-__all__ = ["RecordNotFoundError", "RecordAlreadyExistsError"]
+__all__ = ["RecordAlreadyExistsError", "RecordNotFoundError"]
 
 
 class RecordNotFoundError(Exception):

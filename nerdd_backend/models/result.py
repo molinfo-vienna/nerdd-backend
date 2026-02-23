@@ -5,7 +5,7 @@ from pydantic import BaseModel, ConfigDict, model_validator
 
 from .job import JobPublic
 
-__all__ = ["Result", "Pagination", "ResultSet"]
+__all__ = ["Pagination", "Result", "ResultSet"]
 
 
 class Result(BaseModel):

@@ -7,11 +7,11 @@ from ..util import CompressedSet
 
 __all__ = [
     "Job",
-    "JobStatus",
     "JobCreate",
-    "JobPublic",
-    "JobUpdate",
     "JobInternal",
+    "JobPublic",
+    "JobStatus",
+    "JobUpdate",
     "JobWithResults",
     "OutputFile",
 ]

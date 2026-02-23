@@ -120,19 +120,17 @@ async def create_app(cfg: AppConfig) -> FastAPI:
         logger.info("Starting tasks")
         # note: the global variable lifespans is only defined after this function, but that is
         # fine, because fastapi starts the lifespan after the main function
-        await asyncio.gather(
-            *[
-                asyncio.create_task(lifespan.start(app))  # [forced linebreak]
-                for lifespan in lifespans
-            ]
-        )
+        await asyncio.gather(*[
+            asyncio.create_task(lifespan.start(app))  # [forced linebreak]
+            for lifespan in lifespans
+        ])
 
         logger.info("Running tasks")
         run_tasks = [
             asyncio.create_task(
                 run_forever(lifespan.run, label=repr(lifespan)),
                 # when no name is provided, errors will mention "Task-17" or similar
-                name=f"lifespan-worker-{repr(lifespan)}",
+                name=f"lifespan-worker-{lifespan!r}",
             )
             for lifespan in lifespans
         ]
@@ -182,22 +180,20 @@ async def create_app(cfg: AppConfig) -> FastAPI:
 
         model = MolWeightModel()
 
-        lifespans.extend(
-            [
-                ActionLifespan(PredictCheckpointsAction(app.state.channel, model, storage)),
-                ActionLifespan(
-                    ProcessJobsAction(
-                        app.state.channel,
-                        num_test_entries=10,
-                        ratio_valid_entries=0.5,
-                        maximum_depth=100,
-                        max_num_lines_mol_block=10_000,
-                        storage=storage,
-                    )
-                ),
-                ActionLifespan(SerializeJobAction(app.state.channel, storage)),
-            ]
-        )
+        lifespans.extend([
+            ActionLifespan(PredictCheckpointsAction(app.state.channel, model, storage)),
+            ActionLifespan(
+                ProcessJobsAction(
+                    app.state.channel,
+                    num_test_entries=10,
+                    ratio_valid_entries=0.5,
+                    maximum_depth=100,
+                    max_num_lines_mol_block=10_000,
+                    storage=storage,
+                )
+            ),
+            ActionLifespan(SerializeJobAction(app.state.channel, storage)),
+        ])
 
         await AsyncStorageWrapper(storage).write_model_config(model.config)
         await channel.modules_topic().send(ModuleMessage(id=model.config.id))

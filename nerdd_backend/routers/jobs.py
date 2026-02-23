@@ -76,7 +76,7 @@ async def augment_job(request: Request | WebSocket, job: JobWithResults) -> JobP
 async def create_job(
     request: Request,
     job: Annotated[JobCreate, Body()],
-    referer: Optional[str] = Header(None, include_in_schema=False),
+    referer: Annotated[Optional[str], Header(include_in_schema=False)] = None,
 ) -> JobPublic:
     app = request.app
     repository: Repository = app.state.repository
@@ -109,7 +109,7 @@ async def create_job(
     except ValueError as e:
         raise HTTPException(
             status_code=422,
-            detail=f"Invalid parameters for module {job.job_type}: {str(e)}",
+            detail=f"Invalid parameters for module {job.job_type}: {e!s}",
         ) from e
 
     # get additional module information (for max_num_molecules)
@@ -117,9 +117,8 @@ async def create_job(
 
     # add default values for optional parameters
     for job_parameter in module.job_parameters:
-        if job_parameter.name not in job.params:
-            if job_parameter.default is not None:
-                job.params[job_parameter.name] = job_parameter.default
+        if job_parameter.name not in job.params and job_parameter.default is not None:
+            job.params[job_parameter.name] = job_parameter.default
 
     # get page size (depending on module task)
     task = module.task

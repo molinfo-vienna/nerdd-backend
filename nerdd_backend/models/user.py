@@ -2,7 +2,7 @@ from enum import IntEnum
 
 from pydantic import BaseModel
 
-__all__ = ["User", "AnonymousUser", "UserType"]
+__all__ = ["AnonymousUser", "User", "UserType"]
 
 
 class UserType(IntEnum):

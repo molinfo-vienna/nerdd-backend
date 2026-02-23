@@ -45,12 +45,10 @@ class TrackPredictionSpeed(ActionWithContext[LogMessage]):
 
                 try:
                     await self.repository.update_result_checkpoint(
-                        ResultCheckpoint(
-                            **{
-                                **checkpoint.model_dump(),
-                                "size": size,
-                            }
-                        )
+                        ResultCheckpoint(**{
+                            **checkpoint.model_dump(),
+                            "size": size,
+                        })
                     )
                 except RecordNotFoundError:
                     continue
@@ -147,13 +145,11 @@ class TrackPredictionSpeed(ActionWithContext[LogMessage]):
                 f"startup time of {model.intercept_:.1f} seconds"
             )
             await self.repository.update_module(
-                ModuleInternal(
-                    **{
-                        **module.model_dump(),
-                        "seconds_per_molecule": seconds_per_molecule,
-                        "startup_time_seconds": startup_time_seconds,
-                    }
-                )
+                ModuleInternal(**{
+                    **module.model_dump(),
+                    "seconds_per_molecule": seconds_per_molecule,
+                    "startup_time_seconds": startup_time_seconds,
+                })
             )
 
     def _get_group_name(self) -> str:

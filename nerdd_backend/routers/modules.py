@@ -103,21 +103,19 @@ async def augment_module(request: Request, module: ModuleInternal) -> ModulePubl
         for i, partner in enumerate(module.partners or [])
     ]
 
-    return ModulePublic(
-        **{
-            **module.model_dump(),
-            **dict(
-                max_num_molecules=max_num_molecules,
-                checkpoint_size=checkpoint_size,
-                # logo is provided in a different route to speed up loading (and enable caching)
-                logo=str(request.url_for("get_module_logo", module_id=module.id)),
-                # partner logos are also provided in different routes
-                partners=partners,
-                module_url=str(request.url_for("get_module", module_id=module.id)),
-                output_formats=output_formats,
-            ),
-        }
-    )
+    return ModulePublic(**{
+        **module.model_dump(),
+        **dict(
+            max_num_molecules=max_num_molecules,
+            checkpoint_size=checkpoint_size,
+            # logo is provided in a different route to speed up loading (and enable caching)
+            logo=str(request.url_for("get_module_logo", module_id=module.id)),
+            # partner logos are also provided in different routes
+            partners=partners,
+            module_url=str(request.url_for("get_module", module_id=module.id)),
+            output_formats=output_formats,
+        ),
+    })
 
 
 @modules_router.get("")

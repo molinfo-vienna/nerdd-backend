@@ -350,14 +350,18 @@ class MemoryRepository(Repository):
     #
     async def get_challenge_by_salt(self, salt: str) -> Challenge:
         try:
-            return next((challenge for challenge in self.challenges if challenge.salt == salt))
+            return next(
+                (challenge for challenge in self.challenges.get_items() if challenge.salt == salt)
+            )
         except StopIteration as e:
             raise RecordNotFoundError(Challenge, salt) from e
 
     # Note: this method is not mandatory for the repository interface.
-    async def get_challenge_by_id(self, id: str) -> User:
+    async def get_challenge_by_id(self, id: str) -> Challenge:
         try:
-            return next((challenge for challenge in self.challenges if challenge.id == id))
+            return next(
+                (challenge for challenge in self.challenges.get_items() if challenge.id == id)
+            )
         except StopIteration as e:
             raise RecordNotFoundError(Challenge, id) from e
 
@@ -377,6 +381,6 @@ class MemoryRepository(Repository):
 
     async def delete_expired_challenges(self, deadline: datetime) -> None:
         async with self.transaction_lock:
-            for challenge in self.challenges:
+            for challenge in self.challenges.get_items():
                 if challenge.expires_at < deadline:
                     self.challenges.remove(challenge)

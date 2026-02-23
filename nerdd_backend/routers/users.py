@@ -7,7 +7,7 @@ from ..config import AppConfig
 from ..data import RecordNotFoundError, Repository
 from ..models import AnonymousUser, User
 
-__all__ = ["get_user", "check_quota"]
+__all__ = ["check_quota", "get_user"]
 
 logger = logging.getLogger(__name__)
 
@@ -59,22 +59,24 @@ async def check_quota(user: User, request: Request) -> bool:
     # get active jobs (job status is not "completed")
     jobs_active = [job for job in jobs if job.status != "completed"]
 
-    if hasattr(config, "quota_active_jobs_anonymous"):
-        # check if the user has reached the maximum number of active jobs
-        if len(jobs_active) >= config.quota_active_jobs_anonymous:
-            raise HTTPException(
-                status_code=403,
-                detail=(
-                    f"You have reached the maximum number of active jobs "
-                    f"({config.quota_active_jobs_anonymous}) that can be processed at the same "
-                    f"time. Please wait until one of your jobs has finished."
-                ),
-            )
+    # check if the user has reached the maximum number of active jobs
+    if (
+        hasattr(config, "quota_active_jobs_anonymous")
+        and len(jobs_active) >= config.quota_active_jobs_anonymous
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                f"You have reached the maximum number of active jobs "
+                f"({config.quota_active_jobs_anonymous}) that can be processed at the same "
+                f"time. Please wait until one of your jobs has finished."
+            ),
+        )
 
     # check if the user has reached the maximum number of molecules per day
     if hasattr(config, "quota_mols_per_day_anonymous"):
         num_mols_processed = sum(
-            [job.num_entries_total for job in jobs if job.num_entries_total is not None]
+            job.num_entries_total for job in jobs if job.num_entries_total is not None
         )
         if num_mols_processed >= config.quota_mols_per_day_anonymous:
             raise HTTPException(

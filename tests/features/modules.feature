@@ -24,5 +24,5 @@ Feature: Modules
             }
         And the module 'test' becomes available
         And the client requests /modules
-        Then the client receives a response containing 
+        Then the client receives a response containing
             {"name": "test", "version": "1.0.0"}

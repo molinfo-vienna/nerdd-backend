@@ -53,7 +53,7 @@ async def test_replaces_property_file_paths_with_urls(root_path, expected_url, c
 
     saved_result = await repository.get_result_by_id("message-job-1")
     assert saved_result.some_property == expected_url
-    
+
 
     #
     # invalid storage path
@@ -87,6 +87,6 @@ async def test_replaces_property_file_paths_with_urls(root_path, expected_url, c
             )
         ]
     )
-    
+
     saved_result = await repository.get_result_by_id("message-job-3")
     assert saved_result.some_property == ordinary_value

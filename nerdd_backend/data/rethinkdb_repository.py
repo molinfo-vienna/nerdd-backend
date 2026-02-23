@@ -288,12 +288,10 @@ class RethinkDbRepository(Repository):
                     # result entries change
                     entries_processed = copy.deepcopy(job.entries_processed)
                     entries_processed.add(change["new_val"]["mol_id"])
-                    new_job = JobWithResults(
-                        **{
-                            **job.model_dump(),
-                            "entries_processed": entries_processed,
-                        }
-                    )
+                    new_job = JobWithResults(**{
+                        **job.model_dump(),
+                        "entries_processed": entries_processed,
+                    })
                 else:
                     # job change (status, num_entries_total, etc.)
                     new_job = JobWithResults(
@@ -389,16 +387,14 @@ class RethinkDbRepository(Repository):
                 lambda job: self.r.branch(
                     job.eq(None),  # check if job exists
                     None,
-                    job.merge(
-                        {
-                            "entries_processed": self.r.table("results")
-                            .get_all(job["id"], index="job_id")
-                            .pluck("mol_id")
-                            .map(lambda row: row["mol_id"])
-                            .distinct()
-                            .coerce_to("array")
-                        }
-                    ),
+                    job.merge({
+                        "entries_processed": self.r.table("results")
+                        .get_all(job["id"], index="job_id")
+                        .pluck("mol_id")
+                        .map(lambda row: row["mol_id"])
+                        .distinct()
+                        .coerce_to("array")
+                    }),
                 )
             )
         )
@@ -426,16 +422,14 @@ class RethinkDbRepository(Repository):
             .filter(self.r.row["job_type"] == module_id)
             .filter((self.r.row["created_at"] < deadline) if deadline is not None else True)
             .map(
-                lambda job: job.merge(
-                    {
-                        "entries_processed": self.r.table("results")
-                        .get_all(job["id"], index="job_id")
-                        .pluck("mol_id")
-                        .map(lambda row: row["mol_id"])
-                        .distinct()
-                        .coerce_to("array")
-                    }
-                )
+                lambda job: job.merge({
+                    "entries_processed": self.r.table("results")
+                    .get_all(job["id"], index="job_id")
+                    .pluck("mol_id")
+                    .map(lambda row: row["mol_id"])
+                    .distinct()
+                    .coerce_to("array")
+                })
             )
         )
 

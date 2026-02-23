@@ -14,6 +14,6 @@ Feature: Maintenance Mode
         Then the status code of the response is 503
         And the client receives a response with content
             {
-                "detail": "Server is under maintenance.", 
+                "detail": "Server is under maintenance.",
                 "code": "under_maintenance"
             }
