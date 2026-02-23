@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "nerdd-backend"
 version = "0.5.64"
-description = "Description of your project"
+description = "Web service for NERDD, a machine-learning platform for cheminformatics"
 authors = [{ name = "Steffen Hirte", email = "steffen.hirte@univie.ac.at" }]
 license = "BSD-3-Clause"
 readme = "README.md"
