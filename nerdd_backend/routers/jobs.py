@@ -19,7 +19,6 @@ from ..models import (
     QueueStats,
 )
 from ..util import AsyncStorageWrapper
-from .modules import augment_module
 from .users import check_quota, get_user
 
 __all__ = ["jobs_router"]
@@ -112,9 +111,6 @@ async def create_job(
             detail=f"Invalid parameters for module {job.job_type}: {e!s}",
         ) from e
 
-    # get additional module information (for max_num_molecules)
-    augmented_module = augment_module(request, module)
-
     # add default values for optional parameters
     for job_parameter in module.job_parameters:
         if job_parameter.name not in job.params and job_parameter.default is not None:
@@ -144,8 +140,15 @@ async def create_job(
         source_id=job.source_id,
         params=job.params,
         page_size=page_size,
-        max_num_molecules=augmented_module.max_num_molecules,
-        checkpoint_size=augmented_module.checkpoint_size,
+        max_num_molecules=module.max_num_molecules(
+            config.max_job_duration_minutes,
+            config.max_num_molecules_per_job,
+        ),
+        checkpoint_size=module.checkpoint_size(
+            config.max_job_duration_minutes,
+            config.max_checkpoint_duration_minutes,
+            config.max_num_molecules_per_job,
+        ),
         status="created",
     )
 
@@ -265,6 +268,7 @@ async def get_job(request: Request, job_id: str) -> JobPublic:
 async def get_job_queue(request: Request, job_id: str) -> QueueStats:
     app = request.app
     repository: Repository = app.state.repository
+    config: AppConfig = app.state.config
 
     try:
         job = await repository.get_job_by_id(job_id)
@@ -309,9 +313,26 @@ async def get_job_queue(request: Request, job_id: str) -> QueueStats:
     waiting_time_seconds = sum(waiting_time_per_job)
     waiting_time_minutes = math.ceil(waiting_time_seconds / 60)
 
+    #
+    # Get remaining parameters from the module
+    #
+    max_num_molecules = module.max_num_molecules(
+        config.max_job_duration_minutes,
+        config.max_num_molecules_per_job,
+    )
+    checkpoint_size = module.checkpoint_size(
+        config.max_job_duration_minutes,
+        config.max_checkpoint_duration_minutes,
+        config.max_num_molecules_per_job,
+    )
+
     return QueueStats(
         module_id=module.id,
         num_active_jobs=len(job_sizes),
         waiting_time_minutes=waiting_time_minutes,
         estimate=estimate,
+        seconds_per_molecule=module.seconds_per_molecule,
+        startup_time_seconds=module.startup_time_seconds,
+        max_num_molecules=max_num_molecules,
+        checkpoint_size=checkpoint_size,
     )

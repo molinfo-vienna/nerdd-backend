@@ -17,72 +17,15 @@ __all__ = ["modules_router"]
 modules_router = APIRouter(prefix="/modules")
 
 
-def augment_module(request: Request, module: ModuleInternal) -> ModulePublic:
+def augment_module(request: Request | None, module: ModuleInternal) -> ModulePublic:
+    if request is None:
+        return ModulePublic(
+            **module.model_dump(),
+            module_url="",
+            output_formats=[],
+        )
+
     config: AppConfig = request.app.state.config
-
-    output_formats = config.output_formats
-
-    #
-    # Compute maximum number of molecules allowed in a single job
-    #
-
-    # based on the user-defined maximum job duration in minutes
-    max_job_duration_minutes = config.max_job_duration_minutes
-
-    # We have to solve the following equation
-    #  max_job_duration_minutes * 60
-    #   >= startup_time_seconds * num_batches + num_molecules * seconds_per_molecule
-    #   = startup_time_seconds * (num_molecules / batch_size) + num_molecules * seconds_per_molecule
-    #   = num_molecules * (seconds_per_molecule + startup_time_seconds / batch_size)
-    # This is an approximation, because num_batches is actually ceil(num_molecules / batch_size).
-    # Rearranging gives:
-    #   num_molecules <=
-    #     max_job_duration_minutes * 60 / (seconds_per_molecule + startup_time_seconds / batch_size)
-    seconds_per_molecule = module.seconds_per_molecule
-    startup_time_seconds = module.startup_time_seconds
-    batch_size = module.batch_size
-
-    # The denominator is the average time it takes to process one molecule (including the startup
-    # time).
-    total_seconds_per_molecule = seconds_per_molecule + startup_time_seconds / batch_size
-
-    # We make sure that the denominator is not (close to) zero to avoid extremely large values.
-    min_seconds_per_molecule = max_job_duration_minutes * 60 / config.max_num_molecules_per_job
-    if total_seconds_per_molecule <= min_seconds_per_molecule:
-        total_seconds_per_molecule = min_seconds_per_molecule
-
-    max_num_molecules = clamp(
-        int(max_job_duration_minutes * 60 / total_seconds_per_molecule),
-        # there should be at least one molecule in a job
-        1,
-        # and at most the module's maximum number of molecules
-        config.max_num_molecules_per_job,
-    )
-
-    # round down to a readable number
-    if max_num_molecules >= 10_000:
-        max_num_molecules = (max_num_molecules // 1_000) * 1_000
-    elif max_num_molecules >= 1_000:
-        max_num_molecules = (max_num_molecules // 100) * 100
-    elif max_num_molecules >= 100:
-        max_num_molecules = (max_num_molecules // 10) * 10
-
-    #
-    # Compute maximum number of molecules allowed in a checkpoint
-    #
-
-    # This computation is similar to the one above, but we assume a fixed duration given by
-    # config.max_checkpoint_duration_minutes. That is the amount of computation time we are losing
-    # at worst if a failure occurs during processing of a checkpoint (since the checkpoint has to be
-    # recomputed).
-    checkpoint_duration_minutes = config.max_checkpoint_duration_minutes
-    checkpoint_size = clamp(
-        int(checkpoint_duration_minutes * 60 / total_seconds_per_molecule),
-        # there should be at least one molecule in a checkpoint
-        1,
-        # and at most the module's maximum number of molecules
-        config.max_num_molecules_per_job,
-    )
 
     # patch partner logo URLs
     partners = [
@@ -112,8 +55,7 @@ def augment_module(request: Request, module: ModuleInternal) -> ModulePublic:
             logo=str(request.url_for("get_module_logo", module_id=module.id)),
             # partner logos are also provided in different routes
             partners=partners,
-            module_url=str(request.url_for("get_module", module_id=module.id)),
-            output_formats=output_formats,
+            output_formats=config.output_formats,
         ),
     })
 
@@ -235,6 +177,7 @@ async def get_module_publications(request: Request, module_id: str) -> List[dict
 async def get_module_queue(request: Request, module_id: str) -> QueueStats:
     app = request.app
     repository: Repository = app.state.repository
+    config: AppConfig = app.state.config
 
     try:
         module = await repository.get_module_by_id(module_id)
@@ -270,9 +213,26 @@ async def get_module_queue(request: Request, module_id: str) -> QueueStats:
     waiting_time_seconds = sum(waiting_time_per_job)
     waiting_time_minutes = math.ceil(waiting_time_seconds / 60)
 
+    #
+    # Get remaining QueueStats parameters from the module configuration
+    #
+    max_num_molecules = module.max_num_molecules(
+        config.max_job_duration_minutes,
+        config.max_num_molecules_per_job,
+    )
+    checkpoint_size = module.checkpoint_size(
+        config.max_job_duration_minutes,
+        config.max_checkpoint_duration_minutes,
+        config.max_num_molecules_per_job,
+    )
+
     return QueueStats(
         module_id=module.id,
         num_active_jobs=len(job_sizes),
         waiting_time_minutes=waiting_time_minutes,
         estimate=estimate,
+        seconds_per_molecule=module.seconds_per_molecule,
+        startup_time_seconds=module.startup_time_seconds,
+        max_num_molecules=max_num_molecules,
+        checkpoint_size=checkpoint_size,
     )
