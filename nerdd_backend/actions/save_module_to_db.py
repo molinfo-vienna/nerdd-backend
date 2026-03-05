@@ -1,3 +1,5 @@
+import base64
+import importlib.resources
 import logging
 
 import requests
@@ -28,6 +30,14 @@ class SaveModuleToDb(ActionWithContext[ModuleMessage]):
             return
 
         module_json = (await async_storage.load_model_config(module_id)).model_dump()
+
+        # replace logo with default logo if it is None
+        if module_json["logo"] is None:
+            logo_path = importlib.resources.files("assets").joinpath("default_logo.svg")
+            with logo_path.open("rb") as f:
+                module_json["logo"] = (
+                    f"data:image/svg+xml;base64,{base64.b64encode(f.read()).decode()}"
+                )
 
         # fetch publication information from doi.org
         def _f(publication: dict) -> dict:
