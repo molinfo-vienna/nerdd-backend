@@ -1,20 +1,33 @@
 import base64
-import io
 import math
+from functools import lru_cache
 from typing import List
 
-from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import StreamingResponse
+from fastapi import HTTPException, Request
+from fastapi.responses import Response
 from nerdd_module.config import Partner
 
 from ..config import AppConfig
 from ..data import RecordNotFoundError, Repository
 from ..models import ModuleInternal, ModulePublic, ModuleShort, QueueStats
-from ..util import clamp
+from ..util import ContentHashedAPIRouter
 
 __all__ = ["modules_router"]
 
-modules_router = APIRouter(prefix="/modules")
+modules_router = ContentHashedAPIRouter(prefix="/modules")
+
+
+@lru_cache(maxsize=1_024)
+def _get_data_url_logo_asset(logo: str) -> tuple[bytes, str | None]:
+    if not logo.startswith("data:"):
+        raise HTTPException(status_code=400, detail="Module logo is not a valid base64 data URL")
+
+    prefix, logo_data = logo.split(",", maxsplit=1)
+    logo_data_decoded = base64.b64decode(logo_data)
+
+    # browsers can distinguish non-SVG formats (e.g., png, jpg) by their contents
+    mime_type = "image/svg+xml" if prefix == "data:image/svg+xml;base64" else None
+    return logo_data_decoded, mime_type
 
 
 def augment_module(request: Request | None, module: ModuleInternal) -> ModulePublic:
@@ -34,8 +47,10 @@ def augment_module(request: Request | None, module: ModuleInternal) -> ModulePub
                 **partner.model_dump(),
                 **dict(
                     logo=str(
-                        request.url_for(
+                        modules_router.content_hashed_url_for(
+                            request,
                             "get_partner_logo",
+                            _get_data_url_logo_asset(partner.logo)[0],
                             module_id=module.id,
                             partner_id=i,
                         )
@@ -49,12 +64,16 @@ def augment_module(request: Request | None, module: ModuleInternal) -> ModulePub
     return ModulePublic(**{
         **module.model_dump(),
         **dict(
-            max_num_molecules=max_num_molecules,
-            checkpoint_size=checkpoint_size,
-            # logo is provided in a different route to speed up loading (and enable caching)
-            logo=str(request.url_for("get_module_logo", module_id=module.id)),
-            # partner logos are also provided in different routes
+            logo=str(
+                modules_router.content_hashed_url_for(
+                    request,
+                    "get_module_logo",
+                    _get_data_url_logo_asset(module.logo)[0],
+                    module_id=module.id,
+                )
+            ),
             partners=partners,
+            module_url=str(request.url_for("get_module", module_id=module.id)),
             output_formats=config.output_formats,
         ),
     })
@@ -86,8 +105,8 @@ async def get_module(request: Request, module_id: str) -> ModulePublic:
     return augment_module(request, module)
 
 
-@modules_router.get("/{module_id}/logo", include_in_schema=False)
-async def get_module_logo(request: Request, module_id: str) -> StreamingResponse:
+@modules_router.content_hashed_get("/{module_id}/logo", include_in_schema=False)
+async def get_module_logo(request: Request, module_id: str) -> Response:
     app = request.app
     repository: Repository = app.state.repository
 
@@ -96,31 +115,14 @@ async def get_module_logo(request: Request, module_id: str) -> StreamingResponse
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail="Module not found") from e
 
-    if module.logo is None:
-        import importlib.resources
-
-        prefix = "data:image/svg+xml;base64,"
-        logo_path = importlib.resources.files("assets").joinpath("default_logo.svg")
-        with logo_path.open("rb") as f:
-            logo_data_decoded = f.read()
-    elif not module.logo.startswith("data:"):
-        raise HTTPException(status_code=400, detail="Module logo is not a valid base64 data URL")
-    else:
-        prefix, logo_data = module.logo.split(",")
-        logo_data_decoded = base64.b64decode(logo_data)
-
-    # figure out the mime type
-    if prefix == "data:image/svg+xml;base64":
-        mime_type = "image/svg+xml"
-    else:
-        # browsers can distinguish other formats (e.g., png, jpg) by the data itself
-        mime_type = None
-
-    return StreamingResponse(io.BytesIO(logo_data_decoded), media_type=mime_type)
+    logo_data, mime_type = _get_data_url_logo_asset(module.logo)
+    return Response(content=logo_data, media_type=mime_type)
 
 
-@modules_router.get("/{module_id}/partners/{partner_id}/logo", include_in_schema=False)
-async def get_partner_logo(request: Request, module_id: str, partner_id: str) -> StreamingResponse:
+@modules_router.content_hashed_get(
+    "/{module_id}/partners/{partner_id}/logo", include_in_schema=False
+)
+async def get_partner_logo(request: Request, module_id: str, partner_id: str) -> Response:
     app = request.app
     repository: Repository = app.state.repository
 
@@ -129,35 +131,16 @@ async def get_partner_logo(request: Request, module_id: str, partner_id: str) ->
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail="Module not found") from e
 
-    if module.logo is None:
-        import importlib.resources
+    try:
+        partner_index = int(partner_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail="Partner ID must be an integer") from e
 
-        prefix = "data:image/svg+xml;base64,"
-        logo_path = importlib.resources.files("assets").joinpath("default_logo.svg")
-        with logo_path.open("rb") as f:
-            logo_data_decoded = f.read()
-    elif not module.logo.startswith("data:"):
-        raise HTTPException(status_code=400, detail="Module logo is not a valid base64 data URL")
-    else:
-        try:
-            partner_index = int(partner_id)
-        except ValueError as e:
-            raise HTTPException(status_code=400, detail="Partner ID must be an integer") from e
+    if partner_index < 0 or partner_index >= len(module.partners or []):
+        raise HTTPException(status_code=404, detail="Partner not found")
 
-        if partner_index < 0 or partner_index >= len(module.partners or []):
-            raise HTTPException(status_code=404, detail="Partner not found")
-
-        prefix, logo_data = module.partners[partner_index].logo.split(",")
-        logo_data_decoded = base64.b64decode(logo_data)
-
-    # figure out the mime type
-    if prefix == "data:image/svg+xml;base64":
-        mime_type = "image/svg+xml"
-    else:
-        # browsers can distinguish other formats (e.g., png, jpg) by the data itself
-        mime_type = None
-
-    return StreamingResponse(io.BytesIO(logo_data_decoded), media_type=mime_type)
+    logo_data, mime_type = _get_data_url_logo_asset(module.partners[partner_index].logo)
+    return Response(content=logo_data, media_type=mime_type)
 
 
 @modules_router.get("/{module_id}/publications")
