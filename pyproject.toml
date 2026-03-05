@@ -94,6 +94,7 @@ ignore = [
     "SIM108", # Ternary expressions are not always more readable
     "TCH001", # Application types are used at runtime through FastAPI application state
     "TCH002", # Third-party types are used at runtime through FastAPI application state
+    "TC006",  # Keep runtime type expressions unquoted in typing.cast()
 ]
 
 [tool.ruff.lint.flake8-bugbear]
