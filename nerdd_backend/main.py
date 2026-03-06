@@ -33,6 +33,7 @@ from .actions import (
     TrackPredictionSpeed,
     UpdateJobSize,
 )
+from .cache import cache_store
 from .config import AppConfig, ChannelConfig, DbConfig
 from .data import MemoryRepository, Repository, RethinkDbRepository
 from .lifespan import AbstractLifespan, ActionLifespan, CreateModuleLifespan
@@ -151,6 +152,7 @@ async def create_app(cfg: AppConfig) -> FastAPI:
     app.state.channel = channel = get_channel(cfg.channel)
     app.state.storage = storage = get_storage(cfg)
     app.state.config = cfg
+    app.state.cache_store = cache_store
 
     await channel.start()
 

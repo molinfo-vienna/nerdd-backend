@@ -5,12 +5,13 @@ from typing import List
 
 from fastapi import HTTPException, Request
 from fastapi.responses import Response
+from inhouse.fastapi import fastapi_cache
 from nerdd_module.config import Partner
 
+from ..cache import ContentHashedAPIRouter, cache_store
 from ..config import AppConfig
 from ..data import RecordNotFoundError, Repository
 from ..models import ModuleInternal, ModulePublic, ModuleShort, QueueStats
-from ..util import ContentHashedAPIRouter
 
 __all__ = ["modules_router"]
 
@@ -31,6 +32,7 @@ def _get_data_url_logo_asset(logo: str) -> tuple[bytes, str | None]:
 
 
 def augment_module(request: Request | None, module: ModuleInternal) -> ModulePublic:
+    # calling augment_module with request = None is used to compare two ModuleInternal objects
     if request is None:
         return ModulePublic(
             **module.model_dump(),
@@ -80,6 +82,12 @@ def augment_module(request: Request | None, module: ModuleInternal) -> ModulePub
 
 
 @modules_router.get("")
+@fastapi_cache(
+    60 * 60,
+    store=cache_store,
+    key_builder=lambda *_args, **_kwargs: "modules",
+    etag=True,
+)
 async def get_modules(request: Request) -> List[ModuleShort]:
     app = request.app
     repository: Repository = app.state.repository
@@ -93,6 +101,12 @@ async def get_modules(request: Request) -> List[ModuleShort]:
 
 
 @modules_router.get("/{module_id}")
+@fastapi_cache(
+    60 * 60,
+    store=cache_store,
+    key_builder=lambda _function, _args, kwargs, **_options: f"module:{kwargs['module_id']}",
+    etag=True,
+)
 async def get_module(request: Request, module_id: str) -> ModulePublic:
     app = request.app
     repository: Repository = app.state.repository
