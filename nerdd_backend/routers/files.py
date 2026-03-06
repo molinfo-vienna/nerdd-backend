@@ -2,7 +2,8 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from nerdd_link import Storage
 
-from ..util import AsyncStorageWrapper, immutable_cache_headers
+from ..cache import immutable_cache_headers
+from ..util import AsyncStorageWrapper
 
 __all__ = ["files_router"]
 
@@ -23,5 +24,6 @@ async def get_job_file(
     return StreamingResponse(
         async_storage.iter_property_file_chunks(job_id, property, record_id, "rb"),
         media_type="application/octet-stream",
+        # return a generous cache duration since this route serves static files
         headers=immutable_cache_headers(),
     )
