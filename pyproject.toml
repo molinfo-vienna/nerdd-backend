@@ -41,7 +41,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["mypy>=1.10.0", "ruff", "pre-commit>=2", "ipykernel~=6.19.4"]
+dev = ["mypy>=1.10.0", "ruff>=0.10.0", "pre-commit>=2", "ipykernel~=6.19.4"]
 test = [
     "pytest",
     "pytest-watcher",
@@ -87,15 +87,15 @@ select = [
     "T20",  # no print statements
 ]
 ignore = [
-    "F403",   # I often use 'from .submodule import *' in __init__.py files
-    "C408",   # I prefer dict(a=5) over {'a': 5}
-    "S101",   # Assertions establish internal invariants in repository implementations
-    "S104",   # The application is deliberately configurable to listen on all interfaces
-    "SIM105", # Explicit try/except blocks make ignored database errors clearer
-    "SIM108", # Ternary expressions are not always more readable
-    "TCH001", # Application types are used at runtime through FastAPI application state
-    "TCH002", # Third-party types are used at runtime through FastAPI application state
-    "TC006",  # Keep runtime type expressions unquoted in typing.cast()
+    "undefined-local-with-import-star",   # I often use 'from .submodule import *' in __init__.py files
+    "unnecessary-collection-call",   # I prefer dict(a=5) over {'a': 5}
+    "assert",   # Assertions establish internal invariants in repository implementations
+    "hardcoded-bind-all-interfaces",   # The application is deliberately configurable to listen on all interfaces
+    "suppressible-exception", # Explicit try/except blocks make ignored database errors clearer
+    "if-else-block-instead-of-if-exp", # Ternary expressions are not always more readable
+    "typing-only-first-party-import", # Application types are used at runtime through FastAPI application state
+    "typing-only-third-party-import", # Third-party types are used at runtime through FastAPI application state
+    "runtime-cast-value",  # Keep runtime type expressions unquoted in typing.cast()
 ]
 
 [tool.ruff.lint.flake8-bugbear]
