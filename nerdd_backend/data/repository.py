@@ -107,28 +107,23 @@ class Repository(ABC):
                 else:
                     # job was deleted -> exit the loop
                     break
-            elif event_type == "results_change":
-                if new is not None:
-                    if new.mol_id in job.entries_processed:
-                        # result already processed, skip
-                        continue
+            elif event_type == "results_change" and new is not None:
+                if new.mol_id in job.entries_processed:
+                    # result already processed, skip
+                    continue
 
-                    old_job_obj = job.model_dump()
-                    old_job_obj["entries_processed"] = CompressedSet(
-                        old_job_obj["entries_processed"]
-                    )
-                    old_job_obj["entries_processed"].add(new.mol_id)
+                old_job_obj = job.model_dump()
+                old_job_obj["entries_processed"] = CompressedSet(old_job_obj["entries_processed"])
+                old_job_obj["entries_processed"].add(new.mol_id)
 
-                    new_job = JobWithResults(**old_job_obj)
+                new_job = JobWithResults(**old_job_obj)
 
-                    yield job, new_job
-                    job = new_job
+                yield job, new_job
+                job = new_job
 
-                    if job.is_done():
-                        # job is completed, we can exit the loop
-                        break
-                else:
-                    pass
+                if job.is_done():
+                    # job is completed, we can exit the loop
+                    break
 
         for task in drain_tasks:
             task.cancel()
