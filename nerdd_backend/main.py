@@ -36,7 +36,12 @@ from .actions import (
 from .cache import cache_store
 from .config import AppConfig, ChannelConfig, DbConfig
 from .data import MemoryRepository, Repository, RethinkDbRepository
-from .lifespan import AbstractLifespan, ActionLifespan, CreateModuleLifespan
+from .lifespan import (
+    AbstractLifespan,
+    ActionLifespan,
+    CreateModuleLifespan,
+    InvalidateModuleCacheLifespan,
+)
 from .routers import (
     challenges_router,
     files_router,
@@ -169,6 +174,7 @@ async def create_app(cfg: AppConfig) -> FastAPI:
         ActionLifespan(DeleteJob),
         ActionLifespan(DeleteExpiredResources),
         CreateModuleLifespan(),
+        InvalidateModuleCacheLifespan(),
     ]
 
     if cfg.mock_infra:
