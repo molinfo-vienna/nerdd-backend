@@ -41,14 +41,18 @@ class SaveResultCheckpointToDb(ActionWithContext[ResultCheckpointMessage]):
                 f"Result checkpoint {checkpoint_id} for job {job_id} already exists, skipping"
             )
 
+        #
         # check if all checkpoints have been processed
+        # TODO: this completion check is duplicated in UpdateJobSize
+        #
+
+        # do a fresh read of the job
+        job = await self.repository.get_job_by_id(job_id)
         checkpoints = await self.repository.get_result_checkpoints_by_job_id(job_id)
-        if len(checkpoints) == job.num_checkpoints_total:
+
+        if job.num_checkpoints_total is not None and len(checkpoints) == job.num_checkpoints_total:
             await self.channel.logs_topic().send(
-                LogMessage(
-                    job_id=job_id,
-                    message_type="all_checkpoints_processed",
-                )
+                LogMessage(job_id=job_id, message_type="all_checkpoints_processed")
             )
 
     def _get_group_name(self) -> str:
