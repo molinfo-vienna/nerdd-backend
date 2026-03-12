@@ -33,7 +33,9 @@ class SaveModuleToDb(ActionWithContext[ModuleMessage]):
 
         # replace logo with default logo if it is None
         if module_json["logo"] is None:
-            logo_path = importlib.resources.files("assets").joinpath("default_logo.svg")
+            logo_path = importlib.resources.files("nerdd_backend").joinpath(
+                "assets", "default_logo.svg"
+            )
             with logo_path.open("rb") as f:
                 module_json["logo"] = (
                     f"data:image/svg+xml;base64,{base64.b64encode(f.read()).decode()}"
