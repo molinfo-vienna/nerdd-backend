@@ -94,8 +94,8 @@ python -m nerdd_backend.main --config-name production \
 
 ## Architecture
 
-![Architecture Diagram](./assets/nerdd-backend-architecture-light.png#gh-light-mode-only)
-![Architecture Diagram](./assets/nerdd-backend-architecture-dark.png#gh-dark-mode-only)
+![Architecture Diagram](./diagrams/nerdd-backend-architecture-light.png#gh-light-mode-only)
+![Architecture Diagram](./diagrams/nerdd-backend-architecture-dark.png#gh-dark-mode-only)
 
 * The subpackage `nerdd_backend.routers` contains all FastAPI routes accessible by the user.
 * All routes have access to the FastAPI application state using `request.app.state` containing
