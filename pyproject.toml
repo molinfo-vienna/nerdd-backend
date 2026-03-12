@@ -63,7 +63,7 @@ where = ["."]
 include = ["nerdd_backend*"]
 
 [tool.setuptools.package-data]
-nerdd_module = ["py.typed"]
+nerdd_backend = ["assets/**/*"]
 
 [tool.ruff]
 line-length = 100
