@@ -254,7 +254,21 @@ async def create_app(cfg: AppConfig) -> FastAPI:
 @hydra.main(version_base=None, config_path="config", config_name="development")
 @async_to_sync
 async def main(cfg: AppConfig) -> None:
-    logger.info(f"Starting server with the following configuration:\n{OmegaConf.to_yaml(cfg)}")
+    # log the configuration (but hide sensitive information)
+    config_for_log = OmegaConf.to_container(cfg, resolve=False)
+    assert isinstance(config_for_log, dict)
+    for key in ("challenge_hmac_key", "s3_secret_access_key", "s3_access_key_id"):
+        if config_for_log.get(key) is not None:
+            config_for_log[key] = "***"
+    channel_for_log = config_for_log.get("channel")
+    if isinstance(channel_for_log, dict) and channel_for_log.get("broker_password") is not None:
+        channel_for_log["broker_password"] = "***"  # ruff: ignore[hardcoded-password-string]
+    logger.info(
+        "Starting server with the following configuration:\n%s",
+        OmegaConf.to_yaml(OmegaConf.create(config_for_log)),
+    )
+
+    # create the app
     app = await create_app(cfg)
 
     config = uvicorn.Config(
