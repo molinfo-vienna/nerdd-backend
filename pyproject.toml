@@ -43,12 +43,12 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["mypy>=1.10.0", "ruff>=0.10.0", "pre-commit>=2", "ipykernel~=6.19.4"]
 test = [
-    "pytest<9.2.0",
+    "pytest>=9.2,<10",
     "pytest-watcher",
     "pytest-cov",
-    "pytest-bdd==7.3.0",
+    "pytest-bdd>=9.0.1,<10",
     "pytest-mock",
-    "pytest-asyncio~=0.21.1",
+    "pytest-asyncio>=1.4.1.post1,<2",
     "hypothesis",
     "hypothesis-rdkit",
     "httpx~=0.25.1",
