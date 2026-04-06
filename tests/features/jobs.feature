@@ -6,11 +6,13 @@ Feature: Jobs
 
     Scenario: Uploading a valid job
         When the client sends a POST request to /jobs/ with content
+            """
             {
                 "job_type": "mol-scale",
                 "source_id": "1",
                 "params": { "multiplier": 10 }
             }
+            """
 
     Scenario: Get non-existing job
         When the client requests /jobs/1

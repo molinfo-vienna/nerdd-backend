@@ -38,11 +38,11 @@ async def client(data_dir):
 
 
 @when(
-    parsers.parse("the client sends a POST request to {url} with content\n{data}"),
+    parsers.parse("the client sends a POST request to {url} with content"),
     target_fixture="response",
 )
-def post_request(client, url, data):
-    response = client.post(url, json=json.loads(data))
+def post_request(client, url, docstring):
+    response = client.post(url, json=json.loads(docstring))
     logger.info("response: %s", response.json())
     return response
 
@@ -79,15 +79,15 @@ async def check_no_background_workers():
     assert len(worker_tasks) == 0
 
 
-@then(parsers.parse("the client receives a response with content\n{expected_response}"))
-def check_response(response, expected_response):
-    decoded = json.loads(expected_response)
+@then(parsers.parse("the client receives a response with content"))
+def check_response(response, docstring):
+    decoded = json.loads(docstring)
     assert response.json() == decoded, f"Expected {decoded}, got {response.json()}"
 
 
-@then(parsers.parse("the client receives a response containing\n{expected_response}"))
-def check_response_contains(response, expected_response):
-    decoded = literal_eval(expected_response)
+@then(parsers.parse("the client receives a response containing"))
+def check_response_contains(response, docstring):
+    decoded = literal_eval(docstring)
 
     response_json = response.json()
 
