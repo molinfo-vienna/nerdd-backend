@@ -70,6 +70,15 @@ def check_status_code(response, expected_status_code):
     assert status_code == expected_status_code
 
 
+@then("no background workers are running")
+@async_step
+async def check_no_background_workers():
+    worker_tasks = [
+        task for task in asyncio.all_tasks() if task.get_name().startswith("lifespan-worker-")
+    ]
+    assert len(worker_tasks) == 0
+
+
 @then(parsers.parse("the client receives a response with content\n{expected_response}"))
 def check_response(response, expected_response):
     decoded = json.loads(expected_response)

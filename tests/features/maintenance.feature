@@ -12,6 +12,7 @@ Feature: Maintenance Mode
         Given an environment variable MAINTENANCE_MODE is set to true
         When the client requests /modules
         Then the status code of the response is 503
+        And no background workers are running
         And the client receives a response with content
             {
                 "detail": "Server is under maintenance.",
