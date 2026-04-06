@@ -3,6 +3,7 @@ import logging
 import os
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from pprint import pformat
 from typing import List, cast
 
 import hydra
@@ -98,7 +99,7 @@ def get_storage(config: AppConfig) -> Storage:
     else:
         raise ValueError("Either media_root or S3 parameters must be provided in the configuration")
 
-    logger.info("Using storage backend: %r", storage)
+    logger.info("Using storage backend: %s", type(storage).__name__)
     return storage
 
 
@@ -255,17 +256,9 @@ async def create_app(cfg: AppConfig) -> FastAPI:
 @async_to_sync
 async def main(cfg: AppConfig) -> None:
     # log the configuration (but hide sensitive information)
-    config_for_log = OmegaConf.to_container(cfg, resolve=False)
-    assert isinstance(config_for_log, dict)
-    for key in ("challenge_hmac_key", "s3_secret_access_key", "s3_access_key_id"):
-        if config_for_log.get(key) is not None:
-            config_for_log[key] = "***"
-    channel_for_log = config_for_log.get("channel")
-    if isinstance(channel_for_log, dict) and channel_for_log.get("broker_password") is not None:
-        channel_for_log["broker_password"] = "***"  # ruff: ignore[hardcoded-password-string]
     logger.info(
-        "Starting server with the following configuration:\n%s",
-        OmegaConf.to_yaml(OmegaConf.create(config_for_log)),
+        "Starting server with configuration:\n%s",
+        pformat(OmegaConf.to_object(cfg), width=88, sort_dicts=False),
     )
 
     # create the app
