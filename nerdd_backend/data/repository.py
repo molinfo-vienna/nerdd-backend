@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from asyncio import Queue, create_task
 from datetime import datetime
-from typing import Any, AsyncIterable, List, Optional, Tuple
+from typing import Any, AsyncGenerator, AsyncIterable, List, Optional, Tuple
 
 from ..models import (
     AnonymousUser,
@@ -163,7 +163,7 @@ class Repository(ABC):
     def get_expired_jobs(
         self,
         now: datetime,
-    ) -> AsyncIterable[JobInternal]:
+    ) -> AsyncGenerator[JobInternal, None]:
         pass
 
     #
@@ -185,7 +185,7 @@ class Repository(ABC):
     def get_expired_sources(
         self,
         now: datetime,
-    ) -> AsyncIterable[Source]:
+    ) -> AsyncGenerator[Source, None]:
         pass
 
     #
