@@ -187,6 +187,17 @@ class RethinkDbRepository(Repository):
                 if not str(e).startswith("Index `ip_address` already exists"):
                     logger.exception("Failed to create index", exc_info=e)
 
+            # create an index on created_at in sources table
+            try:
+                await self.r.table("sources").index_create("created_at").run(connection)
+            except ReqlOpFailedError as e:
+                if not str(e).startswith("Index `created_at` already exists"):
+                    logger.exception("Failed to create index", exc_info=e)
+                    raise
+
+            # wait even when another backend instance created the index
+            await self.r.table("sources").index_wait("created_at").run(connection)
+
     #
     # MODULES
     #
