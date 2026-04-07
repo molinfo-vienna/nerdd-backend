@@ -501,7 +501,7 @@ class RethinkDbRepository(Repository):
 
     async def get_expired_sources(self, deadline: datetime) -> AsyncIterable[Source]:
         cursor = await self._run(
-            self.r.table("sources").filter(lambda source: source["created_at"] < deadline)
+            self.r.table("sources").between(self.r.minval, deadline, index="created_at")
         )
 
         async for item in cursor:
