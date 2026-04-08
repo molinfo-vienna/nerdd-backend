@@ -39,7 +39,7 @@ class Repository(ABC):
     @abstractmethod
     def get_module_changes(
         self,
-    ) -> AsyncIterable[Tuple[Optional[ModuleInternal], Optional[ModuleInternal]]]:
+    ) -> AsyncGenerator[Tuple[Optional[ModuleInternal], Optional[ModuleInternal]], None]:
         pass
 
     @abstractmethod
@@ -63,7 +63,7 @@ class Repository(ABC):
     #
     async def get_job_with_result_changes(
         self, job_id: str
-    ) -> AsyncIterable[Tuple[Optional[JobWithResults], Optional[JobWithResults]]]:
+    ) -> AsyncGenerator[Tuple[Optional[JobWithResults], Optional[JobWithResults]], None]:
         # The main idea of this method is to merge the changes of job and results. For that we
         # get the current state of the job and update whenever a change occurs.
         job = await self.get_job_by_id(job_id)
@@ -131,7 +131,7 @@ class Repository(ABC):
     @abstractmethod
     def get_job_changes(
         self, job_id: str
-    ) -> AsyncIterable[Tuple[Optional[JobInternal], Optional[JobInternal]]]:
+    ) -> AsyncGenerator[Tuple[Optional[JobInternal], Optional[JobInternal]], None]:
         pass
 
     @abstractmethod
@@ -156,7 +156,7 @@ class Repository(ABC):
         module_id: str,
         status: List[JobStatus] | JobStatus,
         deadline: Optional[datetime] = None,
-    ) -> AsyncIterable[JobWithResults]:
+    ) -> AsyncGenerator[JobWithResults, None]:
         pass
 
     @abstractmethod
@@ -210,7 +210,7 @@ class Repository(ABC):
         job_id: str,
         start_mol_id: Optional[int] = None,
         end_mol_id: Optional[int] = None,
-    ) -> AsyncIterable[Tuple[Optional[Result], Optional[Result]]]:
+    ) -> AsyncGenerator[Tuple[Optional[Result], Optional[Result]], None]:
         pass
 
     @abstractmethod
