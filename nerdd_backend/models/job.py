@@ -120,3 +120,5 @@ class JobUpdate(BaseModel):
     num_checkpoints_total: Optional[int] = None
     # output formats update
     new_output_formats: Optional[List[str]] = None
+    # checkpoint processed update
+    new_checkpoint_processed: Optional[int] = None
