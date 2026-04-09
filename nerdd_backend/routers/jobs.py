@@ -258,7 +258,7 @@ async def get_job(request: Request, job_id: str) -> JobPublic:
     repository = app.state.repository
 
     try:
-        job = await repository.get_job_by_id(job_id)
+        job = await repository.get_job_with_results(job_id)
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail="Job not found") from e
 

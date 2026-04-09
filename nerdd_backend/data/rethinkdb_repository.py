@@ -294,7 +294,7 @@ class RethinkDbRepository(Repository):
             )
 
             try:
-                job: Optional[JobWithResults] = await self.get_job_by_id(job_id)
+                job: Optional[JobWithResults] = await self.get_job_with_results(job_id)
 
                 yield None, job
 

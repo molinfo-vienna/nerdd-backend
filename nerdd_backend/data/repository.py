@@ -63,9 +63,8 @@ class Repository(ABC):
     async def get_job_with_result_changes(
         self, job_id: str
     ) -> AsyncGenerator[Tuple[Optional[JobWithResults], Optional[JobWithResults]], None]:
-        # The main idea of this method is to merge the changes of job and results. For that we
-        # get the current state of the job and update whenever a change occurs.
-        job = await self.get_job_by_id(job_id)
+        # The main idea of this method is to yield the changes of the job state.
+        job = await self.get_job_with_results(job_id)
 
         # return the initial state of the job (None indicates that this is the initial state)
         yield None, job
