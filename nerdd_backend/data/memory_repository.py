@@ -126,21 +126,25 @@ class MemoryRepository(Repository):
             self.jobs.update(existing_job, modified_job)
             return await self.get_job_by_id(job_update.id)
 
-    async def get_job_by_id(self, id: str) -> JobWithResults:
-        # fetch all corresponding results
-        results = await self.get_results_by_job_id(id)
-        entries_processed = CompressedSet([result.mol_id for result in results]).to_intervals()
-
+    async def get_job_by_id(self, id: str) -> JobInternal:
         try:
             return next(
-                (
-                    JobWithResults(**job.model_dump(), entries_processed=entries_processed)
-                    for job in self.jobs.get_items()
-                    if job.id == id
-                )
+                (JobInternal(**job.model_dump()) for job in self.jobs.get_items() if job.id == id)
             )
         except StopIteration as e:
             raise RecordNotFoundError(Job, id) from e
+
+    async def get_job_with_results(self, id: str) -> JobWithResults:
+        job = await self.get_job_by_id(id)
+        if job.status == "completed" and job.num_entries_total is not None:
+            return JobWithResults(
+                **job.model_dump(),
+                entries_processed=CompressedSet([(0, job.num_entries_total)]),
+            )
+
+        results = await self.get_results_by_job_id(id)
+        entries_processed = CompressedSet([result.mol_id for result in results])
+        return JobWithResults(**job.model_dump(), entries_processed=entries_processed)
 
     async def delete_job_by_id(self, id: str) -> None:
         async with self.transaction_lock:

@@ -23,6 +23,7 @@ from ..models import (
     User,
     UserType,
 )
+from ..util import CompressedSet
 from .exceptions import RecordAlreadyExistsError, RecordNotFoundError
 from .repository import Repository
 
@@ -403,7 +404,22 @@ class RethinkDbRepository(Repository):
 
         return JobInternal(**updated_job)
 
-    async def get_job_by_id(self, job_id: str) -> JobWithResults:
+    async def get_job_by_id(self, job_id: str) -> JobInternal:
+        result = await self._run(self.r.table("jobs").get(job_id))
+
+        if result is None:
+            raise RecordNotFoundError(Job, job_id)
+
+        return JobInternal(**result)
+
+    async def get_job_with_results(self, job_id: str) -> JobWithResults:
+        job = await self.get_job_by_id(job_id)
+        if job.status == "completed" and job.num_entries_total is not None:
+            return JobWithResults(
+                **job.model_dump(),
+                entries_processed=CompressedSet([(0, job.num_entries_total)]),
+            )
+
         result = await self._run(
             self.r
             .table("jobs")

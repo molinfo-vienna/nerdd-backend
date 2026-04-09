@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from asyncio import Queue, create_task
 from datetime import datetime
-from typing import Any, AsyncGenerator, AsyncIterable, List, Optional, Tuple
+from typing import AsyncGenerator, List, Optional, Tuple
 
 from ..models import (
     AnonymousUser,
@@ -16,7 +16,6 @@ from ..models import (
     Source,
     User,
 )
-from ..util import CompressedSet
 
 __all__ = ["Repository"]
 
@@ -143,7 +142,11 @@ class Repository(ABC):
         pass
 
     @abstractmethod
-    async def get_job_by_id(self, job_id: str) -> JobWithResults:
+    async def get_job_by_id(self, job_id: str) -> JobInternal:
+        pass
+
+    @abstractmethod
+    async def get_job_with_results(self, job_id: str) -> JobWithResults:
         pass
 
     @abstractmethod
