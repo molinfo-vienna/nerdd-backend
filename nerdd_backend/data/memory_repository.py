@@ -156,7 +156,7 @@ class MemoryRepository(Repository):
         module_id: str,
         status: List[JobStatus] | JobStatus,
         deadline: Optional[datetime] = None,
-    ) -> AsyncGenerator[JobWithResults, None]:
+    ) -> AsyncGenerator[JobInternal, None]:
         if isinstance(status, str):
             status = [status]
         for job in self.jobs.get_items():
@@ -165,7 +165,7 @@ class MemoryRepository(Repository):
                 and job.job_type == module_id
                 and (deadline is None or job.created_at <= deadline)
             ):
-                yield await self.get_job_by_id(job.id)
+                yield JobInternal(**job.model_dump())
 
     async def get_expired_jobs(self, deadline: datetime) -> AsyncGenerator[JobInternal, None]:
         for job in self.jobs.get_items():

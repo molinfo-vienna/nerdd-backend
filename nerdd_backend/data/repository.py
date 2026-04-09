@@ -159,7 +159,7 @@ class Repository(ABC):
         module_id: str,
         status: List[JobStatus] | JobStatus,
         deadline: Optional[datetime] = None,
-    ) -> AsyncGenerator[JobWithResults, None]:
+    ) -> AsyncGenerator[JobInternal, None]:
         pass
 
     @abstractmethod

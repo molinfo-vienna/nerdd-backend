@@ -454,7 +454,7 @@ class RethinkDbRepository(Repository):
         module_id: str,
         status: List[JobStatus] | JobStatus,
         deadline: Optional[datetime] = None,
-    ) -> AsyncGenerator[JobWithResults, None]:
+    ) -> AsyncGenerator[JobInternal, None]:
         if isinstance(status, str):
             status = [status]
 
@@ -464,22 +464,11 @@ class RethinkDbRepository(Repository):
             .get_all(*status, index="status")
             .filter(self.r.row["job_type"] == module_id)
             .filter((self.r.row["created_at"] < deadline) if deadline is not None else True)
-            .map(
-                lambda job: job.merge({
-                    "entries_processed": self.r
-                    .table("results")
-                    .get_all(job["id"], index="job_id")
-                    .pluck("mol_id")
-                    .map(lambda row: row["mol_id"])
-                    .distinct()
-                    .coerce_to("array")
-                })
-            )
         )
 
         try:
             async for item in cursor:
-                yield JobWithResults(**item)
+                yield JobInternal(**item)
         finally:
             await cursor.close()
 
