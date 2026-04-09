@@ -296,7 +296,7 @@ async def get_job_queue(request: Request, job_id: str) -> QueueStats:
     ) as earlier_jobs:
         async for earlier_job in earlier_jobs:
             job_sizes.append(
-                max(earlier_job.num_entries_total - earlier_job.num_entries_processed, 0)
+                max(earlier_job.num_entries_total - earlier_job.num_estimated_entries_processed, 0)
                 if earlier_job.num_entries_total is not None
                 else 10
             )

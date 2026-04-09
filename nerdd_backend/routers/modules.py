@@ -195,7 +195,7 @@ async def get_module_queue(request: Request, module_id: str) -> QueueStats:
     ) as jobs:
         async for job in jobs:
             job_sizes.append(
-                max(job.num_entries_total - job.num_entries_processed, 0)
+                max(job.num_entries_total - job.num_estimated_entries_processed, 0)
                 if job.num_entries_total is not None
                 else 10
             )
