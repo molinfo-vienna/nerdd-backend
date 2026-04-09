@@ -1,5 +1,6 @@
 import base64
 import math
+from contextlib import aclosing
 from functools import lru_cache
 from typing import List
 
@@ -189,16 +190,19 @@ async def get_module_queue(request: Request, module_id: str) -> QueueStats:
     horizon = 100
     job_sizes = []
     estimate = "upper_bound"
-    async for job in repository.get_jobs_by_status(module_id, ["created", "processing"]):
-        job_sizes.append(
-            max(job.num_entries_total - job.num_entries_processed, 0)
-            if job.num_entries_total is not None
-            else 10
-        )
+    async with aclosing(
+        repository.get_jobs_by_status(module_id, ["created", "processing"])
+    ) as jobs:
+        async for job in jobs:
+            job_sizes.append(
+                max(job.num_entries_total - job.num_entries_processed, 0)
+                if job.num_entries_total is not None
+                else 10
+            )
 
-        if len(job_sizes) >= horizon:
-            estimate = "lower_bound"
-            break
+            if len(job_sizes) >= horizon:
+                estimate = "lower_bound"
+                break
 
     # the waiting time is still an approximation, because it doesn't consider the number of
     # available workers
