@@ -121,6 +121,12 @@ class MemoryRepository(Repository):
                 modified_job.num_checkpoints_total = job_update.num_checkpoints_total
             if job_update.new_output_formats is not None:
                 modified_job.output_formats.extend(job_update.new_output_formats)
+            if (
+                job_update.new_checkpoint_processed is not None
+                and job_update.new_checkpoint_processed not in modified_job.checkpoints_processed
+            ):
+                modified_job.checkpoints_processed.append(job_update.new_checkpoint_processed)
+                modified_job.checkpoints_processed.sort()
 
             # update the job in the observable list
             self.jobs.update(existing_job, modified_job)

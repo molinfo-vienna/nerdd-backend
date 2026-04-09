@@ -391,6 +391,13 @@ class RethinkDbRepository(Repository):
             update_set["output_formats"] = self.r.row["output_formats"].set_union(
                 job_update.new_output_formats
             )
+        if job_update.new_checkpoint_processed is not None:
+            update_set["checkpoints_processed"] = (
+                self.r
+                .row["checkpoints_processed"]
+                .default([])
+                .set_insert(job_update.new_checkpoint_processed)
+            )
 
         # update the job in the database
         changes = await self._run(
