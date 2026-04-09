@@ -51,6 +51,34 @@ class JobInternal(Job):
     checkpoint_size: int = 100
     num_checkpoints_total: Optional[int] = None
     output_formats: List[str] = []
+    checkpoints_processed: List[int] = []
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def num_checkpoints_processed(self) -> int:
+        return len(self.checkpoints_processed)
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def num_estimated_entries_processed(self) -> int:
+        return self.estimated_entries_processed.count()
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def estimated_entries_processed(self) -> CompressedSet:
+        intervals = []
+        for cp_id in sorted(set(self.checkpoints_processed)):
+            start = cp_id * self.checkpoint_size
+            if self.num_entries_total is not None and self.num_checkpoints_total is not None:
+                if cp_id == self.num_checkpoints_total - 1:
+                    end = self.num_entries_total
+                else:
+                    end = (cp_id + 1) * self.checkpoint_size
+            else:
+                end = (cp_id + 1) * self.checkpoint_size
+            if end > start:
+                intervals.append((start, end))
+        return CompressedSet(intervals)
 
 
 class JobWithResults(JobInternal):
