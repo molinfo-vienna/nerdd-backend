@@ -273,12 +273,11 @@ class MemoryRepository(Repository):
     #
     async def create_result_checkpoint(self, checkpoint: ResultCheckpoint) -> ResultCheckpoint:
         async with self.transaction_lock:
-            try:
-                await self.get_result_checkpoints_by_job_id(checkpoint.job_id)
-                raise RecordAlreadyExistsError(ResultCheckpoint, checkpoint.job_id)
-            except RecordNotFoundError:
-                self.checkpoints.append(checkpoint)
-                return checkpoint
+            if any(existing.id == checkpoint.id for existing in self.checkpoints.get_items()):
+                raise RecordAlreadyExistsError(ResultCheckpoint, checkpoint.id)
+
+            self.checkpoints.append(checkpoint)
+            return checkpoint
 
     async def update_result_checkpoint(self, checkpoint: ResultCheckpoint) -> ResultCheckpoint:
         async with self.transaction_lock:

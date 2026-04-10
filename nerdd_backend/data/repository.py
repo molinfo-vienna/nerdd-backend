@@ -112,7 +112,9 @@ class Repository(ABC):
                         continue
 
                     old_job_obj = job.model_dump()
-                    old_job_obj["entries_processed"] = CompressedSet(old_job_obj["entries_processed"])
+                    old_job_obj["entries_processed"] = CompressedSet(
+                        old_job_obj["entries_processed"]
+                    )
                     old_job_obj["entries_processed"].add(new.mol_id)
 
                     new_job = JobWithResults(**old_job_obj)
