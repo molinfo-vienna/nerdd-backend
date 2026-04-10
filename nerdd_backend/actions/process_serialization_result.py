@@ -37,7 +37,7 @@ class ProcessSerializationResult(ActionWithContext[SerializationResultMessage]):
         # output format above and one for the status below). However, since the topic is partitioned
         # by job_id, only one worker will process the serialization result for a given job at a
         # time.
-        if len(set(updated_job.output_formats)) == len(set(self.config.output_formats)):
+        if set(self.config.output_formats).issubset(updated_job.output_formats):
             await self.repository.update_job(JobUpdate(id=job_id, status="completed"))
 
     def _get_group_name(self) -> str:
