@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
-from asyncio import Queue, create_task
+from asyncio import Queue, create_task, gather
+from contextlib import aclosing
 from datetime import datetime
-from typing import AsyncGenerator, List, Optional, Tuple
+from typing import Any, AsyncGenerator, List, Optional, Tuple
 
 from ..models import (
     AnonymousUser,
@@ -16,6 +17,7 @@ from ..models import (
     Source,
     User,
 )
+from ..util import CompressedSet
 
 __all__ = ["Repository"]
 
@@ -76,55 +78,55 @@ class Repository(ABC):
         # a queue.
         queue = Queue[Tuple[str, Any]]()
 
-        async def _drain_iterator(aiter: AsyncIterable, event_type: str) -> None:
-            async for item in aiter:
-                await queue.put((event_type, item))
+        async def _drain_iterator(aiter: AsyncGenerator[Any, None], event_type: str) -> None:
+            async with aclosing(aiter):
+                async for item in aiter:
+                    await queue.put((event_type, item))
 
         drain_tasks = [
-            create_task(_drain_iterator(aiter, event_type))
-            for aiter, event_type in [
-                (self.get_job_changes(job_id), "job_change"),
-                (self.get_result_changes(job_id), "results_change"),
-            ]
+            create_task(_drain_iterator(self.get_job_changes(job_id), "job_change")),
+            create_task(_drain_iterator(self.get_result_changes(job_id), "results_change")),
         ]
 
-        while True:
-            event_type, (_, new) = await queue.get()
-            if event_type == "job_change":
-                if new is not None:
-                    new_job = JobWithResults(
-                        **new.model_dump(),
-                        entries_processed=job.entries_processed,
-                    )
+        try:
+            while True:
+                event_type, (_, new) = await queue.get()
+                if event_type == "job_change":
+                    if new is not None:
+                        new_job = JobWithResults(
+                            **new.model_dump(),
+                            entries_processed=job.entries_processed,
+                        )
+                        yield job, new_job
+                        job = new_job
+
+                        if job.is_done():
+                            # job is completed, we can exit the loop
+                            break
+                    else:
+                        # job was deleted -> exit the loop
+                        break
+                elif event_type == "results_change" and new is not None:
+                    if new.mol_id in job.entries_processed:
+                        # result already processed, skip
+                        continue
+
+                    old_job_obj = job.model_dump()
+                    old_job_obj["entries_processed"] = CompressedSet(old_job_obj["entries_processed"])
+                    old_job_obj["entries_processed"].add(new.mol_id)
+
+                    new_job = JobWithResults(**old_job_obj)
+
                     yield job, new_job
                     job = new_job
 
                     if job.is_done():
                         # job is completed, we can exit the loop
                         break
-                else:
-                    # job was deleted -> exit the loop
-                    break
-            elif event_type == "results_change" and new is not None:
-                if new.mol_id in job.entries_processed:
-                    # result already processed, skip
-                    continue
-
-                old_job_obj = job.model_dump()
-                old_job_obj["entries_processed"] = CompressedSet(old_job_obj["entries_processed"])
-                old_job_obj["entries_processed"].add(new.mol_id)
-
-                new_job = JobWithResults(**old_job_obj)
-
-                yield job, new_job
-                job = new_job
-
-                if job.is_done():
-                    # job is completed, we can exit the loop
-                    break
-
-        for task in drain_tasks:
-            task.cancel()
+        finally:
+            for task in drain_tasks:
+                task.cancel()
+            await gather(*drain_tasks, return_exceptions=True)
 
     @abstractmethod
     def get_job_changes(
