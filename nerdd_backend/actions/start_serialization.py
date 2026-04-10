@@ -38,12 +38,6 @@ class StartSerialization(ActionWithContext[LogMessage]):
                 fmt for fmt in self.config.output_formats if fmt not in job.output_formats
             ]
 
-            if len(output_formats) == 0:
-                logger.info(
-                    f"All output formats for job {job_id} already exist. Skipping serialization."
-                )
-                return
-
             for output_format in output_formats:
                 await self.channel.serialization_requests_topic().send(
                     SerializationRequestMessage(
