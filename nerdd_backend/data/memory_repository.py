@@ -97,10 +97,7 @@ class MemoryRepository(Repository):
                 raise RecordAlreadyExistsError(JobInternal, job.id)
             except RecordNotFoundError:
                 self.jobs.append(job)
-                return JobWithResults(
-                    **job.model_dump(),
-                    entries_processed=CompressedSet(),
-                )
+                return JobWithResults(**job.model_dump())
 
     async def update_job(self, job_update: JobUpdate) -> JobInternal:
         async with self.transaction_lock:
