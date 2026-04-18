@@ -21,8 +21,8 @@ COPY --from=repos ./nerdd-module /deps/nerdd-module
 # dependencies every time we build the image
 RUN --mount=type=cache,target=/home/mambauser/.mamba/pkgs \
     --mount=type=cache,target=/root/.cache/pip \
-    # create the conda environment
-    micromamba env create -f environment.yml && \
+    # create the conda environment in a fixed path so the entrypoint matches the production image
+    micromamba env create --copy -p /env -f environment.yml && \
     # remove the cache and the tarballs of the packages
     micromamba clean --all --yes && \
     # modify requirements.txt to use the local nerdd-link and nerdd-module packages
@@ -33,9 +33,9 @@ RUN --mount=type=cache,target=/home/mambauser/.mamba/pkgs \
     -e 's/^nerdd-link==.*$/-e \/deps\/nerdd-link/' \
     requirements.txt && \
     # install the requirements, which are not part of the conda environment
-    micromamba run -n nerdd_backend pip install -r requirements.txt
+    micromamba run -p /env pip install -r requirements.txt
 
 COPY . .
-RUN micromamba run -n nerdd_backend pip install --no-deps .
+RUN micromamba run -p /env pip install --no-deps .
 
-ENTRYPOINT ["micromamba", "run", "-n", "nerdd_backend", "python", "-m", "nerdd_backend.main"]
+ENTRYPOINT ["/env/bin/python3", "-m", "nerdd_backend.main"]
