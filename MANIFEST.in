@@ -1,0 +1,1 @@
+recursive-include nerdd_backend/config *.yaml
