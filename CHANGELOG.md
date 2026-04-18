@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## v0.5.50 (2026-04-18)
+
+### Fixes
+
+* fix: Use same entrypoint in Dockerfiles ([`c70cfd8`](https://github.com/molinfo-vienna/nerdd-backend/commit/c70cfd811c95327a9b1a1890881ae6de6aa29db7))
+
+* fix: Optimize Dockerfile using multi-stage build ([`ce31dd6`](https://github.com/molinfo-vienna/nerdd-backend/commit/ce31dd670f930045a476fa795dbf7997432ef338))
+
+### Unknown
+
+* Merge pull request #104 from shirte/main
+
+Improve Dockerfiles ([`074c3a8`](https://github.com/molinfo-vienna/nerdd-backend/commit/074c3a8943b36752efaada21c363662208d56d7c))
+
+
 ## v0.5.49 (2026-02-12)
 
 ### Fixes
