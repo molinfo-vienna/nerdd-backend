@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.51 (2026-04-18)
+
+### Fixes
+
+* fix: Include config yaml files in python wheel ([`45e4481`](https://github.com/molinfo-vienna/nerdd-backend/commit/45e448172f7eddcbfeb5dc72a030df7aac78359e))
+
+### Unknown
+
+* Merge pull request #105 from shirte/main
+
+Include config yaml files in python wheel ([`8ec6038`](https://github.com/molinfo-vienna/nerdd-backend/commit/8ec6038d8751afe80be9e425c12494db13b2b811))
+
+
 ## v0.5.50 (2026-04-18)
 
 ### Fixes
