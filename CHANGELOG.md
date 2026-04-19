@@ -1,6 +1,23 @@
 # CHANGELOG
 
 
+## v0.5.52 (2026-04-19)
+
+### Fixes
+
+* fix: Add broker_username and broker_password to yaml ([`dfd915b`](https://github.com/molinfo-vienna/nerdd-backend/commit/dfd915b3b7e0dcdbb81b430f0391a1e1adab5ab6))
+
+* fix: Add broker_username and broker_password options ([`57ec1c6`](https://github.com/molinfo-vienna/nerdd-backend/commit/57ec1c6b3a05d2b534abf04cf47d24e009568426))
+
+* fix: Simplify get_channel ([`6479864`](https://github.com/molinfo-vienna/nerdd-backend/commit/64798647295929125d7a0336573e476e1ac16c96))
+
+### Unknown
+
+* Merge pull request #106 from shirte/main
+
+Add broker_username and broker_password options ([`8341563`](https://github.com/molinfo-vienna/nerdd-backend/commit/8341563d4408ecbb0a4e9093ca2a08427014d3d0))
+
+
 ## v0.5.51 (2026-04-18)
 
 ### Fixes
