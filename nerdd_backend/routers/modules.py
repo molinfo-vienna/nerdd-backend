@@ -43,13 +43,19 @@ async def augment_module(module: ModuleInternal, request: Request) -> ModulePubl
     startup_time_seconds = module.startup_time_seconds
     batch_size = module.batch_size
 
+    # The denominator is the average time it takes to process one molecule (including the startup
+    # time).
+    total_seconds_per_molecule = (
+        seconds_per_molecule + startup_time_seconds / batch_size
+    )
+
     # We make sure that the denominator is not (close to) zero to avoid extremely large values.
-    denominator = seconds_per_molecule + startup_time_seconds / batch_size
-    if denominator <= 0.1:
-        denominator = sys.float_info.epsilon
+    min_seconds_per_molecule = max_job_duration_minutes * 60 / config.max_num_molecules_per_job
+    if total_seconds_per_molecule <= min_seconds_per_molecule:
+        total_seconds_per_molecule = min_seconds_per_molecule
 
     max_num_molecules = clamp(
-        int(max_job_duration_minutes * 60 / denominator),
+        int(max_job_duration_minutes * 60 / total_seconds_per_molecule),
         # there should be at least one molecule in a job
         1,
         # and at most the module's maximum number of molecules
@@ -74,7 +80,7 @@ async def augment_module(module: ModuleInternal, request: Request) -> ModulePubl
     # recomputed).
     checkpoint_duration_minutes = config.max_checkpoint_duration_minutes
     checkpoint_size = clamp(
-        int(checkpoint_duration_minutes * 60 / denominator),
+        int(checkpoint_duration_minutes * 60 / total_seconds_per_molecule),
         # there should be at least one molecule in a checkpoint
         1,
         # and at most the module's maximum number of molecules
@@ -161,7 +167,9 @@ async def get_module_logo(module_id: str, request: Request) -> StreamingResponse
         with open(logo_path, "rb") as f:
             logo_data_decoded = f.read()
     elif not module.logo.startswith("data:"):
-        raise HTTPException(status_code=400, detail="Module logo is not a valid base64 data URL")
+        raise HTTPException(
+            status_code=400, detail="Module logo is not a valid base64 data URL"
+        )
     else:
         prefix, logo_data = module.logo.split(",")
         logo_data_decoded = base64.b64decode(logo_data)
@@ -177,7 +185,9 @@ async def get_module_logo(module_id: str, request: Request) -> StreamingResponse
 
 
 @modules_router.get("/{module_id}/partners/{partner_id}/logo", include_in_schema=False)
-async def get_partner_logo(module_id: str, partner_id: str, request: Request) -> StreamingResponse:
+async def get_partner_logo(
+    module_id: str, partner_id: str, request: Request
+) -> StreamingResponse:
     app = request.app
     repository: Repository = app.state.repository
 
@@ -194,12 +204,16 @@ async def get_partner_logo(module_id: str, partner_id: str, request: Request) ->
         with open(logo_path, "rb") as f:
             logo_data_decoded = f.read()
     elif not module.logo.startswith("data:"):
-        raise HTTPException(status_code=400, detail="Module logo is not a valid base64 data URL")
+        raise HTTPException(
+            status_code=400, detail="Module logo is not a valid base64 data URL"
+        )
     else:
         try:
             partner_id = int(partner_id)
         except ValueError as e:
-            raise HTTPException(status_code=400, detail="Partner ID must be an integer") from e
+            raise HTTPException(
+                status_code=400, detail="Partner ID must be an integer"
+            ) from e
 
         if partner_id < 0 or partner_id >= len(module.partners or []):
             raise HTTPException(status_code=404, detail="Partner not found")
@@ -248,7 +262,9 @@ async def get_module_queue(module_id: str, request: Request) -> QueueStats:
     horizon = 100
     job_sizes = []
     estimate = "upper_bound"
-    async for job in repository.get_jobs_by_status(module_id, ["created", "processing"]):
+    async for job in repository.get_jobs_by_status(
+        module_id, ["created", "processing"]
+    ):
         job_sizes.append(
             max(job.num_entries_total - job.num_entries_processed, 0)
             if job.num_entries_total is not None
