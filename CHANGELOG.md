@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## v0.5.53 (2026-06-14)
+
+### Fixes
+
+* fix: Create smaller checkpoints in development mode ([`1e21f7c`](https://github.com/molinfo-vienna/nerdd-backend/commit/1e21f7cbd000bfa94e8f48318ef1c82b7fcf3ae1))
+
+* fix: Clamp total_seconds_per_molecule correctly ([`7f2058a`](https://github.com/molinfo-vienna/nerdd-backend/commit/7f2058aefb023a5bc04d666ff05305c6a16dde25))
+
+### Unknown
+
+* Merge pull request #107 from shirte/main
+
+Clamp total_seconds_per_molecule correctly ([`4d30fd0`](https://github.com/molinfo-vienna/nerdd-backend/commit/4d30fd0b0173ab7ae64d69bdb50e48d08cb9db35))
+
+
 ## v0.5.52 (2026-04-19)
 
 ### Fixes
