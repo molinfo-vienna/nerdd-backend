@@ -1,6 +1,25 @@
 # CHANGELOG
 
 
+## v0.5.55 (2026-07-04)
+
+### Fixes
+
+* fix: Remove unused import in modules router ([`cc35965`](https://github.com/molinfo-vienna/nerdd-backend/commit/cc3596557b387cf4e0566dcaa7ec8c0abc5790b4))
+
+* fix: Use correct data type for rank in ModuleShort ([`662f713`](https://github.com/molinfo-vienna/nerdd-backend/commit/662f71375313f5c52d3281b59124906010b33b46))
+
+### Unknown
+
+* Merge pull request #110 from shirte/main
+
+Remove unused import in modules router ([`f7b03c1`](https://github.com/molinfo-vienna/nerdd-backend/commit/f7b03c16a392e37571fe66cf2aa0d350d5ce6583))
+
+* Merge pull request #109 from shirte/main
+
+Use correct data type for rank in ModuleShort ([`6912d5d`](https://github.com/molinfo-vienna/nerdd-backend/commit/6912d5d9586e61b0dcf1c2b5a4a6cf3f7d56649d))
+
+
 ## v0.5.54 (2026-07-04)
 
 ### Fixes
