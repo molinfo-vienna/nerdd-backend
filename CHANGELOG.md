@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.54 (2026-07-04)
+
+### Fixes
+
+* fix: Update dependencies nerdd-link and nerdd-module ([`5cf63a2`](https://github.com/molinfo-vienna/nerdd-backend/commit/5cf63a2842b36d5c77b059e385f4a8c19631d018))
+
+### Unknown
+
+* Merge pull request #108 from shirte/main
+
+Update dependencies nerdd-link and nerdd-module ([`d6be526`](https://github.com/molinfo-vienna/nerdd-backend/commit/d6be5263737015e460a87ef496fcd55aabb81d32))
+
+
 ## v0.5.53 (2026-06-14)
 
 ### Fixes
