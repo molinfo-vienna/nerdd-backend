@@ -1,7 +1,6 @@
 import base64
 import io
 import math
-import sys
 from typing import List
 
 from fastapi import APIRouter, HTTPException, Request
@@ -50,7 +49,9 @@ async def augment_module(module: ModuleInternal, request: Request) -> ModulePubl
     )
 
     # We make sure that the denominator is not (close to) zero to avoid extremely large values.
-    min_seconds_per_molecule = max_job_duration_minutes * 60 / config.max_num_molecules_per_job
+    min_seconds_per_molecule = (
+        max_job_duration_minutes * 60 / config.max_num_molecules_per_job
+    )
     if total_seconds_per_molecule <= min_seconds_per_molecule:
         total_seconds_per_molecule = min_seconds_per_molecule
 
