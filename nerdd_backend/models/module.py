@@ -26,7 +26,7 @@ class ModulePublic(Module):
 
 class ModuleShort(BaseModel):
     id: str
-    rank: Optional[int] = None
+    rank: Optional[float] = None
     name: Optional[str] = None
     version: Optional[str] = None
     visible_name: Optional[str] = None
