@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.57 (2026-07-07)
+
+### Fixes
+
+* fix: Restart individual lifespans in case of errors ([`0caf147`](https://github.com/molinfo-vienna/nerdd-backend/commit/0caf147821a5ea26ca4c10cdf030b1e8d7b8fc65))
+
+### Unknown
+
+* Merge pull request #112 from shirte/main
+
+Restart individual lifespans in case of errors ([`c81e4c6`](https://github.com/molinfo-vienna/nerdd-backend/commit/c81e4c68666f7c5fb81a2de155b4fdb7cf29eeb3))
+
+
 ## v0.5.56 (2026-07-07)
 
 ### Fixes
