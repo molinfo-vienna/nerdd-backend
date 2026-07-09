@@ -28,20 +28,16 @@ async def get_job_ws(websocket: WebSocket, job_id: str):
 
             job = await augment_job(internal_job, websocket)
             await websocket.send_json(jsonable_encoder(job))
+
+        if websocket.application_state != WebSocketState.DISCONNECTED:
+            await websocket.close(code=status.WS_1000_NORMAL_CLOSURE)
     except RecordNotFoundError as e:
         raise WebSocketException(
             code=status.WS_1008_POLICY_VIOLATION, reason="Job not found"
         ) from e
     except (WebSocketDisconnect, ConnectionClosed):
-        # dlient disconnected, no action needed
+        # client disconnected, no action needed
         pass
-    except:
-        if websocket.application_state != WebSocketState.DISCONNECTED:
-            await websocket.close(code=status.WS_1011_INTERNAL_ERROR)
-        raise
-    finally:
-        if websocket.application_state != WebSocketState.DISCONNECTED:
-            await websocket.close(code=status.WS_1000_NORMAL_CLOSURE)
 
 
 # Note: we need the slash-less and slash version of the routes, because fastapi does not redirect
@@ -85,13 +81,9 @@ async def get_results_ws(websocket: WebSocket, job_id: str, page: int = Query())
         async for _, new in repository.get_result_changes(job_id, first_mol_id, last_mol_id):
             if new is not None:
                 await websocket.send_json(jsonable_encoder(new))
-    except (WebSocketDisconnect, ConnectionClosed):
-        # dlient disconnected, no action needed
-        pass
-    except:
-        if websocket.application_state != WebSocketState.DISCONNECTED:
-            await websocket.close(code=status.WS_1011_INTERNAL_ERROR)
-        raise
-    finally:
+
         if websocket.application_state != WebSocketState.DISCONNECTED:
             await websocket.close(code=status.WS_1000_NORMAL_CLOSURE)
+    except (WebSocketDisconnect, ConnectionClosed):
+        # client disconnected, no action needed
+        pass
