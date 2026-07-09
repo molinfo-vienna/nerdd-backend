@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.59 (2026-07-09)
+
+### Fixes
+
+* fix: Avoid closing a closed websocket ([`7382199`](https://github.com/molinfo-vienna/nerdd-backend/commit/7382199ad61c97ba0537daf509e55466da2a9cde))
+
+### Unknown
+
+* Merge pull request #114 from shirte/main
+
+Avoid closing a closed websocket ([`6954db7`](https://github.com/molinfo-vienna/nerdd-backend/commit/6954db7ff1923b978b6a2fb6f06f59ffb21e5656))
+
+
 ## v0.5.58 (2026-07-09)
 
 ### Code Style
