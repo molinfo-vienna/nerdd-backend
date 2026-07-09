@@ -1,6 +1,43 @@
 # CHANGELOG
 
 
+## v0.5.58 (2026-07-09)
+
+### Code Style
+
+* style: Add comments explaining the RethinkDbRepository._run method ([`66f5079`](https://github.com/molinfo-vienna/nerdd-backend/commit/66f50794c3a10d0235a75a24f59f0501864d22c1))
+
+* style: Format queries in RethinkDbRepository ([`e7d61f2`](https://github.com/molinfo-vienna/nerdd-backend/commit/e7d61f20b35c835eb31f2a00ee8e7a3cfc2b6f30))
+
+### Fixes
+
+* fix: Use _get_connection in RethinkDbRepository.initialize ([`eed0525`](https://github.com/molinfo-vienna/nerdd-backend/commit/eed05256cba16a6e52c7d15116ad9efaa26d37f7))
+
+* fix: Add parameter use_database in RethinkDbRepository._get_connection ([`79ee557`](https://github.com/molinfo-vienna/nerdd-backend/commit/79ee557b84a42c9dadb46dd55eae40809564495e))
+
+* fix: Close repository connection when shutting down the server ([`864b3d4`](https://github.com/molinfo-vienna/nerdd-backend/commit/864b3d4d97f03b0e3a1ef4ca24369a9a2ae63359))
+
+* fix: Use separate connections for long-running queries in RethinkDbRepository ([`dcc162a`](https://github.com/molinfo-vienna/nerdd-backend/commit/dcc162a9294c84ddba6eec8dd89aefdb922fac3f))
+
+* fix: Use shared connection for all short queries in RethinkDbRepository ([`0a8fd42`](https://github.com/molinfo-vienna/nerdd-backend/commit/0a8fd423884c27f710fcc44f7cbd2932a01b8fbf))
+
+* fix: Implement context manager for new connections in RethinkDbRepository ([`db8e6ce`](https://github.com/molinfo-vienna/nerdd-backend/commit/db8e6cecdb03e6d049f0046f529428ac80ca3ae2))
+
+* fix: Implement RethinkDbRepository.close ([`9ec6258`](https://github.com/molinfo-vienna/nerdd-backend/commit/9ec6258f45d2e5f2074be3531c21e35879bbd165))
+
+* fix: Implement robust method to run queries on shared rethinkdb connection ([`eba9058`](https://github.com/molinfo-vienna/nerdd-backend/commit/eba90581f15ff96f5934e2af87b4d612482ab2b0))
+
+* fix: Add MemoryRepository.close method ([`ee40db7`](https://github.com/molinfo-vienna/nerdd-backend/commit/ee40db7b4fe81e2dc453276e6c57b39b2e136235))
+
+* fix: Add abstract operation  to Repository class ([`ae9329f`](https://github.com/molinfo-vienna/nerdd-backend/commit/ae9329f07e5ed637d9d3a8135514e29aded9257b))
+
+### Unknown
+
+* Merge pull request #113 from shirte/main
+
+Restart shared rethinkdb connection if necessary ([`bb1ba55`](https://github.com/molinfo-vienna/nerdd-backend/commit/bb1ba55e0b80e0d4ef54850a075ea9a72a62da77))
+
+
 ## v0.5.57 (2026-07-07)
 
 ### Fixes
