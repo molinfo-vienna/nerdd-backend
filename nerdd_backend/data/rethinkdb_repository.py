@@ -233,8 +233,12 @@ class RethinkDbRepository(Repository):
             )
         )
 
-        if len(result["changes"]) == 0:
-            raise RecordAlreadyExistsError(ModuleInternal, module.id)
+        if result["errors"] > 0:
+            first_error = result.get("first_error", "")
+            if first_error.startswith("Duplicate primary key "):
+                raise RecordAlreadyExistsError(ModuleInternal, module.id)
+
+            raise Exception(f"Failed to create module: {first_error}")
 
         return ModuleInternal(**result["changes"][0]["new_val"])
 
@@ -334,10 +338,18 @@ class RethinkDbRepository(Repository):
 
     async def create_job(self, job: JobInternal) -> JobWithResults:
         result = await self._run(
-            self.r.table("jobs").insert(job.model_dump(), conflict="error", return_changes=True)
+            self.r.table("jobs").insert(job.model_dump(), conflict="error", return_changes=False)
         )
+
+        if result["errors"] > 0:
+            first_error = result.get("first_error", "")
+            if first_error.startswith("Duplicate primary key "):
+                raise RecordAlreadyExistsError(JobInternal, job.id)
+
+            raise Exception(f"Failed to create job: {first_error}")
+
         # JobWithResults adds the entries_processed field, which is not part of JobInternal.
-        return JobWithResults(**result["changes"][0]["new_val"])
+        return JobWithResults(**job.model_dump())
 
     async def update_job(self, job_update: JobUpdate) -> JobInternal:
         # all fields can be updated in a single query
@@ -451,8 +463,12 @@ class RethinkDbRepository(Repository):
             )
         )
 
-        if len(result["changes"]) == 0:
-            raise RecordNotFoundError(Source, source.id)
+        if result["errors"] > 0:
+            first_error = result.get("first_error", "")
+            if first_error.startswith("Duplicate primary key "):
+                raise RecordAlreadyExistsError(Source, source.id)
+
+            raise Exception(f"Failed to create source: {first_error}")
 
         return Source(**result["changes"][0]["new_val"])
 
@@ -575,8 +591,12 @@ class RethinkDbRepository(Repository):
             )
         )
 
-        if len(result["changes"]) == 0:
-            raise RecordAlreadyExistsError(ResultCheckpoint, checkpoint.id)
+        if result["errors"] > 0:
+            first_error = result.get("first_error", "")
+            if first_error.startswith("Duplicate primary key "):
+                raise RecordAlreadyExistsError(ResultCheckpoint, checkpoint.id)
+
+            raise Exception(f"Failed to create result checkpoint: {first_error}")
 
         return ResultCheckpoint(**result["changes"][0]["new_val"])
 
@@ -642,8 +662,12 @@ class RethinkDbRepository(Repository):
             self.r.table("users").insert(user.model_dump(), conflict="error", return_changes=True)
         )
 
-        if len(result["changes"]) == 0:
-            raise RecordAlreadyExistsError(User, user.id)
+        if result["errors"] > 0:
+            first_error = result.get("first_error", "")
+            if first_error.startswith("Duplicate primary key "):
+                raise RecordAlreadyExistsError(User, user.id)
+
+            raise Exception(f"Failed to create user: {first_error}")
 
         return user
 
@@ -673,8 +697,12 @@ class RethinkDbRepository(Repository):
             )
         )
 
-        if len(result["changes"]) == 0:
-            raise RecordAlreadyExistsError(Challenge, challenge.id)
+        if result["errors"] > 0:
+            first_error = result.get("first_error", "")
+            if first_error.startswith("Duplicate primary key "):
+                raise RecordAlreadyExistsError(Challenge, challenge.id)
+
+            raise Exception(f"Failed to create challenge: {first_error}")
 
         return Challenge(**result["changes"][0]["new_val"])
 
