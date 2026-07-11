@@ -1,6 +1,31 @@
 # CHANGELOG
 
 
+## v0.5.60 (2026-07-11)
+
+### Fixes
+
+* fix: Check if record already exists in RethinkDbRepository.create_user ([`e6a1b0f`](https://github.com/molinfo-vienna/nerdd-backend/commit/e6a1b0ff6031b6de5bb6d75065963a01bdff14ed))
+
+* fix: Check if record already exists in RethinkDbRepository.create_result_checkpoint ([`f9430f4`](https://github.com/molinfo-vienna/nerdd-backend/commit/f9430f46f31a763a32f919d5e60acf2b0cee1461))
+
+* fix: Check if record already exists in RethinkDbRepository.create_source ([`7280071`](https://github.com/molinfo-vienna/nerdd-backend/commit/72800714be10c309e15e1f1694b981e94a58884c))
+
+* fix: Check if record already exists in RethinkDbRepository.create_module ([`9e4ff52`](https://github.com/molinfo-vienna/nerdd-backend/commit/9e4ff52d8af8c5d91d90994979f4b52f9f70c308))
+
+* fix: Check if record already exists in RethinkDbRepository.create_challenge ([`c7a67f0`](https://github.com/molinfo-vienna/nerdd-backend/commit/c7a67f030aa5bd6e136efc612bcea6608ec48e7e))
+
+* fix: Use return_changes=False in create_job ([`fd2c128`](https://github.com/molinfo-vienna/nerdd-backend/commit/fd2c128e33575365194604361e3054b274f7fd8d))
+
+* fix: Use correct argument in MemoryRepository.update_module ([`2d079b3`](https://github.com/molinfo-vienna/nerdd-backend/commit/2d079b3665da391281a63800ccda550048f3031e))
+
+### Unknown
+
+* Merge pull request #115 from shirte/main
+
+Improve record duplication checks in RethinkDbRepository ([`99ed21a`](https://github.com/molinfo-vienna/nerdd-backend/commit/99ed21aeaeff3990aa9d63cc747d93809d5ba85f))
+
+
 ## v0.5.59 (2026-07-09)
 
 ### Fixes
