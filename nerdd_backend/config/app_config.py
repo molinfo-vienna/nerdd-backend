@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass, field
 from typing import List, Optional
 
@@ -12,6 +13,11 @@ class AppConfig:
     root_path: Optional[str] = None
     log_requests: bool = True
     cors: bool = True
+    maintenance_mode: bool = field(
+        default_factory=lambda: (
+            os.environ.get("MAINTENANCE_MODE", "false").lower() in ("true", "1", "yes")
+        )
+    )
 
     quota_mols_per_day_anonymous: int = 100_000
     quota_active_jobs_anonymous: int = 5
@@ -31,6 +37,8 @@ class AppConfig:
     media_root: str = "./media"
     mock_infra: bool = False
 
+    # note: output_formats: List[str] = ["sdf", "csv"] would raise a ValueError (mutable
+    # default <class 'list'> for field output_formats is not allowed: use default_factory)
     output_formats: List[str] = field(default_factory=lambda: ["sdf", "csv"])
 
     channel: ChannelConfig = field(default_factory=ChannelConfig)
