@@ -1,6 +1,29 @@
 # CHANGELOG
 
 
+## v0.5.61 (2026-07-12)
+
+### Fixes
+
+* fix: Use MaintenanceMiddleware if maintenance_mode is enabled ([`7931196`](https://github.com/molinfo-vienna/nerdd-backend/commit/7931196e2d0f9718e4f35154f93ad871be9c3817))
+
+* fix: Implement MaintenanceMiddleware ([`401e0ed`](https://github.com/molinfo-vienna/nerdd-backend/commit/401e0ed11717c08b8f301141e894802225b1ff72))
+
+* fix: Add a field maintenance_mode to AppConfig ([`6fc0483`](https://github.com/molinfo-vienna/nerdd-backend/commit/6fc04835fe7853272ef0f7c12d539aeee0abbd25))
+
+### Testing
+
+* test: Test maintenance mode ([`3b0800e`](https://github.com/molinfo-vienna/nerdd-backend/commit/3b0800e85bca10f7d776ede9cb70438bb023b917))
+
+* test: Add test fixture to set env vars ([`8aa5269`](https://github.com/molinfo-vienna/nerdd-backend/commit/8aa5269b60c345c0602906fd9a89c0e7a6bc4a3d))
+
+### Unknown
+
+* Merge pull request #116 from shirte/main
+
+Implement option to switch to maintenance mode ([`2d522ad`](https://github.com/molinfo-vienna/nerdd-backend/commit/2d522ad54defebc8a9abb5de0531ca6297bea33f))
+
+
 ## v0.5.60 (2026-07-11)
 
 ### Fixes
