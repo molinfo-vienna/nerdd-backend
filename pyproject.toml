@@ -31,7 +31,7 @@ dependencies = [
     "rethinkdb~=2.4.10.post1",
     "python-multipart~=0.0.6",
     "hydra-core>=1.3.2",
-    "altcha>=0.1.9",
+    "altcha~=0.1.9",
     "scikit-learn>=1.7.1",
     "requests>=2",
     # for older python versions:
@@ -40,7 +40,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["mypy~=0.981", "ruff", "ipykernel~=6.19.4"]
+dev = ["mypy>=1.10.0", "ruff", "pre-commit>=2", "ipykernel~=6.19.4"]
 test = [
     "pytest",
     "pytest-watcher",
@@ -91,6 +91,26 @@ extend-immutable-calls = [
     "fastapi.Header",
     "fastapi.Depends",
 ]
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+disallow_untyped_defs = true
+exclude = ["^tests/*"]
+# no_implicit_optional = True
+# check_untyped_defs = True
+# show_error_codes = True
+
+[[tool.mypy.overrides]]
+module = [
+    "rdkit.*",
+    "nerdd_module.*",
+    "rethinkdb.*",
+    "sklearn.*",
+    "stringcase.*",
+]
+ignore_missing_imports = true
+follow_imports = "skip"
+follow_imports_for_stubs = true
 
 [tool.pytest.ini_options]
 log_cli = 1

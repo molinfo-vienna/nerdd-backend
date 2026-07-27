@@ -15,7 +15,7 @@ websockets_router = APIRouter(prefix="/websocket")
 # from the slash-less version to the slash version (as in normal routes).
 @websockets_router.websocket("/jobs/{job_id}")
 @websockets_router.websocket("/jobs/{job_id}/")
-async def get_job_ws(websocket: WebSocket, job_id: str):
+async def get_job_ws(websocket: WebSocket, job_id: str) -> None:
     app = websocket.app
     repository: Repository = app.state.repository
 
@@ -26,7 +26,7 @@ async def get_job_ws(websocket: WebSocket, job_id: str):
             if internal_job is None:
                 break
 
-            job = await augment_job(internal_job, websocket)
+            job = await augment_job(websocket, internal_job)
             await websocket.send_json(jsonable_encoder(job))
 
         if websocket.application_state != WebSocketState.DISCONNECTED:
@@ -44,7 +44,7 @@ async def get_job_ws(websocket: WebSocket, job_id: str):
 # from the slash-less version to the slash version (as in normal routes).
 @websockets_router.websocket("/jobs/{job_id}/results")
 @websockets_router.websocket("/jobs/{job_id}/results/")
-async def get_results_ws(websocket: WebSocket, job_id: str, page: int = Query()):
+async def get_results_ws(websocket: WebSocket, job_id: str, page: int = Query()) -> None:
     app = websocket.app
     repository: Repository = app.state.repository
 
@@ -76,7 +76,7 @@ async def get_results_ws(websocket: WebSocket, job_id: str, page: int = Query())
             )
 
         first_mol_id = page_zero_based * page_size
-        last_mol_id = min(first_mol_id + page_size, num_entries) - 1
+        last_mol_id = int(min(first_mol_id + page_size, num_entries) - 1)
 
         async for _, new in repository.get_result_changes(job_id, first_mol_id, last_mol_id):
             if new is not None:

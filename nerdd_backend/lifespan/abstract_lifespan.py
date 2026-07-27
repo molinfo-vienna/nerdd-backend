@@ -1,15 +1,17 @@
+from fastapi import FastAPI
+
 __all__ = ["AbstractLifespan"]
 
 
 class AbstractLifespan:
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
-    async def start(self, app):
+    async def start(self, app: FastAPI) -> None:
         pass
 
-    async def run(self):
+    async def run(self) -> None:
         pass
 
-    async def stop(self):
+    async def stop(self) -> None:
         pass

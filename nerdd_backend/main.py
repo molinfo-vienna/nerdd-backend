@@ -1,8 +1,9 @@
 import asyncio
 import logging
 import os
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import List
+from typing import List, cast
 
 import hydra
 import uvicorn
@@ -19,7 +20,7 @@ from nerdd_link import (
     Storage,
 )
 from nerdd_link.utils import async_to_sync
-from omegaconf import OmegaConf, open_dict
+from omegaconf import DictConfig, OmegaConf, open_dict
 
 from .actions import (
     DeleteExpiredResources,
@@ -33,7 +34,7 @@ from .actions import (
     UpdateJobSize,
 )
 from .config import AppConfig, ChannelConfig, DbConfig
-from .data import MemoryRepository, RethinkDbRepository
+from .data import MemoryRepository, Repository, RethinkDbRepository
 from .lifespan import AbstractLifespan, ActionLifespan, CreateModuleLifespan
 from .routers import (
     challenges_router,
@@ -55,7 +56,7 @@ cs = ConfigStore.instance()
 cs.store(name="config", node=AppConfig)
 
 
-def get_channel(config: ChannelConfig):
+def get_channel(config: ChannelConfig) -> Channel:
     return Channel.create_channel(
         config.name,
         broker_url=config.broker_url,
@@ -65,14 +66,12 @@ def get_channel(config: ChannelConfig):
 
 
 def get_storage(config: AppConfig) -> Storage:
-    has_s3 = (
+    if (
         config.s3_url is not None
         and config.s3_bucket is not None
         and config.s3_access_key_id is not None
         and config.s3_secret_access_key is not None
-    )
-
-    if has_s3:
+    ):
         s3_storage = S3Storage(
             url=config.s3_url,
             bucket_name=config.s3_bucket,
@@ -82,7 +81,7 @@ def get_storage(config: AppConfig) -> Storage:
         if config.media_root is not None:
             # During a transition period, we still write to the file system. However, we have the
             # option to *read* from S3 as fallback if files are not found on the file system.
-            storage = ChainedStorage(
+            storage: Storage = ChainedStorage(
                 FileSystemStorage(config.media_root),
                 s3_storage,
             )
@@ -97,8 +96,10 @@ def get_storage(config: AppConfig) -> Storage:
     return storage
 
 
-def get_repository(config: DbConfig):
+def get_repository(config: DbConfig) -> Repository:
     if config.name == "rethinkdb":
+        if config.host is None or config.port is None or config.database_name is None:
+            raise ValueError("RethinkDB configuration requires host, port, and database_name")
         return RethinkDbRepository(config.host, config.port, config.database_name)
     elif config.name == "memory":
         return MemoryRepository()
@@ -106,7 +107,7 @@ def get_repository(config: DbConfig):
         raise ValueError(f"Unsupported database: {config.name}")
 
 
-def _get_lifespan_label(lifespan: AbstractLifespan):
+def _get_lifespan_label(lifespan: AbstractLifespan) -> str:
     action = getattr(lifespan, "action", None)
     if action is not None:
         return f"{lifespan.__class__.__name__}({action.__class__.__name__})"
@@ -121,7 +122,7 @@ def _get_lifespan_label(lifespan: AbstractLifespan):
 
 async def _run_lifespan_with_restart(
     lifespan: AbstractLifespan,
-):
+) -> None:
     label = _get_lifespan_label(lifespan)
 
     while True:
@@ -145,30 +146,16 @@ async def _run_lifespan_with_restart(
         await asyncio.sleep(60)
 
 
-async def create_app(cfg: AppConfig):
+async def create_app(cfg: AppConfig) -> FastAPI:
     # Set default values for configuration options if not provided
-    with open_dict(cfg):
+    with open_dict(cast(DictConfig, cfg)):
         cfg.challenge_hmac_key = getattr(cfg, "challenge_hmac_key", os.urandom(32).hex())
-        cfg.challenge_difficulty = getattr(cfg, "challenge_difficulty", 1_000_000)
-        cfg.challenge_expiration_seconds = getattr(cfg, "challenge_expiration_seconds", 3600)
         cfg.maintenance_mode = getattr(cfg, "maintenance_mode", False) or (
             os.environ.get("MAINTENANCE_MODE", "false").lower() in ("true", "1", "yes")
         )
 
-    model = None
-    if cfg.mock_infra:
-        from nerdd_link.actions import (
-            PredictCheckpointsAction,
-            ProcessJobsAction,
-            SerializeJobAction,
-        )
-
-        from .util import MolWeightModel
-
-        model = MolWeightModel()
-
     @asynccontextmanager
-    async def global_lifespan(app: FastAPI):
+    async def global_lifespan(app: FastAPI) -> AsyncGenerator[None]:
         logger.info("Starting tasks")
         # note: lifespans is defined later and that is fine, because this function is not called
         # until the end of the main function
@@ -198,7 +185,7 @@ async def create_app(cfg: AppConfig):
             logger.info("Tasks successfully cancelled")
             await repository.close()
 
-    app = FastAPI(lifespan=global_lifespan, root_path=cfg.root_path)
+    app = FastAPI(lifespan=global_lifespan, root_path=cfg.root_path or "")
     app.state.repository = repository = get_repository(cfg.db)
     app.state.channel = channel = get_channel(cfg.channel)
     app.state.storage = storage = get_storage(cfg)
@@ -222,21 +209,32 @@ async def create_app(cfg: AppConfig):
     ]
 
     if cfg.mock_infra:
-        lifespans = [
-            *lifespans,
-            ActionLifespan(PredictCheckpointsAction(app.state.channel, model, storage)),
-            ActionLifespan(
-                ProcessJobsAction(
-                    app.state.channel,
-                    num_test_entries=10,
-                    ratio_valid_entries=0.5,
-                    maximum_depth=100,
-                    max_num_lines_mol_block=10_000,
-                    storage=storage,
-                )
-            ),
-            ActionLifespan(SerializeJobAction(app.state.channel, storage)),
-        ]
+        from nerdd_link.actions import (
+            PredictCheckpointsAction,
+            ProcessJobsAction,
+            SerializeJobAction,
+        )
+
+        from .util import MolWeightModel
+
+        model = MolWeightModel()
+
+        lifespans.extend(
+            [
+                ActionLifespan(PredictCheckpointsAction(app.state.channel, model, storage)),
+                ActionLifespan(
+                    ProcessJobsAction(
+                        app.state.channel,
+                        num_test_entries=10,
+                        ratio_valid_entries=0.5,
+                        maximum_depth=100,
+                        max_num_lines_mol_block=10_000,
+                        storage=storage,
+                    )
+                ),
+                ActionLifespan(SerializeJobAction(app.state.channel, storage)),
+            ]
+        )
 
         await AsyncStorageWrapper(storage).write_model_config(model.config)
         await channel.modules_topic().send(ModuleMessage(id=model.config.id))

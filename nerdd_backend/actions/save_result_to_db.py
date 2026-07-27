@@ -1,7 +1,8 @@
 import asyncio
 import logging
-from typing import List
+from typing import Any, List
 
+from fastapi import FastAPI
 from nerdd_link import ResultMessage
 
 from ..data import RecordNotFoundError
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class SaveResultToDb(ActionWithContext[ResultMessage]):
-    def __init__(self, app) -> None:
+    def __init__(self, app: FastAPI) -> None:
         super().__init__(app, app.state.channel.results_topic(), batch_size=200)
 
     async def _process_messages(self, messages: List[ResultMessage]) -> None:
@@ -23,7 +24,7 @@ class SaveResultToDb(ActionWithContext[ResultMessage]):
         #
         valid_jobs = set()
         invalid_jobs = set()
-        valid_messages = []
+        valid_messages: list[dict[str, Any]] = []
         for message in messages:
             job_id = message.job_id
 
@@ -46,9 +47,9 @@ class SaveResultToDb(ActionWithContext[ResultMessage]):
         # (e.g. "derivative_prediction")
 
         # we cache sources to minimize database lookups
-        source_cache = {}
+        source_cache: dict[str, str | None] = {}
 
-        async def _get_source(source_id):
+        async def _get_source(source_id: str) -> str | None:
             if source_id in source_cache:
                 return source_cache[source_id]
             try:
@@ -59,26 +60,26 @@ class SaveResultToDb(ActionWithContext[ResultMessage]):
             source_cache[source_id] = filename
             return filename
 
-        for message in valid_messages:
-            job_id = message["job_id"]
+        for message_dict in valid_messages:
+            job_id = message_dict["job_id"]
 
             #
             # Map sources to original file names
             #
             if (
-                "source" in message
-                and message["source"] is not None
-                and not isinstance(message["source"], str)
+                "source" in message_dict
+                and message_dict["source"] is not None
+                and not isinstance(message_dict["source"], str)
             ):
                 translated_sources = await asyncio.gather(
-                    *(_get_source(source_id) for source_id in message["source"])
+                    *(_get_source(source_id) for source_id in message_dict["source"])
                 )
-                message["source"] = [s for s in translated_sources if s is not None]
+                message_dict["source"] = [s for s in translated_sources if s is not None]
 
             #
             # Replace all file paths with urls
             #
-            for k, v in message.items():
+            for k, v in message_dict.items():
                 if not isinstance(v, str):
                     continue
 
@@ -94,23 +95,25 @@ class SaveResultToDb(ActionWithContext[ResultMessage]):
                     record_id=property_file.record_id,
                 )
                 root_path = self.config.root_path or ""
-                message[k] = f"{root_path.rstrip('/')}{path}"
+                message_dict[k] = f"{root_path.rstrip('/')}{path}"
 
             # generate an id for the result
-            if "id" not in message:
-                mol_id = message["mol_id"]
-                if "atom_id" in message:
-                    atom_id = message["atom_id"]
+            if "id" not in message_dict:
+                mol_id = message_dict["mol_id"]
+                if "atom_id" in message_dict:
+                    atom_id = message_dict["atom_id"]
                     id = f"{job_id}-{mol_id}-{atom_id}"
-                elif "derivative_id" in message:
-                    derivative_id = message["derivative_id"]
+                elif "derivative_id" in message_dict:
+                    derivative_id = message_dict["derivative_id"]
                     id = f"{job_id}-{mol_id}-{derivative_id}"
                 else:
                     id = f"{job_id}-{mol_id}"
-                message["id"] = id
+                message_dict["id"] = id
 
         # save results to database
-        await self.repository.upsert_results([Result(**message) for message in valid_messages])
+        await self.repository.upsert_results(
+            [Result(**message_dict) for message_dict in valid_messages]
+        )
 
-    def _get_group_name(self):
+    def _get_group_name(self) -> str:
         return "save-result-to-db"

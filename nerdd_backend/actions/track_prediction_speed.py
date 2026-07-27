@@ -1,6 +1,7 @@
 import logging
 
 import numpy as np
+from fastapi import FastAPI
 from nerdd_link import LogMessage
 from sklearn.linear_model import LinearRegression
 
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class TrackPredictionSpeed(ActionWithContext[LogMessage]):
-    def __init__(self, app) -> None:
+    def __init__(self, app: FastAPI) -> None:
         super().__init__(app, app.state.channel.logs_topic())
 
     async def _process_message(self, message: LogMessage) -> None:
@@ -155,5 +156,5 @@ class TrackPredictionSpeed(ActionWithContext[LogMessage]):
                 )
             )
 
-    def _get_group_name(self):
+    def _get_group_name(self) -> str:
         return "track-prediction-speed"

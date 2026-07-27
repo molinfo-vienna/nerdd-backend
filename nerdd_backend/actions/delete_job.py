@@ -1,5 +1,6 @@
 import logging
 
+from fastapi import FastAPI
 from nerdd_link import JobMessage, SerializationRequestMessage, Tombstone
 
 from .action_with_context import ActionWithContext
@@ -10,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class DeleteJob(ActionWithContext[JobMessage]):
-    def __init__(self, app) -> None:
+    def __init__(self, app: FastAPI) -> None:
         super().__init__(app, app.state.channel.jobs_topic())
 
     async def _process_message(self, message: JobMessage) -> None:

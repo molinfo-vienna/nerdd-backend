@@ -1,5 +1,6 @@
 import logging
 
+from fastapi import FastAPI
 from nerdd_link import SerializationResultMessage
 
 from ..data import RecordNotFoundError
@@ -12,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class ProcessSerializationResult(ActionWithContext[SerializationResultMessage]):
-    def __init__(self, app) -> None:
+    def __init__(self, app: FastAPI) -> None:
         super().__init__(app, app.state.channel.serialization_results_topic())
 
     async def _process_message(self, message: SerializationResultMessage) -> None:
@@ -50,5 +51,5 @@ class ProcessSerializationResult(ActionWithContext[SerializationResultMessage]):
             # The job might have been deleted in the meantime.
             logger.warning(f"Job with ID {job_id} not found: {e}")
 
-    def _get_group_name(self):
+    def _get_group_name(self) -> str:
         return "process-serialization-result"

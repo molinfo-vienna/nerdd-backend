@@ -1,9 +1,9 @@
 import logging
 import math
-from typing import Optional
+from typing import Annotated, Optional
 from uuid import uuid4
 
-from fastapi import APIRouter, Body, Header, HTTPException, Request
+from fastapi import APIRouter, Body, Header, HTTPException, Request, WebSocket
 from fastapi.responses import StreamingResponse
 from nerdd_link import Channel, JobMessage, Storage, Tombstone
 
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 jobs_router = APIRouter(prefix="/jobs")
 
 
-async def augment_job(job: JobWithResults, request: Request) -> JobPublic:
+async def augment_job(request: Request | WebSocket, job: JobWithResults) -> JobPublic:
     # The number of processed pages is only valid if the computation has not finished yet. We adapt
     # this number in the if statement below.
     num_pages_processed = job.num_entries_processed // job.page_size
@@ -74,9 +74,9 @@ async def augment_job(job: JobWithResults, request: Request) -> JobPublic:
 
 @jobs_router.post("")
 async def create_job(
-    job: JobCreate = Body(),
+    request: Request,
+    job: Annotated[JobCreate, Body()],
     referer: Optional[str] = Header(None, include_in_schema=False),
-    request: Request = None,
 ) -> JobPublic:
     app = request.app
     repository: Repository = app.state.repository
@@ -113,7 +113,7 @@ async def create_job(
         ) from e
 
     # get additional module information (for max_num_molecules)
-    augmented_module = await augment_module(module, request)
+    augmented_module = await augment_module(request, module)
 
     # add default values for optional parameters
     for job_parameter in module.job_parameters:
@@ -183,11 +183,11 @@ async def create_job(
         ) from e
 
     # return the response
-    return await augment_job(job_with_results, request)
+    return await augment_job(request, job_with_results)
 
 
 @jobs_router.delete("/{job_id}")
-async def delete_job(job_id: str, request: Request) -> BaseSuccessResponse:
+async def delete_job(request: Request, job_id: str) -> BaseSuccessResponse:
     app = request.app
     repository: Repository = app.state.repository
     channel: Channel = app.state.channel
@@ -207,7 +207,7 @@ async def delete_job(job_id: str, request: Request) -> BaseSuccessResponse:
 
 
 @jobs_router.get("/{job_id}/output.{format}")
-async def get_output_file(job_id: str, format: str, request: Request) -> StreamingResponse:
+async def get_output_file(request: Request, job_id: str, format: str) -> StreamingResponse:
     app = request.app
     repository = app.state.repository
     config: AppConfig = app.state.config
@@ -250,7 +250,7 @@ async def get_output_file(job_id: str, format: str, request: Request) -> Streami
 
 
 @jobs_router.get("/{job_id}")
-async def get_job(job_id: str, request: Request) -> JobPublic:
+async def get_job(request: Request, job_id: str) -> JobPublic:
     app = request.app
     repository = app.state.repository
 
@@ -259,11 +259,11 @@ async def get_job(job_id: str, request: Request) -> JobPublic:
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail="Job not found") from e
 
-    return await augment_job(job, request)
+    return await augment_job(request, job)
 
 
 @jobs_router.get("/{job_id}/queue")
-async def get_job_queue(job_id: str, request: Request) -> QueueStats:
+async def get_job_queue(request: Request, job_id: str) -> QueueStats:
     app = request.app
     repository: Repository = app.state.repository
 

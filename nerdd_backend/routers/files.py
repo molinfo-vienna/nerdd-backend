@@ -11,7 +11,7 @@ files_router = APIRouter(prefix="")
 
 @files_router.get("/jobs/{job_id}/files/{property}/{record_id}", include_in_schema=False)
 async def get_job_file(
-    job_id: str, property: str, record_id: str, request: Request = None
+    request: Request, job_id: str, property: str, record_id: str
 ) -> StreamingResponse:
     app = request.app
     storage: Storage = app.state.storage

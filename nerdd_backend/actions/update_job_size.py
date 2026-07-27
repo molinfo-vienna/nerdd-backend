@@ -1,5 +1,6 @@
 import logging
 
+from fastapi import FastAPI
 from nerdd_link import LogMessage
 
 from ..data import RecordNotFoundError
@@ -12,12 +13,17 @@ logger = logging.getLogger(__name__)
 
 
 class UpdateJobSize(ActionWithContext[LogMessage]):
-    def __init__(self, app) -> None:
+    def __init__(self, app: FastAPI) -> None:
         super().__init__(app, app.state.channel.logs_topic())
 
     async def _process_message(self, message: LogMessage) -> None:
         job_id = message.job_id
         if message.message_type == "report_job_size":
+            if not hasattr(message, "num_entries") or not hasattr(message, "num_checkpoints"):
+                raise ValueError(
+                    "Both num_entries and num_checkpoints must be provided in the message"
+                )
+
             logger.info(
                 f"Update job size for job {job_id}: {message.num_entries} entries, "
                 f"{message.num_checkpoints} checkpoints"
@@ -47,5 +53,5 @@ class UpdateJobSize(ActionWithContext[LogMessage]):
                     )
                 )
 
-    def _get_group_name(self):
+    def _get_group_name(self) -> str:
         return "update-job-size"

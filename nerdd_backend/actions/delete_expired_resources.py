@@ -2,6 +2,7 @@ import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
 
+from fastapi import FastAPI
 from nerdd_link import JobMessage, LogMessage, Tombstone
 
 from ..util import AsyncStorageWrapper
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class DeleteExpiredResources(ActionWithContext[LogMessage]):
-    def __init__(self, app) -> None:
+    def __init__(self, app: FastAPI) -> None:
         super().__init__(app, app.state.channel.logs_topic())
 
     async def _process_message(self, message: LogMessage) -> None:
@@ -70,5 +71,5 @@ class DeleteExpiredResources(ActionWithContext[LogMessage]):
             # wait a bit before checking for expired jobs again
             await asyncio.sleep(30)
 
-    def _get_group_name(self):
+    def _get_group_name(self) -> str:
         return "delete-expired-jobs"

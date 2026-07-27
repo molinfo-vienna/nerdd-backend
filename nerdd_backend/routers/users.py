@@ -1,23 +1,26 @@
 import logging
 from uuid import uuid4
 
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 
 from ..config import AppConfig
 from ..data import RecordNotFoundError, Repository
-from ..models import AnonymousUser
+from ..models import AnonymousUser, User
 
 __all__ = ["get_user", "check_quota"]
 
 logger = logging.getLogger(__name__)
 
 
-async def get_user(request):
+async def get_user(request: Request) -> User:
     app = request.app
     repository: Repository = app.state.repository
 
     # get ip address of the request
-    ip_address = request.client.host
+    if request.client is None:
+        ip_address = "unknown"
+    else:
+        ip_address = request.client.host
 
     # get user by ip
     try:
@@ -28,7 +31,7 @@ async def get_user(request):
         return await repository.create_user(AnonymousUser(id=str(uuid), ip_address=ip_address))
 
 
-async def check_quota(user, request):
+async def check_quota(user: User, request: Request) -> bool:
     app = request.app
     config: AppConfig = app.state.config
     repository: Repository = app.state.repository
@@ -70,7 +73,9 @@ async def check_quota(user, request):
 
     # check if the user has reached the maximum number of molecules per day
     if hasattr(config, "quota_mols_per_day_anonymous"):
-        num_mols_processed = sum([job.num_entries_total for job in jobs])
+        num_mols_processed = sum(
+            [job.num_entries_total for job in jobs if job.num_entries_total is not None]
+        )
         if num_mols_processed >= config.quota_mols_per_day_anonymous:
             raise HTTPException(
                 status_code=403,

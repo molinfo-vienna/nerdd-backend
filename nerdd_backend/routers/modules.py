@@ -17,7 +17,7 @@ __all__ = ["modules_router"]
 modules_router = APIRouter(prefix="/modules")
 
 
-async def augment_module(module: ModuleInternal, request: Request) -> ModulePublic:
+async def augment_module(request: Request, module: ModuleInternal) -> ModulePublic:
     config: AppConfig = request.app.state.config
 
     output_formats = config.output_formats
@@ -44,14 +44,10 @@ async def augment_module(module: ModuleInternal, request: Request) -> ModulePubl
 
     # The denominator is the average time it takes to process one molecule (including the startup
     # time).
-    total_seconds_per_molecule = (
-        seconds_per_molecule + startup_time_seconds / batch_size
-    )
+    total_seconds_per_molecule = seconds_per_molecule + startup_time_seconds / batch_size
 
     # We make sure that the denominator is not (close to) zero to avoid extremely large values.
-    min_seconds_per_molecule = (
-        max_job_duration_minutes * 60 / config.max_num_molecules_per_job
-    )
+    min_seconds_per_molecule = max_job_duration_minutes * 60 / config.max_num_molecules_per_job
     if total_seconds_per_molecule <= min_seconds_per_molecule:
         total_seconds_per_molecule = min_seconds_per_molecule
 
@@ -131,14 +127,14 @@ async def get_modules(request: Request) -> List[ModuleShort]:
 
     modules = await repository.get_all_modules()
     return [
-        ModuleShort(**(await augment_module(module, request)).model_dump())
+        ModuleShort(**(await augment_module(request, module)).model_dump())
         for module in modules
         if module.visible
     ]
 
 
 @modules_router.get("/{module_id}")
-async def get_module(module_id: str, request: Request) -> ModulePublic:
+async def get_module(request: Request, module_id: str) -> ModulePublic:
     app = request.app
     repository: Repository = app.state.repository
 
@@ -147,11 +143,11 @@ async def get_module(module_id: str, request: Request) -> ModulePublic:
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail="Module not found") from e
 
-    return await augment_module(module, request)
+    return await augment_module(request, module)
 
 
 @modules_router.get("/{module_id}/logo", include_in_schema=False)
-async def get_module_logo(module_id: str, request: Request) -> StreamingResponse:
+async def get_module_logo(request: Request, module_id: str) -> StreamingResponse:
     app = request.app
     repository: Repository = app.state.repository
 
@@ -165,12 +161,10 @@ async def get_module_logo(module_id: str, request: Request) -> StreamingResponse
 
         prefix = "data:image/svg+xml;base64,"
         logo_path = importlib.resources.files("assets").joinpath("default_logo.svg")
-        with open(logo_path, "rb") as f:
+        with logo_path.open("rb") as f:
             logo_data_decoded = f.read()
     elif not module.logo.startswith("data:"):
-        raise HTTPException(
-            status_code=400, detail="Module logo is not a valid base64 data URL"
-        )
+        raise HTTPException(status_code=400, detail="Module logo is not a valid base64 data URL")
     else:
         prefix, logo_data = module.logo.split(",")
         logo_data_decoded = base64.b64decode(logo_data)
@@ -186,9 +180,7 @@ async def get_module_logo(module_id: str, request: Request) -> StreamingResponse
 
 
 @modules_router.get("/{module_id}/partners/{partner_id}/logo", include_in_schema=False)
-async def get_partner_logo(
-    module_id: str, partner_id: str, request: Request
-) -> StreamingResponse:
+async def get_partner_logo(request: Request, module_id: str, partner_id: str) -> StreamingResponse:
     app = request.app
     repository: Repository = app.state.repository
 
@@ -202,24 +194,20 @@ async def get_partner_logo(
 
         prefix = "data:image/svg+xml;base64,"
         logo_path = importlib.resources.files("assets").joinpath("default_logo.svg")
-        with open(logo_path, "rb") as f:
+        with logo_path.open("rb") as f:
             logo_data_decoded = f.read()
     elif not module.logo.startswith("data:"):
-        raise HTTPException(
-            status_code=400, detail="Module logo is not a valid base64 data URL"
-        )
+        raise HTTPException(status_code=400, detail="Module logo is not a valid base64 data URL")
     else:
         try:
-            partner_id = int(partner_id)
+            partner_index = int(partner_id)
         except ValueError as e:
-            raise HTTPException(
-                status_code=400, detail="Partner ID must be an integer"
-            ) from e
+            raise HTTPException(status_code=400, detail="Partner ID must be an integer") from e
 
-        if partner_id < 0 or partner_id >= len(module.partners or []):
+        if partner_index < 0 or partner_index >= len(module.partners or []):
             raise HTTPException(status_code=404, detail="Partner not found")
 
-        prefix, logo_data = module.partners[partner_id].logo.split(",")
+        prefix, logo_data = module.partners[partner_index].logo.split(",")
         logo_data_decoded = base64.b64decode(logo_data)
 
     # figure out the mime type
@@ -233,7 +221,7 @@ async def get_partner_logo(
 
 
 @modules_router.get("/{module_id}/publications")
-async def get_module_publications(module_id: str, request: Request) -> List[dict]:
+async def get_module_publications(request: Request, module_id: str) -> List[dict]:
     app = request.app
     repository: Repository = app.state.repository
 
@@ -246,7 +234,7 @@ async def get_module_publications(module_id: str, request: Request) -> List[dict
 
 
 @modules_router.get("/{module_id}/queue")
-async def get_module_queue(module_id: str, request: Request) -> QueueStats:
+async def get_module_queue(request: Request, module_id: str) -> QueueStats:
     app = request.app
     repository: Repository = app.state.repository
 
@@ -263,9 +251,7 @@ async def get_module_queue(module_id: str, request: Request) -> QueueStats:
     horizon = 100
     job_sizes = []
     estimate = "upper_bound"
-    async for job in repository.get_jobs_by_status(
-        module_id, ["created", "processing"]
-    ):
+    async for job in repository.get_jobs_by_status(module_id, ["created", "processing"]):
         job_sizes.append(
             max(job.num_entries_total - job.num_entries_processed, 0)
             if job.num_entries_total is not None

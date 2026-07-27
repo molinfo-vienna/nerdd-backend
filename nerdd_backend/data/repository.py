@@ -26,7 +26,7 @@ class Repository(ABC):
     # INITIALIZATION
     #
     @abstractmethod
-    async def initialize(self):
+    async def initialize(self) -> None:
         pass
 
     @abstractmethod
@@ -156,7 +156,7 @@ class Repository(ABC):
         pass
 
     @abstractmethod
-    async def get_jobs_by_status(
+    def get_jobs_by_status(
         self,
         module_id: str,
         status: List[JobStatus] | JobStatus,
@@ -165,7 +165,10 @@ class Repository(ABC):
         pass
 
     @abstractmethod
-    async def get_expired_jobs(self, deadline: datetime) -> AsyncIterable[JobInternal]:
+    def get_expired_jobs(
+        self,
+        now: datetime,
+    ) -> AsyncIterable[JobInternal]:
         pass
 
     #
@@ -184,7 +187,10 @@ class Repository(ABC):
         pass
 
     @abstractmethod
-    async def get_expired_sources(self, deadline: datetime) -> AsyncIterable[Source]:
+    def get_expired_sources(
+        self,
+        now: datetime,
+    ) -> AsyncIterable[Source]:
         pass
 
     #
@@ -206,7 +212,7 @@ class Repository(ABC):
     @abstractmethod
     def get_result_changes(
         self,
-        job_id,
+        job_id: str,
         start_mol_id: Optional[int] = None,
         end_mol_id: Optional[int] = None,
     ) -> AsyncIterable[Tuple[Optional[Result], Optional[Result]]]:

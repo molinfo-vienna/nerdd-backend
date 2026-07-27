@@ -11,7 +11,7 @@ results_router = APIRouter(prefix="")
 
 @results_router.get("/jobs/{job_id}/results")
 async def get_results(
-    job_id: str, page: int = 1, return_incomplete: bool = False, request: Request = None
+    request: Request, job_id: str, page: int = 1, return_incomplete: bool = False
 ) -> ResultSet:
     app = request.app
     repository: Repository = app.state.repository
@@ -37,15 +37,15 @@ async def get_results(
         raise HTTPException(status_code=404, detail="Page out of range")
 
     first_mol_id = page_zero_based * page_size
-    last_mol_id = min(first_mol_id + page_size, num_entries) - 1
+    last_mol_id = int(min(first_mol_id + page_size, num_entries) - 1)
     results = await repository.get_results_by_job_id(job_id, first_mol_id, last_mol_id)
-    is_incomplete = len(results) < last_mol_id - first_mol_id + 1
+    is_incomplete = len(results) < (last_mol_id - first_mol_id + 1)
 
     # if return_incomplete is not set, then we need to have all results on that page
     if not return_incomplete and is_incomplete:
         raise HTTPException(status_code=202, detail="Results not yet available")
 
-    def page_url(p):
+    def page_url(p: int) -> str:
         # page in url is 1-based
         return f"{request.base_url}{job.job_type}/jobs/{job_id}/results?page={p + 1}"
 
@@ -56,9 +56,13 @@ async def get_results(
         first_mol_id_on_page=first_mol_id,
         last_mol_id_on_page=last_mol_id,
         previous_url=page_url(page_zero_based - 1) if page_zero_based > 0 else None,
-        next_url=(page_url(page_zero_based + 1) if last_mol_id < num_entries - 1 else None),
+        next_url=(
+            page_url(page_zero_based + 1)
+            if (last_mol_id is not None and last_mol_id < num_entries - 1)
+            else None
+        ),
     )
 
-    job_public = await augment_job(job, request)
+    job_public = await augment_job(request, job)
 
     return ResultSet(data=results, pagination=pagination, job=job_public)

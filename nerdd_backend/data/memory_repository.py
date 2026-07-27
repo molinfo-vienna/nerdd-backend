@@ -161,7 +161,7 @@ class MemoryRepository(Repository):
                 and job.job_type == module_id
                 and (deadline is None or job.created_at <= deadline)
             ):
-                yield self.get_job_by_id(job.id)
+                yield await self.get_job_by_id(job.id)
 
     async def get_expired_jobs(self, deadline: datetime) -> AsyncIterable[JobInternal]:
         for job in self.jobs.get_items():
@@ -205,16 +205,19 @@ class MemoryRepository(Repository):
         start_mol_id: Optional[int] = None,
         end_mol_id: Optional[int] = None,
     ) -> AsyncIterable[Tuple[Optional[Result], Optional[Result]]]:
+        start_mol_id_val = start_mol_id if start_mol_id is not None else float("-inf")
+        end_mol_id_val = end_mol_id if end_mol_id is not None else float("inf")
+
         async for change in self.results.changes():
             old, new = change
             if (
                 old is not None
                 and old.job_id == job_id
-                and start_mol_id <= old.mol_id <= end_mol_id
+                and start_mol_id_val <= old.mol_id <= end_mol_id_val
             ) or (
                 new is not None
                 and new.job_id == job_id
-                and start_mol_id <= new.mol_id <= end_mol_id
+                and start_mol_id_val <= new.mol_id <= end_mol_id_val
             ):
                 yield change
 
@@ -250,7 +253,7 @@ class MemoryRepository(Repository):
     async def get_all_results_by_job_id(self, job_id: str) -> List[Result]:
         return [result for result in self.results.get_items() if result.job_id == job_id]
 
-    async def delete_results_by_job_id(self, job_id) -> None:
+    async def delete_results_by_job_id(self, job_id: str) -> None:
         async with self.transaction_lock:
             results_to_delete = [
                 result for result in self.results.get_items() if result.job_id == job_id
@@ -279,14 +282,14 @@ class MemoryRepository(Repository):
                 raise RecordNotFoundError(ResultCheckpoint, checkpoint.id)
 
             self.checkpoints.update(existing_checkpoint, checkpoint)
-            return await self.get_result_checkpoints_by_job_id(checkpoint.job_id)
+            return checkpoint
 
     async def get_result_checkpoints_by_job_id(self, job_id: str) -> List[ResultCheckpoint]:
         return [
             checkpoint for checkpoint in self.checkpoints.get_items() if checkpoint.job_id == job_id
         ]
 
-    async def get_result_checkpoints_by_module_id(self, module_id):
+    async def get_result_checkpoints_by_module_id(self, module_id: str) -> List[ResultCheckpoint]:
         return [
             checkpoint
             for checkpoint in self.checkpoints.get_items()
@@ -306,11 +309,17 @@ class MemoryRepository(Repository):
     #
     # USERS
     #
-    async def get_user_by_ip_address(self, ip_address: str) -> User:
+    async def get_user_by_ip_address(self, ip_address: str) -> AnonymousUser:
         try:
-            return next((user for user in self.users.get_items() if user.ip_address == ip_address))
+            return next(
+                (
+                    user
+                    for user in self.users.get_items()
+                    if isinstance(user, AnonymousUser) and user.ip_address == ip_address
+                )
+            )
         except StopIteration as e:
-            raise RecordNotFoundError(User, ip_address) from e
+            raise RecordNotFoundError(AnonymousUser, ip_address) from e
 
     # Note: this method is not mandatory for the repository interface.
     async def get_user_by_id(self, id: str) -> User:
@@ -329,7 +338,7 @@ class MemoryRepository(Repository):
                 self.users.append(result)
                 return result
 
-    async def get_recent_jobs_by_user(self, user, num_seconds):
+    async def get_recent_jobs_by_user(self, user: User, num_seconds: int) -> List[JobInternal]:
         return [
             job
             for job in self.jobs.get_items()

@@ -19,7 +19,7 @@ sources_router = APIRouter(prefix="/sources")
 
 @sources_router.put("")
 async def put_source(
-    file: UploadFile, format: Optional[str] = None, request: Request = None
+    request: Request, file: UploadFile, format: Optional[str] = None
 ) -> SourcePublic:
     app = request.app
     repository: Repository = app.state.repository
@@ -48,7 +48,7 @@ async def put_source(
 
 
 @sources_router.get("/{uuid}")
-async def get_source(uuid: str, request: Request) -> SourcePublic:
+async def get_source(request: Request, uuid: str) -> SourcePublic:
     app = request.app
     repository: Repository = app.state.repository
     try:
@@ -60,7 +60,7 @@ async def get_source(uuid: str, request: Request) -> SourcePublic:
 
 
 @sources_router.delete("/{uuid}")
-async def delete_source(uuid: str, request: Request) -> BaseSuccessResponse:
+async def delete_source(request: Request, uuid: str) -> BaseSuccessResponse:
     app = request.app
     repository: Repository = app.state.repository
     storage: Storage = app.state.storage
@@ -87,15 +87,15 @@ async def put_multiple_sources(
     app = request.app
     repository: Repository = app.state.repository
 
-    all_sources = []
+    all_sources: list[Source | SourcePublic] = []
 
     # create source from inputs list
     if len(inputs) > 0:
 
-        async def _put_input(index: int, input: str):
+        async def _put_input(index: int, input: str) -> SourcePublic:
             file_stream = BytesIO(input.encode("utf-8"))
             file = UploadFile(file_stream, filename=f"user_input_{index}")
-            return await put_source(file=file, request=request)
+            return await put_source(request=request, file=file)
 
         sources_from_inputs = await asyncio.gather(
             *[_put_input(i, input) for i, input in enumerate(inputs)]
@@ -112,7 +112,7 @@ async def put_multiple_sources(
 
     # create source from files list
     sources_from_files = await asyncio.gather(
-        *[put_source(file=file, request=request) for file in files]
+        *[put_source(request=request, file=file) for file in files]
     )
     all_sources += sources_from_files
 
@@ -122,6 +122,6 @@ async def put_multiple_sources(
     # create a merged file with all sources
     file_stream = BytesIO(json.dumps(jsonable_encoder(all_sources_objects)).encode("utf-8"))
     file = UploadFile(file_stream, filename=None)
-    result_source = await put_source(file=file, format="json", request=request)
+    result_source = await put_source(request=request, file=file, format="json")
 
     return result_source

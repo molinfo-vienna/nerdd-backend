@@ -1,7 +1,7 @@
 import base64
-import datetime
 import json
 from datetime import datetime, timedelta, timezone
+from typing import Annotated, Any
 from uuid import uuid4
 
 import altcha
@@ -17,10 +17,16 @@ challenges_router = APIRouter(prefix="/challenges")
 
 
 @challenges_router.get("/create", include_in_schema=False)
-async def create_challenge(request: Request = None):
+async def create_challenge(request: Request) -> dict[str, Any]:
     app = request.app
     config: AppConfig = app.state.config
     repository = app.state.repository
+
+    if config.challenge_hmac_key is None:
+        raise HTTPException(
+            status_code=500,
+            detail="Challenge verification is not configured on the server.",
+        )
 
     # delete all expired challenges
     await repository.delete_expired_challenges(datetime.now(timezone.utc))
@@ -50,12 +56,18 @@ async def create_challenge(request: Request = None):
 
 @challenges_router.get("/verify", include_in_schema=False)
 async def verify_solution(
-    payload: str = Query(alias="altcha"),
-    request: Request = None,
-):
+    payload: Annotated[str, Query(alias="altcha")],
+    request: Request,
+) -> BaseSuccessResponse:
     app = request.app
     config: AppConfig = app.state.config
     repository: Repository = app.state.repository
+
+    if config.challenge_hmac_key is None:
+        raise HTTPException(
+            status_code=500,
+            detail="Challenge verification is not configured on the server.",
+        )
 
     # delete all expired challenges
     await repository.delete_expired_challenges(datetime.now(timezone.utc))

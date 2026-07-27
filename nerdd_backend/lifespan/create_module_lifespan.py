@@ -1,6 +1,8 @@
 import asyncio
 import logging
 
+from fastapi import FastAPI
+
 from ..routers import get_dynamic_router
 from .abstract_lifespan import AbstractLifespan
 
@@ -10,13 +12,13 @@ logger = logging.getLogger(__name__)
 
 
 class CreateModuleLifespan(AbstractLifespan):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
-    async def start(self, app):
+    async def start(self, app: FastAPI) -> None:
         self.app = app
 
-    async def run(self):
+    async def run(self) -> None:
         logger.info("Starting CreateModuleLifespan")
         repository = self.app.state.repository
 
@@ -27,11 +29,13 @@ class CreateModuleLifespan(AbstractLifespan):
                     logger.info(f"Creating module {module.name}")
 
                     new_router = get_dynamic_router(module)
-                    paths = [route.path for route in new_router.routes]
+                    paths = [route.path for route in new_router.routes if hasattr(route, "path")]
 
                     # delete old routes
                     self.app.router.routes = [
-                        route for route in self.app.router.routes if route.path not in paths
+                        route
+                        for route in self.app.router.routes
+                        if getattr(route, "path", None) not in paths
                     ]
 
                     self.app.include_router(new_router)

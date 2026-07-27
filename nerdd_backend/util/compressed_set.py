@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import copy
 from collections.abc import Sequence
-from typing import List, Tuple, Union
+from typing import Any, List, Tuple, Union, cast
 
 from pydantic import GetCoreSchemaHandler
 from pydantic_core.core_schema import (
+    CoreSchema,
     ValidationInfo,
     plain_serializer_function_ser_schema,
     with_info_plain_validator_function,
@@ -13,8 +14,10 @@ from pydantic_core.core_schema import (
 
 __all__ = ["CompressedSet"]
 
+Interval = Tuple[int, int]
 
-def _merge_intervals(intervals, i) -> None:
+
+def _merge_intervals(intervals: List[Interval], i: int) -> bool:
     if i < 0 or i >= len(intervals) - 1:
         return False
 
@@ -32,8 +35,9 @@ def _merge_intervals(intervals, i) -> None:
 class CompressedSet:
     def __init__(
         self,
-        intervals_or_entries: Union[List[Tuple[int, int]], List[int], CompressedSet, None] = None,
-    ):
+        intervals_or_entries: Union[List[Interval], List[int], CompressedSet, None] = None,
+    ) -> None:
+        self.intervals: List[Interval]
         if intervals_or_entries is None:
             self.intervals = []
         elif isinstance(intervals_or_entries, CompressedSet):
@@ -44,8 +48,8 @@ class CompressedSet:
                 self.intervals = []
             elif isinstance(intervals_or_entries[0], int):
                 # convert list of entries to list of intervals
-                entries = sorted(set(intervals_or_entries))
-                intervals = []
+                entries = sorted(set(cast(List[int], intervals_or_entries)))
+                intervals: List[Interval] = []
                 start = entries[0]
                 for i in range(1, len(entries)):
                     if entries[i] == entries[i - 1]:
@@ -60,7 +64,7 @@ class CompressedSet:
                 isinstance(intervals_or_entries[0], Sequence) and len(intervals_or_entries[0]) == 2
             ):
                 # copy the list of intervals
-                self.intervals = list(intervals_or_entries)
+                self.intervals = list(cast(List[Interval], intervals_or_entries))
             else:
                 raise ValueError(
                     f"Invalid input: must be a list of intervals or entries, got "
@@ -96,7 +100,8 @@ class CompressedSet:
         else:
             _merge_intervals(self.intervals, i)
 
-    def union(self, other: Union[CompressedSet, List[int], List[Tuple[int, int]]]) -> CompressedSet:
+    def union(self, other: Union[CompressedSet, List[int], List[Interval]]) -> CompressedSet:
+        other_intervals: List[Interval]
         if isinstance(other, CompressedSet):
             other_intervals = other.intervals
         elif isinstance(other, list):
@@ -105,9 +110,9 @@ class CompressedSet:
 
             first = other[0]
             if isinstance(first, int):
-                other_intervals = CompressedSet(other).intervals
+                other_intervals = CompressedSet(cast(List[int], other)).intervals
             elif isinstance(first, tuple) and len(first) == 2:
-                other_intervals = other
+                other_intervals = cast(List[Interval], other)
             else:
                 raise ValueError(
                     f"Invalid input: must be a CompressedSet or a list of integers or intervals, "
@@ -121,15 +126,15 @@ class CompressedSet:
         # merge the intervals from both sets
         i = 0
         j = 0
-        merged_intervals = []
+        merged_intervals: List[Interval] = []
         while i < len(self.intervals) or j < len(other_intervals):
             if i < len(self.intervals) and (
                 j == len(other_intervals) or (self.intervals[i][0] <= other_intervals[j][0])
             ):
-                merged_intervals.append(tuple(self.intervals[i]))
+                merged_intervals.append(self.intervals[i])
                 i += 1
             else:
-                merged_intervals.append(tuple(other_intervals[j]))
+                merged_intervals.append(other_intervals[j])
                 j += 1
             _merge_intervals(merged_intervals, len(merged_intervals) - 2)
 
@@ -149,17 +154,21 @@ class CompressedSet:
     def count(self) -> int:
         return sum(j - i for i, j in self.intervals)
 
-    def to_intervals(self) -> List[Tuple[int, int]]:
+    def to_intervals(self) -> List[Interval]:
         return self.intervals
 
-    def __deepcopy__(self, memo=None) -> CompressedSet:
+    def __deepcopy__(self, memo: dict[int, Any] | None = None) -> CompressedSet:
         return CompressedSet(copy.deepcopy(self.intervals, memo))
 
     def __repr__(self) -> str:
         return f"CompressedSet({self.intervals})"
 
     @classmethod
-    def __get_pydantic_core_schema__(cls, source, handler: GetCoreSchemaHandler):
+    def __get_pydantic_core_schema__(
+        cls,
+        source: Any,
+        handler: GetCoreSchemaHandler,
+    ) -> CoreSchema:
         def _validate(
             v: List[Tuple[int, int]],
             info: ValidationInfo,

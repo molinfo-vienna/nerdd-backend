@@ -1,6 +1,7 @@
 import logging
 
 import requests
+from fastapi import FastAPI
 from nerdd_link import ModuleMessage
 
 from ..data import RecordAlreadyExistsError
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class SaveModuleToDb(ActionWithContext[ModuleMessage]):
-    def __init__(self, app) -> None:
+    def __init__(self, app: FastAPI) -> None:
         super().__init__(app, app.state.channel.modules_topic())
 
     async def _process_message(self, message: ModuleMessage) -> None:
@@ -69,5 +70,5 @@ class SaveModuleToDb(ActionWithContext[ModuleMessage]):
             # TODO: consider merging instead of overwriting
             await self.repository.update_module(new_module)
 
-    def _get_group_name(self):
+    def _get_group_name(self) -> str:
         return "save-module-to-db"
