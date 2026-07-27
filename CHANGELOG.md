@@ -1,6 +1,47 @@
 # CHANGELOG
 
 
+## v0.5.63 (2026-07-27)
+
+### Chores
+
+* chore: Ignore untyped dependency packages ([`02bdb49`](https://github.com/molinfo-vienna/nerdd-backend/commit/02bdb491e0fd74e486aac0864de3c3913626973c))
+
+* chore: Add pre-commit config file ([`707acac`](https://github.com/molinfo-vienna/nerdd-backend/commit/707acac5ea108c290c59cb0d282b51973da3ee22))
+
+* chore: Fix version of altcha ([`c7c1cc1`](https://github.com/molinfo-vienna/nerdd-backend/commit/c7c1cc1de027d2e7e0812b539049ccac955a1ab8))
+
+### Code Style
+
+* style: Ignore stacking of decorators on top of @property ([`938a236`](https://github.com/molinfo-vienna/nerdd-backend/commit/938a236fdd4e75bf1040b87171d31caca67ce1ed))
+
+* style: Format code ([`4616ae5`](https://github.com/molinfo-vienna/nerdd-backend/commit/4616ae5bf4ee8d35e56a7961cb8d11a49958055f))
+
+* style: Add missing types ([`cf27bb2`](https://github.com/molinfo-vienna/nerdd-backend/commit/cf27bb28d76c912a0003782cfffb1ae319172392))
+
+### Fixes
+
+* fix: Simplify code when mocking infra ([`2ed1208`](https://github.com/molinfo-vienna/nerdd-backend/commit/2ed12087baf4b290c200750447692677cce0335b))
+
+* fix: Use correct signatures for abstract async methods ([`91236df`](https://github.com/molinfo-vienna/nerdd-backend/commit/91236df051e882037701f8a356b8dab8f85415c4))
+
+* fix: Add challenge_hmac_key to AppConfig ([`eb4fd91`](https://github.com/molinfo-vienna/nerdd-backend/commit/eb4fd91010eeeb886938344b3feb81c3e82cbe17))
+
+* fix: Add additional checks to help type inference ([`253bdce`](https://github.com/molinfo-vienna/nerdd-backend/commit/253bdce244a5fd2e6835d6bac2007881f0ee94b2))
+
+### Refactoring
+
+* refactor: Use resource.open instead of open(resource) ([`f9378f7`](https://github.com/molinfo-vienna/nerdd-backend/commit/f9378f7b573454a7053ff9a0dde4ccb4a470edc9))
+
+* refactor: Put request / websocket args first in router methods ([`bb8fb5a`](https://github.com/molinfo-vienna/nerdd-backend/commit/bb8fb5a15377df22b5835e249c788c7af7ea8680))
+
+### Unknown
+
+* Merge pull request #118 from shirte/main
+
+Format code and add missing type annotations ([`83f6917`](https://github.com/molinfo-vienna/nerdd-backend/commit/83f6917d51c373ad4b8b59e4ef3aa4d6187ebcfd))
+
+
 ## v0.5.62 (2026-07-27)
 
 ### Fixes
