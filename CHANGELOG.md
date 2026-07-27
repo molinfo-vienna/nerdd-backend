@@ -1,6 +1,33 @@
 # CHANGELOG
 
 
+## v0.5.62 (2026-07-27)
+
+### Fixes
+
+* fix: Define async storage wrapper to simplify code ([`549a791`](https://github.com/molinfo-vienna/nerdd-backend/commit/549a79131a704a1cc5f7fabafe99a797d61fec01))
+
+* fix: Construct urls using storage ([`8400af7`](https://github.com/molinfo-vienna/nerdd-backend/commit/8400af7eed2cbb451c14bda7f75aaa95e9aba5ae))
+
+* fix: Replace filesystem with storage interface ([`814df8f`](https://github.com/molinfo-vienna/nerdd-backend/commit/814df8fc903eccc54b614ae8be7bea2ae3aeeb2c))
+
+* fix: Add s3 parameters to AppConfig ([`73f0cd3`](https://github.com/molinfo-vienna/nerdd-backend/commit/73f0cd37e9df406152cb0667f0291aa606f85680))
+
+### Testing
+
+* test: Check behavior of AsyncStorageWrapper ([`76a7c9b`](https://github.com/molinfo-vienna/nerdd-backend/commit/76a7c9b9c0e7c7d21cecdc6d62370d23fb92a29f))
+
+* test: Check property path replacement in SaveResultToDb ([`d426dbb`](https://github.com/molinfo-vienna/nerdd-backend/commit/d426dbb8e93f1780d2c747a54a58ab1a36ed6112))
+
+* test: Wait for modules to materialize in tests ([`497448a`](https://github.com/molinfo-vienna/nerdd-backend/commit/497448aa5bd93617d4fc627dc5e955ba327f4711))
+
+### Unknown
+
+* Merge pull request #117 from shirte/main
+
+Replace filesystem with storage interface ([`5e69d52`](https://github.com/molinfo-vienna/nerdd-backend/commit/5e69d528e13365f5197dd96e6ab5bfbd7d2cae44))
+
+
 ## v0.5.61 (2026-07-12)
 
 ### Fixes
