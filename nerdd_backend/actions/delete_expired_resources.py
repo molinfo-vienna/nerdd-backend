@@ -2,9 +2,9 @@ import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
 
-from aiofiles import os as aio_os
 from nerdd_link import JobMessage, LogMessage, Tombstone
 
+from ..util import AsyncStorageWrapper
 from .action_with_context import ActionWithContext
 
 __all__ = ["DeleteExpiredResources"]
@@ -56,12 +56,7 @@ class DeleteExpiredResources(ActionWithContext[LogMessage]):
                     uuid = source.id
                     logger.info(f"Deleting expired source {uuid}")
 
-                    # delete file from disk
-                    path = self.filesystem.get_source_file_path(str(uuid))
-                    try:
-                        await aio_os.remove(path)
-                    except FileNotFoundError:
-                        pass
+                    await AsyncStorageWrapper(self.storage).delete_source_file(str(uuid))
 
                     # delete source from database
                     await self.repository.delete_source_by_id(uuid)

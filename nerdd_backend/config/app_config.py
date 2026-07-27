@@ -34,7 +34,11 @@ class AppConfig:
     page_size_atom_property_prediction: int = 3
     page_size_derivative_property_prediction: int = 2
 
-    media_root: str = "./media"
+    media_root: Optional[str] = None
+    s3_url: Optional[str] = None
+    s3_bucket: Optional[str] = None
+    s3_access_key_id: Optional[str] = None
+    s3_secret_access_key: Optional[str] = None
     mock_infra: bool = False
 
     # note: output_formats: List[str] = ["sdf", "csv"] would raise a ValueError (mutable

@@ -1,13 +1,11 @@
 import logging
 import math
-import os
-from typing import AsyncGenerator, Optional
+from typing import Optional
 from uuid import uuid4
 
-import aiofiles
 from fastapi import APIRouter, Body, Header, HTTPException, Request
 from fastapi.responses import StreamingResponse
-from nerdd_link import Channel, FileSystem, JobMessage, Tombstone
+from nerdd_link import Channel, JobMessage, Storage, Tombstone
 
 from ..config import AppConfig
 from ..data import RecordNotFoundError, Repository
@@ -20,6 +18,7 @@ from ..models import (
     OutputFile,
     QueueStats,
 )
+from ..util import AsyncStorageWrapper
 from .modules import augment_module
 from .users import check_quota, get_user
 
@@ -212,7 +211,7 @@ async def get_output_file(job_id: str, format: str, request: Request) -> Streami
     app = request.app
     repository = app.state.repository
     config: AppConfig = app.state.config
-    filesystem: FileSystem = app.state.filesystem
+    storage: Storage = app.state.storage
 
     try:
         job = await repository.get_job_by_id(job_id)
@@ -236,27 +235,15 @@ async def get_output_file(job_id: str, format: str, request: Request) -> Streami
             ),
         )
 
-    filepath = filesystem.get_output_file(job_id, format)
-
-    filesize = os.path.getsize(filepath)
-
-    async def async_file_iterator(
-        filepath: str, chunk_size: int = 65536
-    ) -> AsyncGenerator[bytes, None]:
-        try:
-            async with aiofiles.open(filepath, mode="rb") as f:
-                while chunk := await f.read(chunk_size):
-                    yield chunk
-        except Exception as e:
-            logger.error(f"Error reading file {filepath}", exc_info=e)
-            raise HTTPException(status_code=500, detail="Error reading output file") from e
+    async_storage = AsyncStorageWrapper(storage)
+    if not await async_storage.output_file_exists(job_id, format):
+        raise HTTPException(status_code=404, detail="Output file not found")
 
     return StreamingResponse(
-        async_file_iterator(filepath),
+        async_storage.iter_output_file_chunks(job_id, format, "rb"),
         media_type="application/octet-stream",
         headers={
             "Content-Disposition": f"attachment; filename={job.job_type}-{job_id}.{format}",
-            "Content-Length": str(filesize),
             "Content-Type": "application/octet-stream",
         },
     )

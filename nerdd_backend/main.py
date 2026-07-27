@@ -10,7 +10,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from hydra.core.config_store import ConfigStore
-from nerdd_link import Channel, FileSystem, ModuleMessage
+from nerdd_link import (
+    ChainedStorage,
+    Channel,
+    FileSystemStorage,
+    ModuleMessage,
+    S3Storage,
+    Storage,
+)
 from nerdd_link.utils import async_to_sync
 from omegaconf import OmegaConf, open_dict
 
@@ -38,6 +45,7 @@ from .routers import (
     sources_router,
     websockets_router,
 )
+from .util import AsyncStorageWrapper
 
 logging.basicConfig(level=logging.INFO)
 
@@ -54,6 +62,39 @@ def get_channel(config: ChannelConfig):
         broker_username=config.broker_username,
         broker_password=config.broker_password,
     )
+
+
+def get_storage(config: AppConfig) -> Storage:
+    has_s3 = (
+        config.s3_url is not None
+        and config.s3_bucket is not None
+        and config.s3_access_key_id is not None
+        and config.s3_secret_access_key is not None
+    )
+
+    if has_s3:
+        s3_storage = S3Storage(
+            url=config.s3_url,
+            bucket_name=config.s3_bucket,
+            access_key_id=config.s3_access_key_id,
+            secret_access_key=config.s3_secret_access_key,
+        )
+        if config.media_root is not None:
+            # During a transition period, we still write to the file system. However, we have the
+            # option to *read* from S3 as fallback if files are not found on the file system.
+            storage = ChainedStorage(
+                FileSystemStorage(config.media_root),
+                s3_storage,
+            )
+        else:
+            storage = s3_storage
+    elif config.media_root is not None:
+        storage = FileSystemStorage(config.media_root)
+    else:
+        raise ValueError("Either media_root or S3 parameters must be provided in the configuration")
+
+    logger.info("Using storage backend: %r", storage)
+    return storage
 
 
 def get_repository(config: DbConfig):
@@ -116,7 +157,7 @@ async def create_app(cfg: AppConfig):
 
     model = None
     if cfg.mock_infra:
-        from nerdd_link import (
+        from nerdd_link.actions import (
             PredictCheckpointsAction,
             ProcessJobsAction,
             SerializeJobAction,
@@ -160,7 +201,7 @@ async def create_app(cfg: AppConfig):
     app = FastAPI(lifespan=global_lifespan, root_path=cfg.root_path)
     app.state.repository = repository = get_repository(cfg.db)
     app.state.channel = channel = get_channel(cfg.channel)
-    app.state.filesystem = FileSystem(cfg.media_root)
+    app.state.storage = storage = get_storage(cfg)
     app.state.config = cfg
 
     await channel.start()
@@ -183,7 +224,7 @@ async def create_app(cfg: AppConfig):
     if cfg.mock_infra:
         lifespans = [
             *lifespans,
-            ActionLifespan(PredictCheckpointsAction(app.state.channel, model, cfg.media_root)),
+            ActionLifespan(PredictCheckpointsAction(app.state.channel, model, storage)),
             ActionLifespan(
                 ProcessJobsAction(
                     app.state.channel,
@@ -191,19 +232,14 @@ async def create_app(cfg: AppConfig):
                     ratio_valid_entries=0.5,
                     maximum_depth=100,
                     max_num_lines_mol_block=10_000,
-                    data_dir=cfg.media_root,
+                    storage=storage,
                 )
             ),
-            ActionLifespan(SerializeJobAction(app.state.channel, cfg.media_root)),
+            ActionLifespan(SerializeJobAction(app.state.channel, storage)),
         ]
 
-    if cfg.mock_infra:
-        import json
-
-        module_id = model.config.id
-        path = app.state.filesystem.get_module_file_path(module_id)
-        json.dump(model.config.model_dump(), open(path, "w"))
-        await channel.modules_topic().send(ModuleMessage(id=module_id))
+        await AsyncStorageWrapper(storage).write_model_config(model.config)
+        await channel.modules_topic().send(ModuleMessage(id=model.config.id))
 
     #
     # Middlewares
@@ -228,7 +264,6 @@ async def create_app(cfg: AppConfig):
         )
 
     app.add_middleware(GZipMiddleware)
-
 
     #
     # Routers

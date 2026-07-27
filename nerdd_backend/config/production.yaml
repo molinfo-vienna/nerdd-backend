@@ -34,7 +34,6 @@ job_expiration_days: 60
 page_size_molecular_property_prediction: 100
 page_size_atom_property_prediction: 10
 page_size_derivative_property_prediction: 10
-media_root: /data
 
 mock_infra: false
 
