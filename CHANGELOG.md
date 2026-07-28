@@ -1,6 +1,27 @@
 # CHANGELOG
 
 
+## v0.5.64 (2026-07-28)
+
+### Fixes
+
+* fix: Set s3 as primary storage ([`2592b37`](https://github.com/molinfo-vienna/nerdd-backend/commit/2592b37de807b154cf8bd9bd7088cc0a860dc774))
+
+* fix: Implement __repr__ in lifespan classes ([`903ad29`](https://github.com/molinfo-vienna/nerdd-backend/commit/903ad29ab87e1c1b6ce233f0ef359202e0c5036d))
+
+* fix: Extract function run_forever ([`7321b8c`](https://github.com/molinfo-vienna/nerdd-backend/commit/7321b8c31ebd0502c92cd0b549626bb1fd5075f9))
+
+### Testing
+
+* test: Check run_forever ([`7ba0c03`](https://github.com/molinfo-vienna/nerdd-backend/commit/7ba0c03de38ce6dcce8b90da0da663d94c28f55b))
+
+### Unknown
+
+* Merge pull request #119 from shirte/main
+
+Set s3 as primary storage ([`97ca775`](https://github.com/molinfo-vienna/nerdd-backend/commit/97ca775cf646daf8411f22aea0b30b045254e8db))
+
+
 ## v0.5.63 (2026-07-27)
 
 ### Chores
