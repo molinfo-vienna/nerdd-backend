@@ -1,6 +1,41 @@
 # CHANGELOG
 
 
+## v0.5.65 (2026-07-28)
+
+### Chores
+
+* chore: Satisfy spellcheck requirements ([`08fbb75`](https://github.com/molinfo-vienna/nerdd-backend/commit/08fbb752d32088d0fb91cf146f3227e5fa03f1ce))
+
+* chore: Add more hooks to pre-commit config ([`204da60`](https://github.com/molinfo-vienna/nerdd-backend/commit/204da6062dd151e0ba253fd6e76c59e40e9197b4))
+
+* chore: Add new github workflow running pre-commit ([`409cb2f`](https://github.com/molinfo-vienna/nerdd-backend/commit/409cb2f257564827b1d358b4c9937ce6bbbffe8d))
+
+### Code Style
+
+* style: Format code with new ruff rules ([`a431b39`](https://github.com/molinfo-vienna/nerdd-backend/commit/a431b390f608c081f8f2f11d95b27c23ee1623c0))
+
+* style: Update github actions ([`eb44986`](https://github.com/molinfo-vienna/nerdd-backend/commit/eb449868410d1848df738cccc8d7e277f46f5825))
+
+* style: Add more ruff rules ([`7ad534e`](https://github.com/molinfo-vienna/nerdd-backend/commit/7ad534ebdff796350fd7eefc33d5875da7d019c3))
+
+### Documentation
+
+* docs: Add project description ([`86ba5a5`](https://github.com/molinfo-vienna/nerdd-backend/commit/86ba5a5163a48141548fd52b76efc60f315ef22a))
+
+### Fixes
+
+* fix: Add timeout in requests.get call ([`5fe4743`](https://github.com/molinfo-vienna/nerdd-backend/commit/5fe4743e70c214cbc3b7c1a69a05a277394db5dc))
+
+* fix: Remove async keyword from non-async functions ([`afdd21a`](https://github.com/molinfo-vienna/nerdd-backend/commit/afdd21a96836843745f4dd3057a0d5aa185fa8ea))
+
+### Unknown
+
+* Merge pull request #120 from shirte/main
+
+Add new github workflow running pre-commit ([`6541dec`](https://github.com/molinfo-vienna/nerdd-backend/commit/6541deca458bd0f77540e4160a8f1f2f678fc738))
+
+
 ## v0.5.64 (2026-07-28)
 
 ### Fixes
