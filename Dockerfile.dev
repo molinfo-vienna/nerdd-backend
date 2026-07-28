@@ -6,7 +6,7 @@ LABEL org.opencontainers.image.source="https://github.com/molinfo-vienna/nerdd-b
 # using the root user in the development image
 USER root
 
-# Necessary, so Docker doesn't buffer the output and that we can see the output 
+# Necessary, so Docker doesn't buffer the output and that we can see the output
 # of the application in real-time.
 ENV PYTHONUNBUFFERED=1
 
@@ -17,7 +17,7 @@ COPY environment.yml requirements.txt ./
 COPY --from=repos ./nerdd-link /deps/nerdd-link
 COPY --from=repos ./nerdd-module /deps/nerdd-module
 
-# --mount creates a cache directory for conda /pip, so that it doesn't have to download the 
+# --mount creates a cache directory for conda /pip, so that it doesn't have to download the
 # dependencies every time we build the image
 RUN --mount=type=cache,target=/home/mambauser/.mamba/pkgs \
     --mount=type=cache,target=/root/.cache/pip \

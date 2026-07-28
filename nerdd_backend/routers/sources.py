@@ -12,7 +12,7 @@ from ..data import RecordNotFoundError, Repository
 from ..models import BaseSuccessResponse, Source, SourcePublic
 from ..util import AsyncStorageWrapper
 
-__all__ = ["sources_router", "put_multiple_sources"]
+__all__ = ["put_multiple_sources", "sources_router"]
 
 sources_router = APIRouter(prefix="/sources")
 
@@ -97,9 +97,9 @@ async def put_multiple_sources(
             file = UploadFile(file_stream, filename=f"user_input_{index}")
             return await put_source(request=request, file=file)
 
-        sources_from_inputs = await asyncio.gather(
-            *[_put_input(i, input) for i, input in enumerate(inputs)]
-        )
+        sources_from_inputs = await asyncio.gather(*[
+            _put_input(i, input) for i, input in enumerate(inputs)
+        ])
         all_sources += sources_from_inputs
 
     # create source from sources list
@@ -111,9 +111,9 @@ async def put_multiple_sources(
             raise HTTPException(status_code=404, detail=f"Source {source_id} not found") from e
 
     # create source from files list
-    sources_from_files = await asyncio.gather(
-        *[put_source(request=request, file=file) for file in files]
-    )
+    sources_from_files = await asyncio.gather(*[
+        put_source(request=request, file=file) for file in files
+    ])
     all_sources += sources_from_files
 
     # create one json file referencing all sources

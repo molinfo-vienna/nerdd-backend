@@ -40,7 +40,7 @@ class SaveModuleToDb(ActionWithContext[ModuleMessage]):
 
             headers = {"Accept": "application/vnd.citationstyles.csl+json"}
 
-            r = requests.get(f"http://doi.org/{doi}", headers=headers)
+            r = requests.get(f"http://doi.org/{doi}", headers=headers, timeout=60)
 
             if r.status_code != 200:
                 logger.warning(f"Failed to fetch metadata for DOI {doi}")

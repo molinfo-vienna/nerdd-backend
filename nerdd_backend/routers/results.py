@@ -63,6 +63,6 @@ async def get_results(
         ),
     )
 
-    job_public = await augment_job(request, job)
+    job_public = augment_job(request, job)
 
     return ResultSet(data=results, pagination=pagination, job=job_public)

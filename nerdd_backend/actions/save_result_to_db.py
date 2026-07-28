@@ -111,9 +111,9 @@ class SaveResultToDb(ActionWithContext[ResultMessage]):
                 message_dict["id"] = id
 
         # save results to database
-        await self.repository.upsert_results(
-            [Result(**message_dict) for message_dict in valid_messages]
-        )
+        await self.repository.upsert_results([
+            Result(**message_dict) for message_dict in valid_messages
+        ])
 
     def _get_group_name(self) -> str:
         return "save-result-to-db"

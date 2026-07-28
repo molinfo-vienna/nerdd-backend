@@ -54,7 +54,7 @@ conda activate nerdd_backend
 pip install .
 
 # run the server using development config
-# (this works without any prerequisites; it uses a toy communication channel, 
+# (this works without any prerequisites; it uses a toy communication channel,
 # a fake database backend and a basic computational module for demonstration)
 python -m nerdd_backend.main
 
@@ -103,21 +103,21 @@ python -m nerdd_backend.main --config-name production \
   * `state.repository`: the database access layer,
   * `state.channel`: an object for sending messages to the message broker, and
   * `state.filesystem`: an object for storing and retrieving files.
-* Application settings are managed using [Hydra](https://github.com/facebookresearch/hydra). 
-  Predefined configurations are defined in `/config`, but individual options may be overridden 
+* Application settings are managed using [Hydra](https://github.com/facebookresearch/hydra).
+  Predefined configurations are defined in `/config`, but individual options may be overridden
   when starting the server application.
-* All schemas of requests, responses and records persisted to the database are declared as Pydantic 
+* All schemas of requests, responses and records persisted to the database are declared as Pydantic
   models (deriving from `pydantic.BaseModel`) in `nerdd_backend.models`.
-* The `nerdd_backend.data.Repository` class represents the database access layer specifying all 
-  database interactions. For a concrete database, a subclass of `Repository` is defined and all 
-  required methods are implemented. This abstraction allows the replacement of the underlying 
+* The `nerdd_backend.data.Repository` class represents the database access layer specifying all
+  database interactions. For a concrete database, a subclass of `Repository` is defined and all
+  required methods are implemented. This abstraction allows the replacement of the underlying
   database technology without changes to the application logic.
-* Communication with the NERDD infrastructure is handled via a message broker. The package 
-  `nerdd-link` defines message schemas and available topics. Specifically, the `nerdd_link.Action` 
-  class allows iterating over all messages in a topic and processing them using custom logic. All 
-  files in the `nerdd_backend.actions` subpackage contain subclasses of `nerdd-link.Action` that 
-  react to messages coming from the message broker. 
-* Actions are executed asynchronously in the global FastAPI lifespan, i.e. they run in parallel 
+* Communication with the NERDD infrastructure is handled via a message broker. The package
+  `nerdd-link` defines message schemas and available topics. Specifically, the `nerdd_link.Action`
+  class allows iterating over all messages in a topic and processing them using custom logic. All
+  files in the `nerdd_backend.actions` subpackage contain subclasses of `nerdd-link.Action` that
+  react to messages coming from the message broker.
+* Actions are executed asynchronously in the global FastAPI lifespan, i.e. they run in parallel
   to FastAPI's handlers that serve HTTP requests.
 
 

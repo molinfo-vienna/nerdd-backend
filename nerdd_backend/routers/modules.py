@@ -17,7 +17,7 @@ __all__ = ["modules_router"]
 modules_router = APIRouter(prefix="/modules")
 
 
-async def augment_module(request: Request, module: ModuleInternal) -> ModulePublic:
+def augment_module(request: Request, module: ModuleInternal) -> ModulePublic:
     config: AppConfig = request.app.state.config
 
     output_formats = config.output_formats
@@ -103,21 +103,19 @@ async def augment_module(request: Request, module: ModuleInternal) -> ModulePubl
         for i, partner in enumerate(module.partners or [])
     ]
 
-    return ModulePublic(
-        **{
-            **module.model_dump(),
-            **dict(
-                max_num_molecules=max_num_molecules,
-                checkpoint_size=checkpoint_size,
-                # logo is provided in a different route to speed up loading (and enable caching)
-                logo=str(request.url_for("get_module_logo", module_id=module.id)),
-                # partner logos are also provided in different routes
-                partners=partners,
-                module_url=str(request.url_for("get_module", module_id=module.id)),
-                output_formats=output_formats,
-            ),
-        }
-    )
+    return ModulePublic(**{
+        **module.model_dump(),
+        **dict(
+            max_num_molecules=max_num_molecules,
+            checkpoint_size=checkpoint_size,
+            # logo is provided in a different route to speed up loading (and enable caching)
+            logo=str(request.url_for("get_module_logo", module_id=module.id)),
+            # partner logos are also provided in different routes
+            partners=partners,
+            module_url=str(request.url_for("get_module", module_id=module.id)),
+            output_formats=output_formats,
+        ),
+    })
 
 
 @modules_router.get("")
@@ -127,7 +125,7 @@ async def get_modules(request: Request) -> List[ModuleShort]:
 
     modules = await repository.get_all_modules()
     return [
-        ModuleShort(**(await augment_module(request, module)).model_dump())
+        ModuleShort(**augment_module(request, module).model_dump())
         for module in modules
         if module.visible
     ]
@@ -143,7 +141,7 @@ async def get_module(request: Request, module_id: str) -> ModulePublic:
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail="Module not found") from e
 
-    return await augment_module(request, module)
+    return augment_module(request, module)
 
 
 @modules_router.get("/{module_id}/logo", include_in_schema=False)
