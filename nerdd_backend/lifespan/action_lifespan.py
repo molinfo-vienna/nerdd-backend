@@ -30,3 +30,12 @@ class ActionLifespan(AbstractLifespan):
     async def stop(self) -> None:
         logger.info(f"Stop action {self.action}")
         self.action = None
+
+    def __repr__(self) -> str:
+        if self.action is not None:
+            target = repr(self.action)
+        elif hasattr(self.action_or_factory, "__name__"):
+            target = self.action_or_factory.__name__
+        else:
+            target = repr(self.action_or_factory)
+        return f"ActionLifespan({target})"

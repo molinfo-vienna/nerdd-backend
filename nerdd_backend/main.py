@@ -46,7 +46,7 @@ from .routers import (
     sources_router,
     websockets_router,
 )
-from .util import AsyncStorageWrapper
+from .util import AsyncStorageWrapper, run_forever
 
 logging.basicConfig(level=logging.INFO)
 
@@ -79,11 +79,11 @@ def get_storage(config: AppConfig) -> Storage:
             secret_access_key=config.s3_secret_access_key,
         )
         if config.media_root is not None:
-            # During a transition period, we still write to the file system. However, we have the
-            # option to *read* from S3 as fallback if files are not found on the file system.
+            # During a transition period, we still write to S3. However, we have the option to
+            # *read* from file system as fallback if files are not found on S3.
             storage: Storage = ChainedStorage(
-                FileSystemStorage(config.media_root),
                 s3_storage,
+                FileSystemStorage(config.media_root),
             )
         else:
             storage = s3_storage
@@ -107,45 +107,6 @@ def get_repository(config: DbConfig) -> Repository:
         raise ValueError(f"Unsupported database: {config.name}")
 
 
-def _get_lifespan_label(lifespan: AbstractLifespan) -> str:
-    action = getattr(lifespan, "action", None)
-    if action is not None:
-        return f"{lifespan.__class__.__name__}({action.__class__.__name__})"
-
-    action_or_factory = getattr(lifespan, "action_or_factory", None)
-    if action_or_factory is not None:
-        name = getattr(action_or_factory, "__name__", action_or_factory.__class__.__name__)
-        return f"{lifespan.__class__.__name__}({name})"
-
-    return lifespan.__class__.__name__
-
-
-async def _run_lifespan_with_restart(
-    lifespan: AbstractLifespan,
-) -> None:
-    label = _get_lifespan_label(lifespan)
-
-    while True:
-        try:
-            await lifespan.run()
-        except asyncio.CancelledError:
-            logger.info("Cancelled lifespan worker %s", label)
-            raise
-        except Exception:
-            logger.exception(
-                "Lifespan worker %s failed",
-                label,
-            )
-        else:
-            logger.error(
-                "Lifespan worker %s stopped unexpectedly",
-                label,
-            )
-
-        # wait for a minute before restarting
-        await asyncio.sleep(60)
-
-
 async def create_app(cfg: AppConfig) -> FastAPI:
     # Set default values for configuration options if not provided
     with open_dict(cast(DictConfig, cfg)):
@@ -157,19 +118,21 @@ async def create_app(cfg: AppConfig) -> FastAPI:
     @asynccontextmanager
     async def global_lifespan(app: FastAPI) -> AsyncGenerator[None]:
         logger.info("Starting tasks")
-        # note: lifespans is defined later and that is fine, because this function is not called
-        # until the end of the main function
-        start_tasks = asyncio.gather(
-            *[asyncio.create_task(lifespan.start(app)) for lifespan in lifespans]
+        # note: the global variable lifespans is only defined after this function, but that is
+        # fine, because fastapi starts the lifespan after the main function
+        await asyncio.gather(
+            *[
+                asyncio.create_task(lifespan.start(app))  # [forced linebreak]
+                for lifespan in lifespans
+            ]
         )
-
-        await start_tasks
 
         logger.info("Running tasks")
         run_tasks = [
             asyncio.create_task(
-                _run_lifespan_with_restart(lifespan),
-                name=f"lifespan-worker-{_get_lifespan_label(lifespan)}",
+                run_forever(lifespan.run, label=repr(lifespan)),
+                # when no name is provided, errors will mention "Task-17" or similar
+                name=f"lifespan-worker-{repr(lifespan)}",
             )
             for lifespan in lifespans
         ]
