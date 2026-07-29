@@ -2,11 +2,22 @@ import json
 import logging
 from typing import Annotated, Any, List, Optional
 
-from fastapi import APIRouter, File, Form, Header, HTTPException, Query, Request, UploadFile
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    Header,
+    HTTPException,
+    Query,
+    Request,
+    UploadFile,
+)
 from nerdd_module.config import JobParameter
 from pydantic import BaseModel, Field, create_model
 from stringcase import pascalcase, snakecase
 
+from ..data import RecordNotFoundError, Repository
 from ..models import JobCreate, JobPublic, ModuleInternal
 from .jobs import create_job, delete_job, get_job
 from .results import get_results
@@ -165,6 +176,23 @@ def get_dynamic_router(module: ModuleInternal) -> APIRouter:
         )
 
     #
+    # Check if the job (given by job_id) belongs to the current module
+    #
+    async def require_module_job(request: Request, job_id: str) -> None:
+        repository: Repository = request.app.state.repository
+
+        try:
+            job = await repository.get_job_by_id(job_id)
+        except RecordNotFoundError as e:
+            raise HTTPException(status_code=404, detail="Job not found") from e
+
+        if job.job_type != module.id:
+            # Do not disclose that the job exists under a different module.
+            raise HTTPException(status_code=404, detail="Job not found")
+
+    job_type_guard = Depends(require_module_job)
+
+    #
     # GET /jobs
     #
     async def create_simple_job(
@@ -203,17 +231,17 @@ def get_dynamic_router(module: ModuleInternal) -> APIRouter:
     #
     # GET /jobs/{job_id}
     #
-    router.get(f"/{module.id}/jobs/{{job_id}}")(get_job)
+    router.get(f"/{module.id}/jobs/{{job_id}}", dependencies=[job_type_guard])(get_job)
 
     #
     # DELETE /jobs/{job_id}
     #
-    router.delete(f"/{module.id}/jobs/{{job_id}}")(delete_job)
+    router.delete(f"/{module.id}/jobs/{{job_id}}", dependencies=[job_type_guard])(delete_job)
 
     #
     # GET /jobs/{job_id}/results/{page}
     #
-    router.get(f"/{module.id}/jobs/{{job_id}}/results")(get_results)
+    router.get(f"/{module.id}/jobs/{{job_id}}/results", dependencies=[job_type_guard])(get_results)
 
     #
     # websocket endpoints
