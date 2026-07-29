@@ -1,6 +1,25 @@
 # CHANGELOG
 
 
+## v0.5.66 (2026-07-29)
+
+### Fixes
+
+* fix: Check job type when accessing a dynamic router path ([`0ed8e36`](https://github.com/molinfo-vienna/nerdd-backend/commit/0ed8e365fbfb0e74bfce67d475aba443b521ad62))
+
+* fix: Update version of nerdd-link dependency ([`70fed14`](https://github.com/molinfo-vienna/nerdd-backend/commit/70fed14424c8bd5f10ec2c70dde4854d6fc0836b))
+
+### Testing
+
+* test: Validate job type checks in dynamic routers ([`f1ecd92`](https://github.com/molinfo-vienna/nerdd-backend/commit/f1ecd922ea80e778b5194031907b76d476e9cd5b))
+
+### Unknown
+
+* Merge pull request #121 from shirte/main
+
+Check job type when accessing a dynamic router path ([`503f738`](https://github.com/molinfo-vienna/nerdd-backend/commit/503f7385c349096b7e36765e2c2fea8a1b2f29bc))
+
+
 ## v0.5.65 (2026-07-28)
 
 ### Chores
