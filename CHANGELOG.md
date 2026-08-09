@@ -1,6 +1,51 @@
 # CHANGELOG
 
 
+## v0.5.67 (2026-08-09)
+
+### Chores
+
+* chore: Allow unquoted type expressions when using typing.cast ([`9321a7f`](https://github.com/molinfo-vienna/nerdd-backend/commit/9321a7f84cf0b0e081c9cb099ed49ebb881ef68a))
+
+### Code Style
+
+* style: Format code ([`37daaa9`](https://github.com/molinfo-vienna/nerdd-backend/commit/37daaa975c050ef77af66fa8ce06cbbac7df4360))
+
+### Fixes
+
+* fix: Invalidate module cache entries when updating a module ([`bad548f`](https://github.com/molinfo-vienna/nerdd-backend/commit/bad548fbaa50a547f68ba7ac6151697c3fcfc96f))
+
+* fix: Use etag caching for module routes ([`b284da1`](https://github.com/molinfo-vienna/nerdd-backend/commit/b284da1ac50da031d379ec0ad5c3be19621fb517))
+
+* fix: Update ruff ([`03ab8ab`](https://github.com/molinfo-vienna/nerdd-backend/commit/03ab8ab886e8c6f7888d119c6524f86d0da5261b))
+
+* fix: Move cache structures to separate subpackage ([`7b7cb95`](https://github.com/molinfo-vienna/nerdd-backend/commit/7b7cb95ea44bda91b4197565e1f4740d41cf204f))
+
+* fix: Install inhouse-cache ([`b43824f`](https://github.com/molinfo-vienna/nerdd-backend/commit/b43824f5570737b19d2d3f4466af1d433b60cfcf))
+
+* fix: Use content hashing for static assets ([`c27c210`](https://github.com/molinfo-vienna/nerdd-backend/commit/c27c21072a2ec12f3e127c174f5d8232b01881a2))
+
+* fix: Add a router method for content hashed routes ([`e444947`](https://github.com/molinfo-vienna/nerdd-backend/commit/e444947178689a37723cb8999dad52b94e57b1d5))
+
+* fix: Ensure modules have a logo ([`fbeeec7`](https://github.com/molinfo-vienna/nerdd-backend/commit/fbeeec754e4c9d8120977891e3557ea2387112d9))
+
+* fix: Add a function to compute content hashes ([`576e5ea`](https://github.com/molinfo-vienna/nerdd-backend/commit/576e5ea5a37d953dc603f9581978ba191f90a962))
+
+* fix: Remove computation of dynamic fields from augment_module ([`79b81aa`](https://github.com/molinfo-vienna/nerdd-backend/commit/79b81aa668b8d77548d7238436edf6c46c048631))
+
+* fix: Move dynamic module parameters to QueueStats ([`431566b`](https://github.com/molinfo-vienna/nerdd-backend/commit/431566be6d4684adf9a7f1290b66c337b8a997ee))
+
+* fix: Add cache headers on job files ([`ec413a1`](https://github.com/molinfo-vienna/nerdd-backend/commit/ec413a1dfdf934e6d15919df53543f19ee4d812b))
+
+* fix: Add a util function that returns cache headers ([`030a1c5`](https://github.com/molinfo-vienna/nerdd-backend/commit/030a1c5c95853efbda9367b5d277804c6e73dd6a))
+
+### Unknown
+
+* Merge pull request #122 from shirte/main
+
+Add content hash and etag routes ([`062a5d9`](https://github.com/molinfo-vienna/nerdd-backend/commit/062a5d9a2b4621ee2f7c3881bab6d86286c92928))
+
+
 ## v0.5.66 (2026-07-29)
 
 ### Fixes
