@@ -245,7 +245,8 @@ class RethinkDbRepository(Repository):
 
     async def update_module(self, module: ModuleInternal) -> ModuleInternal:
         result = await self._run(
-            self.r.table("modules")
+            self.r
+            .table("modules")
             .get(module.id)
             .update(module.model_dump(), return_changes="always")
         )
@@ -263,11 +264,13 @@ class RethinkDbRepository(Repository):
     ) -> AsyncIterable[Tuple[Optional[JobWithResults], Optional[JobWithResults]]]:
         async with self._get_connection() as connection:
             cursor = (
-                await self.r.table("jobs")
+                await self.r
+                .table("jobs")
                 .get(job_id)
                 .changes(include_initial=False)
                 .union(
-                    self.r.table("results")
+                    self.r
+                    .table("results")
                     .get_all(job_id, index="job_id")
                     .pluck("mol_id")
                     .changes(include_initial=False)
@@ -309,7 +312,8 @@ class RethinkDbRepository(Repository):
     ) -> AsyncIterable[Tuple[Optional[JobInternal], Optional[JobInternal]]]:
         async with self._get_connection() as connection:
             cursor = (
-                await self.r.table("jobs")
+                await self.r
+                .table("jobs")
                 .get(job_id)
                 .changes(include_initial=False)
                 .run(connection)
@@ -381,14 +385,16 @@ class RethinkDbRepository(Repository):
 
     async def get_job_by_id(self, job_id: str) -> JobWithResults:
         result = await self._run(
-            self.r.table("jobs")
+            self.r
+            .table("jobs")
             .get(job_id)
             .do(
                 lambda job: self.r.branch(
                     job.eq(None),  # check if job exists
                     None,
                     job.merge({
-                        "entries_processed": self.r.table("results")
+                        "entries_processed": self.r
+                        .table("results")
                         .get_all(job["id"], index="job_id")
                         .pluck("mol_id")
                         .map(lambda row: row["mol_id"])
@@ -417,13 +423,15 @@ class RethinkDbRepository(Repository):
             status = [status]
 
         cursor = await self._run(
-            self.r.table("jobs")
+            self.r
+            .table("jobs")
             .get_all(*status, index="status")
             .filter(self.r.row["job_type"] == module_id)
             .filter((self.r.row["created_at"] < deadline) if deadline is not None else True)
             .map(
                 lambda job: job.merge({
-                    "entries_processed": self.r.table("results")
+                    "entries_processed": self.r
+                    .table("results")
                     .get_all(job["id"], index="job_id")
                     .pluck("mol_id")
                     .map(lambda row: row["mol_id"])
@@ -513,7 +521,8 @@ class RethinkDbRepository(Repository):
         end_condition = (self.r.row["mol_id"] <= end_mol_id) if end_mol_id is not None else True
 
         cursor = await self._run(
-            self.r.table("results")
+            self.r
+            .table("results")
             .get_all(job_id, index="job_id")
             .filter(start_condition & end_condition)
             .order_by("mol_id")
@@ -549,7 +558,8 @@ class RethinkDbRepository(Repository):
 
         async with self._get_connection() as connection:
             cursor = (
-                await self.r.table("results")
+                await self.r
+                .table("results")
                 .get_all(job_id, index="job_id")
                 .filter(start_condition & end_condition)
                 .changes(include_initial=True)
@@ -599,7 +609,8 @@ class RethinkDbRepository(Repository):
 
     async def update_result_checkpoint(self, checkpoint: ResultCheckpoint) -> ResultCheckpoint:
         result = await self._run(
-            self.r.table("checkpoints")
+            self.r
+            .table("checkpoints")
             .get(checkpoint.id)
             .update(checkpoint.model_dump(), return_changes="always")
         )
@@ -725,7 +736,8 @@ class RethinkDbRepository(Repository):
 
     async def delete_expired_challenges(self, deadline: datetime) -> None:
         await self._run(
-            self.r.table("challenges")
+            self.r
+            .table("challenges")
             .filter(lambda challenge: challenge["expires_at"] < deadline)
             .delete()
         )

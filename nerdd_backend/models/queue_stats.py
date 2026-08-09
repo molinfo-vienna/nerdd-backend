@@ -10,3 +10,7 @@ class QueueStats(BaseModel):
     num_active_jobs: int
     waiting_time_minutes: int
     estimate: Literal["upper_bound", "lower_bound"]
+    seconds_per_molecule: float
+    startup_time_seconds: float
+    max_num_molecules: int
+    checkpoint_size: int

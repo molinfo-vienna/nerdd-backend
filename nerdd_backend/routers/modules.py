@@ -1,88 +1,46 @@
 import base64
-import io
 import math
+from functools import lru_cache
 from typing import List
 
-from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import StreamingResponse
+from fastapi import HTTPException, Request
+from fastapi.responses import Response
+from inhouse.fastapi import fastapi_cache
 from nerdd_module.config import Partner
 
+from ..cache import ContentHashedAPIRouter, cache_store
 from ..config import AppConfig
 from ..data import RecordNotFoundError, Repository
 from ..models import ModuleInternal, ModulePublic, ModuleShort, QueueStats
-from ..util import clamp
 
 __all__ = ["modules_router"]
 
-modules_router = APIRouter(prefix="/modules")
+modules_router = ContentHashedAPIRouter(prefix="/modules")
 
 
-def augment_module(request: Request, module: ModuleInternal) -> ModulePublic:
+@lru_cache(maxsize=1_024)
+def _get_data_url_logo_asset(logo: str) -> tuple[bytes, str | None]:
+    if not logo.startswith("data:"):
+        raise HTTPException(status_code=400, detail="Module logo is not a valid base64 data URL")
+
+    prefix, logo_data = logo.split(",", maxsplit=1)
+    logo_data_decoded = base64.b64decode(logo_data)
+
+    # browsers can distinguish non-SVG formats (e.g., png, jpg) by their contents
+    mime_type = "image/svg+xml" if prefix == "data:image/svg+xml;base64" else None
+    return logo_data_decoded, mime_type
+
+
+def augment_module(request: Request | None, module: ModuleInternal) -> ModulePublic:
+    # calling augment_module with request = None is used to compare two ModuleInternal objects
+    if request is None:
+        return ModulePublic(
+            **module.model_dump(),
+            module_url="",
+            output_formats=[],
+        )
+
     config: AppConfig = request.app.state.config
-
-    output_formats = config.output_formats
-
-    #
-    # Compute maximum number of molecules allowed in a single job
-    #
-
-    # based on the user-defined maximum job duration in minutes
-    max_job_duration_minutes = config.max_job_duration_minutes
-
-    # We have to solve the following equation
-    #  max_job_duration_minutes * 60
-    #   >= startup_time_seconds * num_batches + num_molecules * seconds_per_molecule
-    #   = startup_time_seconds * (num_molecules / batch_size) + num_molecules * seconds_per_molecule
-    #   = num_molecules * (seconds_per_molecule + startup_time_seconds / batch_size)
-    # This is an approximation, because num_batches is actually ceil(num_molecules / batch_size).
-    # Rearranging gives:
-    #   num_molecules <=
-    #     max_job_duration_minutes * 60 / (seconds_per_molecule + startup_time_seconds / batch_size)
-    seconds_per_molecule = module.seconds_per_molecule
-    startup_time_seconds = module.startup_time_seconds
-    batch_size = module.batch_size
-
-    # The denominator is the average time it takes to process one molecule (including the startup
-    # time).
-    total_seconds_per_molecule = seconds_per_molecule + startup_time_seconds / batch_size
-
-    # We make sure that the denominator is not (close to) zero to avoid extremely large values.
-    min_seconds_per_molecule = max_job_duration_minutes * 60 / config.max_num_molecules_per_job
-    if total_seconds_per_molecule <= min_seconds_per_molecule:
-        total_seconds_per_molecule = min_seconds_per_molecule
-
-    max_num_molecules = clamp(
-        int(max_job_duration_minutes * 60 / total_seconds_per_molecule),
-        # there should be at least one molecule in a job
-        1,
-        # and at most the module's maximum number of molecules
-        config.max_num_molecules_per_job,
-    )
-
-    # round down to a readable number
-    if max_num_molecules >= 10_000:
-        max_num_molecules = (max_num_molecules // 1_000) * 1_000
-    elif max_num_molecules >= 1_000:
-        max_num_molecules = (max_num_molecules // 100) * 100
-    elif max_num_molecules >= 100:
-        max_num_molecules = (max_num_molecules // 10) * 10
-
-    #
-    # Compute maximum number of molecules allowed in a checkpoint
-    #
-
-    # This computation is similar to the one above, but we assume a fixed duration given by
-    # config.max_checkpoint_duration_minutes. That is the amount of computation time we are losing
-    # at worst if a failure occurs during processing of a checkpoint (since the checkpoint has to be
-    # recomputed).
-    checkpoint_duration_minutes = config.max_checkpoint_duration_minutes
-    checkpoint_size = clamp(
-        int(checkpoint_duration_minutes * 60 / total_seconds_per_molecule),
-        # there should be at least one molecule in a checkpoint
-        1,
-        # and at most the module's maximum number of molecules
-        config.max_num_molecules_per_job,
-    )
 
     # patch partner logo URLs
     partners = [
@@ -91,8 +49,10 @@ def augment_module(request: Request, module: ModuleInternal) -> ModulePublic:
                 **partner.model_dump(),
                 **dict(
                     logo=str(
-                        request.url_for(
+                        modules_router.content_hashed_url_for(
+                            request,
                             "get_partner_logo",
+                            _get_data_url_logo_asset(partner.logo)[0],
                             module_id=module.id,
                             partner_id=i,
                         )
@@ -106,19 +66,28 @@ def augment_module(request: Request, module: ModuleInternal) -> ModulePublic:
     return ModulePublic(**{
         **module.model_dump(),
         **dict(
-            max_num_molecules=max_num_molecules,
-            checkpoint_size=checkpoint_size,
-            # logo is provided in a different route to speed up loading (and enable caching)
-            logo=str(request.url_for("get_module_logo", module_id=module.id)),
-            # partner logos are also provided in different routes
+            logo=str(
+                modules_router.content_hashed_url_for(
+                    request,
+                    "get_module_logo",
+                    _get_data_url_logo_asset(module.logo)[0],
+                    module_id=module.id,
+                )
+            ),
             partners=partners,
             module_url=str(request.url_for("get_module", module_id=module.id)),
-            output_formats=output_formats,
+            output_formats=config.output_formats,
         ),
     })
 
 
 @modules_router.get("")
+@fastapi_cache(
+    60 * 60,
+    store=cache_store,
+    key_builder=lambda *_args, **_kwargs: "modules",
+    etag=True,
+)
 async def get_modules(request: Request) -> List[ModuleShort]:
     app = request.app
     repository: Repository = app.state.repository
@@ -132,6 +101,12 @@ async def get_modules(request: Request) -> List[ModuleShort]:
 
 
 @modules_router.get("/{module_id}")
+@fastapi_cache(
+    60 * 60,
+    store=cache_store,
+    key_builder=lambda _function, _args, kwargs, **_options: f"module:{kwargs['module_id']}",
+    etag=True,
+)
 async def get_module(request: Request, module_id: str) -> ModulePublic:
     app = request.app
     repository: Repository = app.state.repository
@@ -144,8 +119,8 @@ async def get_module(request: Request, module_id: str) -> ModulePublic:
     return augment_module(request, module)
 
 
-@modules_router.get("/{module_id}/logo", include_in_schema=False)
-async def get_module_logo(request: Request, module_id: str) -> StreamingResponse:
+@modules_router.content_hashed_get("/{module_id}/logo", include_in_schema=False)
+async def get_module_logo(request: Request, module_id: str) -> Response:
     app = request.app
     repository: Repository = app.state.repository
 
@@ -154,31 +129,14 @@ async def get_module_logo(request: Request, module_id: str) -> StreamingResponse
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail="Module not found") from e
 
-    if module.logo is None:
-        import importlib.resources
-
-        prefix = "data:image/svg+xml;base64,"
-        logo_path = importlib.resources.files("assets").joinpath("default_logo.svg")
-        with logo_path.open("rb") as f:
-            logo_data_decoded = f.read()
-    elif not module.logo.startswith("data:"):
-        raise HTTPException(status_code=400, detail="Module logo is not a valid base64 data URL")
-    else:
-        prefix, logo_data = module.logo.split(",")
-        logo_data_decoded = base64.b64decode(logo_data)
-
-    # figure out the mime type
-    if prefix == "data:image/svg+xml;base64":
-        mime_type = "image/svg+xml"
-    else:
-        # browsers can distinguish other formats (e.g., png, jpg) by the data itself
-        mime_type = None
-
-    return StreamingResponse(io.BytesIO(logo_data_decoded), media_type=mime_type)
+    logo_data, mime_type = _get_data_url_logo_asset(module.logo)
+    return Response(content=logo_data, media_type=mime_type)
 
 
-@modules_router.get("/{module_id}/partners/{partner_id}/logo", include_in_schema=False)
-async def get_partner_logo(request: Request, module_id: str, partner_id: str) -> StreamingResponse:
+@modules_router.content_hashed_get(
+    "/{module_id}/partners/{partner_id}/logo", include_in_schema=False
+)
+async def get_partner_logo(request: Request, module_id: str, partner_id: str) -> Response:
     app = request.app
     repository: Repository = app.state.repository
 
@@ -187,35 +145,16 @@ async def get_partner_logo(request: Request, module_id: str, partner_id: str) ->
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail="Module not found") from e
 
-    if module.logo is None:
-        import importlib.resources
+    try:
+        partner_index = int(partner_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail="Partner ID must be an integer") from e
 
-        prefix = "data:image/svg+xml;base64,"
-        logo_path = importlib.resources.files("assets").joinpath("default_logo.svg")
-        with logo_path.open("rb") as f:
-            logo_data_decoded = f.read()
-    elif not module.logo.startswith("data:"):
-        raise HTTPException(status_code=400, detail="Module logo is not a valid base64 data URL")
-    else:
-        try:
-            partner_index = int(partner_id)
-        except ValueError as e:
-            raise HTTPException(status_code=400, detail="Partner ID must be an integer") from e
+    if partner_index < 0 or partner_index >= len(module.partners or []):
+        raise HTTPException(status_code=404, detail="Partner not found")
 
-        if partner_index < 0 or partner_index >= len(module.partners or []):
-            raise HTTPException(status_code=404, detail="Partner not found")
-
-        prefix, logo_data = module.partners[partner_index].logo.split(",")
-        logo_data_decoded = base64.b64decode(logo_data)
-
-    # figure out the mime type
-    if prefix == "data:image/svg+xml;base64":
-        mime_type = "image/svg+xml"
-    else:
-        # browsers can distinguish other formats (e.g., png, jpg) by the data itself
-        mime_type = None
-
-    return StreamingResponse(io.BytesIO(logo_data_decoded), media_type=mime_type)
+    logo_data, mime_type = _get_data_url_logo_asset(module.partners[partner_index].logo)
+    return Response(content=logo_data, media_type=mime_type)
 
 
 @modules_router.get("/{module_id}/publications")
@@ -235,6 +174,7 @@ async def get_module_publications(request: Request, module_id: str) -> List[dict
 async def get_module_queue(request: Request, module_id: str) -> QueueStats:
     app = request.app
     repository: Repository = app.state.repository
+    config: AppConfig = app.state.config
 
     try:
         module = await repository.get_module_by_id(module_id)
@@ -270,9 +210,26 @@ async def get_module_queue(request: Request, module_id: str) -> QueueStats:
     waiting_time_seconds = sum(waiting_time_per_job)
     waiting_time_minutes = math.ceil(waiting_time_seconds / 60)
 
+    #
+    # Get remaining QueueStats parameters from the module configuration
+    #
+    max_num_molecules = module.max_num_molecules(
+        config.max_job_duration_minutes,
+        config.max_num_molecules_per_job,
+    )
+    checkpoint_size = module.checkpoint_size(
+        config.max_job_duration_minutes,
+        config.max_checkpoint_duration_minutes,
+        config.max_num_molecules_per_job,
+    )
+
     return QueueStats(
         module_id=module.id,
         num_active_jobs=len(job_sizes),
         waiting_time_minutes=waiting_time_minutes,
         estimate=estimate,
+        seconds_per_molecule=module.seconds_per_molecule,
+        startup_time_seconds=module.startup_time_seconds,
+        max_num_molecules=max_num_molecules,
+        checkpoint_size=checkpoint_size,
     )

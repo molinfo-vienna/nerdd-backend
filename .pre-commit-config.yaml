@@ -12,7 +12,7 @@ repos:
       - id: mixed-line-ending
       - id: trailing-whitespace
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.8.0"
+    rev: "v0.15.20"
     hooks:
       # Run the linter.
       - id: ruff
@@ -32,6 +32,7 @@ repos:
           - pydantic
           - fastapi
           - hydra-core
+          - inhouse-cache[fastapi]
           - omegaconf
           - uvicorn
           - scikit-learn
