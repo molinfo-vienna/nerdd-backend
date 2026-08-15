@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.68 (2026-08-15)
+
+### Fixes
+
+* fix: Retrieve current state of job before sending a serialization request ([`5a635ec`](https://github.com/molinfo-vienna/nerdd-backend/commit/5a635ec564a8006dab6e8f37a7f964ff439b8769))
+
+### Unknown
+
+* Merge pull request #123 from shirte/main
+
+Retrieve current state of job before sending a serialization request ([`539211d`](https://github.com/molinfo-vienna/nerdd-backend/commit/539211d70d72c6b266277911391b11a332ef5042))
+
+
 ## v0.5.67 (2026-08-09)
 
 ### Chores
