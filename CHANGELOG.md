@@ -1,6 +1,25 @@
 # CHANGELOG
 
 
+## v0.5.69 (2026-08-17)
+
+### Fixes
+
+* fix: Set package-data in pyproject.toml ([`b8c97e8`](https://github.com/molinfo-vienna/nerdd-backend/commit/b8c97e80dd17d66f6bdb72c6824a83b1d6a51662))
+
+* fix: Update paths to asset files ([`c9d96c1`](https://github.com/molinfo-vienna/nerdd-backend/commit/c9d96c106500a110b162af803e1e0faa2b80f5eb))
+
+* fix: Move infrastructure diagrams to a different folder ([`362316e`](https://github.com/molinfo-vienna/nerdd-backend/commit/362316e350fb428c6b0fd7419234849b6bf535ba))
+
+* fix: Move internal assets into the main package ([`ae81557`](https://github.com/molinfo-vienna/nerdd-backend/commit/ae81557027588540c1f4de282ce9c611dfc8b143))
+
+### Unknown
+
+* Merge pull request #124 from shirte/main
+
+Move internal assets into the main package ([`abfd5b4`](https://github.com/molinfo-vienna/nerdd-backend/commit/abfd5b40561e8f3ee5ba1c81c31d285a05d37e8a))
+
+
 ## v0.5.68 (2026-08-15)
 
 ### Fixes
