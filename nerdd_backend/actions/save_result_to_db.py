@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class SaveResultToDb(ActionWithContext[ResultMessage]):
     def __init__(self, app: FastAPI) -> None:
-        super().__init__(app, app.state.channel.results_topic(), batch_size=200)
+        super().__init__(app, app.state.channel.results_topic(), batch_size=1000)
 
     async def _process_messages(self, messages: List[ResultMessage]) -> None:
         #
