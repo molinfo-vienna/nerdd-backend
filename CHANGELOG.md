@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.70 (2026-08-25)
+
+### Fixes
+
+* fix: Increase batch size in SaveResultToDb action ([`be4aad3`](https://github.com/molinfo-vienna/nerdd-backend/commit/be4aad3d71f690371c1bfd51cdce8e9580acd1b3))
+
+### Unknown
+
+* Merge pull request #125 from shirte/main
+
+Increase batch size in SaveResultToDb action ([`7a7036f`](https://github.com/molinfo-vienna/nerdd-backend/commit/7a7036f6bcac6d99c34a14eabcecdec7d75b5071))
+
+
 ## v0.5.69 (2026-08-17)
 
 ### Fixes
