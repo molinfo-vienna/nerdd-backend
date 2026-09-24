@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.5.71 (2026-09-24)
+
+### Fixes
+
+* fix: Skip running lifespans in maintenance mode ([`621b55c`](https://github.com/molinfo-vienna/nerdd-backend/commit/621b55c7baf2f4e16f37c8f21d7fb47d953b1137))
+
+### Unknown
+
+* Merge pull request #126 from shirte/main
+
+Skip running lifespans in maintenance mode ([`6a4c74b`](https://github.com/molinfo-vienna/nerdd-backend/commit/6a4c74b97c679dfad166a9736aef1c3ce2ac67a2))
+
+
 ## v0.5.70 (2026-08-25)
 
 ### Fixes
