@@ -123,23 +123,27 @@ async def create_app(cfg: AppConfig) -> FastAPI:
 
     @asynccontextmanager
     async def global_lifespan(app: FastAPI) -> AsyncGenerator[None]:
-        logger.info("Starting tasks")
-        # note: the global variable lifespans is only defined after this function, but that is
-        # fine, because fastapi starts the lifespan after the main function
-        await asyncio.gather(*[
-            asyncio.create_task(lifespan.start(app))  # [forced linebreak]
-            for lifespan in lifespans
-        ])
+        run_tasks: List[asyncio.Task[None]] = []
+        if cfg.maintenance_mode is False:
+            logger.info("Starting tasks")
+            # note: the global variable lifespans is only defined after this function, but that is
+            # fine, because fastapi starts the lifespan after the main function
+            await asyncio.gather(*[
+                asyncio.create_task(lifespan.start(app))  # [forced linebreak]
+                for lifespan in lifespans
+            ])
 
-        logger.info("Running tasks")
-        run_tasks = [
-            asyncio.create_task(
-                run_forever(lifespan.run, label=repr(lifespan)),
-                # when no name is provided, errors will mention "Task-17" or similar
-                name=f"lifespan-worker-{lifespan!r}",
-            )
-            for lifespan in lifespans
-        ]
+            logger.info("Running tasks")
+            run_tasks = [
+                asyncio.create_task(
+                    run_forever(lifespan.run, label=repr(lifespan)),
+                    # when no name is provided, errors will mention "Task-17" or similar
+                    name=f"lifespan-worker-{lifespan!r}",
+                )
+                for lifespan in lifespans
+            ]
+        else:
+            logger.info("Skipping background tasks during maintenance mode")
 
         try:
             yield
