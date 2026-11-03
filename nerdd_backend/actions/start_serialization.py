@@ -22,19 +22,28 @@ class StartSerialization(ActionWithContext[LogMessage]):
             logger.info(f"All checkpoints for {job_id} computed -> starting serialization.")
 
             try:
-                job = await self.repository.update_job(
-                    JobUpdate(
-                        id=job_id,
-                        status="serializing",
-                    )
-                )
+                job = await self.repository.get_job_by_id(job_id)
             except RecordNotFoundError as e:
                 # The job might have been deleted in the meantime.
                 logger.warning(f"Job with ID {message.job_id} not found: {e}")
                 return
 
-            # send request to write output files
-            output_formats = self.config.output_formats
+            # skip serialization if the job is / was already serializing
+            if job.status in ("serializing", "completed", "failed"):
+                logger.info(f"Job {job_id} has status '{job.status}'. Skipping serialization.")
+                return
+
+            # serialize only the output formats that haven't been serialized yet
+            output_formats = [
+                fmt for fmt in self.config.output_formats if fmt not in job.output_formats
+            ]
+
+            if len(output_formats) == 0:
+                logger.info(
+                    f"All output formats for job {job_id} already exist. Skipping serialization."
+                )
+                return
+
             for output_format in output_formats:
                 await self.channel.serialization_requests_topic().send(
                     SerializationRequestMessage(
@@ -42,6 +51,16 @@ class StartSerialization(ActionWithContext[LogMessage]):
                         job_type=job.job_type,
                         params=job.params,
                         output_format=output_format,
+                    )
+                )
+
+            # update status to "serializing" (at the end of the method to avoid problems)
+            current_job = await self.repository.get_job_by_id(job_id)
+            if current_job.status in ("created", "processing"):
+                await self.repository.update_job(
+                    JobUpdate(
+                        id=job_id,
+                        status="serializing",
                     )
                 )
 
