@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## v0.5.72 (2026-11-03)
+
+### Fixes
+
+* fix: Keep pytest version below 9.2.0 ([`52ac916`](https://github.com/molinfo-vienna/nerdd-backend/commit/52ac9161cfbfb51ecf97adba92f6f4c21e06b7f9))
+
+* fix: Reduce duplicate serialization requests ([`3cb2c98`](https://github.com/molinfo-vienna/nerdd-backend/commit/3cb2c98d15b1e5e62a593c2ef30914191e72b5c9))
+
+### Unknown
+
+* Merge pull request #127 from shirte/main
+
+Reduce duplicate serialization requests ([`2c6f391`](https://github.com/molinfo-vienna/nerdd-backend/commit/2c6f391fef2bc9a6cd487d06ffdb77a158128796))
+
+
 ## v0.5.71 (2026-09-24)
 
 ### Fixes
