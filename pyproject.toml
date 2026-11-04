@@ -24,7 +24,7 @@ classifiers = [
 ]
 dependencies = [
     "nerdd-module>=0.3.59",
-    "nerdd-link>=0.6",
+    "nerdd-link>=0.7.8",
     "fastapi~=0.116.0",
     "uvicorn[standard]~=0.23.2",
     "aiokafka~=0.12.0",
@@ -43,12 +43,12 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["mypy>=1.10.0", "ruff>=0.10.0", "pre-commit>=2", "ipykernel~=6.19.4"]
 test = [
-    "pytest<9.2.0",
+    "pytest>=9.2,<10",
     "pytest-watcher",
     "pytest-cov",
-    "pytest-bdd==7.3.0",
+    "pytest-bdd>=9.0.1,<10",
     "pytest-mock",
-    "pytest-asyncio~=0.21.1",
+    "pytest-asyncio>=1.4.1.post1,<2",
     "hypothesis",
     "hypothesis-rdkit",
     "httpx~=0.25.1",
@@ -131,6 +131,7 @@ follow_imports_for_stubs = true
 log_cli = 1
 log_cli_level = "INFO"
 addopts = "-x --cov-report term --cov=nerdd_backend"
+asyncio_default_fixture_loop_scope = "function"
 
 [tool.pytest-watcher]
 patterns = ["*.py", "*.feature", "pyproject.toml"]
