@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 
@@ -7,4 +7,4 @@ class ChannelConfig:
     name: str = "memory"
     broker_url: Optional[str] = None
     broker_username: Optional[str] = None
-    broker_password: Optional[str] = None
+    broker_password: Optional[str] = field(default=None, repr=False)

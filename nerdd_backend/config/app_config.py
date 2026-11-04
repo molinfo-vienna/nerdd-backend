@@ -24,7 +24,8 @@ class AppConfig:
 
     challenge_difficulty: int = 1_000_000
     challenge_expiration_seconds: int = 3600
-    challenge_hmac_key: Optional[str] = None  # set this to enable challenge verification
+    # set this to enable challenge verification
+    challenge_hmac_key: Optional[str] = field(default=None, repr=False)
 
     max_num_molecules_per_job: int = 10_000
     max_job_duration_minutes: int = 360
@@ -38,8 +39,8 @@ class AppConfig:
     media_root: Optional[str] = None
     s3_url: Optional[str] = None
     s3_bucket: Optional[str] = None
-    s3_access_key_id: Optional[str] = None
-    s3_secret_access_key: Optional[str] = None
+    s3_access_key_id: Optional[str] = field(default=None, repr=False)
+    s3_secret_access_key: Optional[str] = field(default=None, repr=False)
     mock_infra: bool = False
 
     # note: output_formats: List[str] = ["sdf", "csv"] would raise a ValueError (mutable

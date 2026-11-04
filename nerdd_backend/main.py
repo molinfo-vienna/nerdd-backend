@@ -3,6 +3,7 @@ import logging
 import os
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from pprint import pformat
 from typing import List, cast
 
 import hydra
@@ -98,7 +99,7 @@ def get_storage(config: AppConfig) -> Storage:
     else:
         raise ValueError("Either media_root or S3 parameters must be provided in the configuration")
 
-    logger.info("Using storage backend: %r", storage)
+    logger.info("Using storage backend: %s", type(storage).__name__)
     return storage
 
 
@@ -254,7 +255,13 @@ async def create_app(cfg: AppConfig) -> FastAPI:
 @hydra.main(version_base=None, config_path="config", config_name="development")
 @async_to_sync
 async def main(cfg: AppConfig) -> None:
-    logger.info(f"Starting server with the following configuration:\n{OmegaConf.to_yaml(cfg)}")
+    # log the configuration (but hide sensitive information)
+    logger.info(
+        "Starting server with configuration:\n%s",
+        pformat(OmegaConf.to_object(cfg), width=88, sort_dicts=False),
+    )
+
+    # create the app
     app = await create_app(cfg)
 
     config = uvicorn.Config(
