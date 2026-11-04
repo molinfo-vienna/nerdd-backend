@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from contextlib import aclosing
 from datetime import datetime, timedelta, timezone
 
 from fastapi import FastAPI
@@ -28,21 +29,22 @@ class DeleteExpiredResources(ActionWithContext[LogMessage]):
             # -> track the start time
             t = datetime.now()
 
-            async for expired_job in self.repository.get_expired_jobs(deadline):
-                try:
-                    logger.info(f"Deleting expired job {expired_job.id}")
+            async with aclosing(self.repository.get_expired_jobs(deadline)) as expired_jobs:
+                async for expired_job in expired_jobs:
+                    try:
+                        logger.info(f"Deleting expired job {expired_job.id}")
 
-                    # send tombstone message on jobs topic (DeleteJob action will take care of the
-                    # rest)
-                    await self.channel.jobs_topic().send(
-                        Tombstone(JobMessage, id=expired_job.id, job_type=expired_job.job_type)
-                    )
-                except Exception as e:
-                    logger.error(f"Error deleting expired job {expired_job.id}", exc_info=e)
+                        # send tombstone message on jobs topic (DeleteJob action will take care of
+                        # the rest)
+                        await self.channel.jobs_topic().send(
+                            Tombstone(JobMessage, id=expired_job.id, job_type=expired_job.job_type)
+                        )
+                    except Exception as e:
+                        logger.error(f"Error deleting expired job {expired_job.id}", exc_info=e)
 
-                # check if we have spent too much time in this loop
-                if datetime.now() - t > timedelta(seconds=5):
-                    break
+                    # check if we have spent too much time in this loop
+                    if datetime.now() - t > timedelta(seconds=5):
+                        break
 
             #
             # delete expired sources
@@ -52,21 +54,22 @@ class DeleteExpiredResources(ActionWithContext[LogMessage]):
             # -> track the start time
             t = datetime.now()
 
-            async for source in self.repository.get_expired_sources(deadline):
-                try:
-                    uuid = source.id
-                    logger.info(f"Deleting expired source {uuid}")
+            async with aclosing(self.repository.get_expired_sources(deadline)) as expired_sources:
+                async for source in expired_sources:
+                    try:
+                        uuid = source.id
+                        logger.info(f"Deleting expired source {uuid}")
 
-                    await AsyncStorageWrapper(self.storage).delete_source_file(str(uuid))
+                        await AsyncStorageWrapper(self.storage).delete_source_file(str(uuid))
 
-                    # delete source from database
-                    await self.repository.delete_source_by_id(uuid)
-                except Exception as e:
-                    logger.error(f"Error deleting expired source {source.id}", exc_info=e)
+                        # delete source from database
+                        await self.repository.delete_source_by_id(uuid)
+                    except Exception as e:
+                        logger.error(f"Error deleting expired source {source.id}", exc_info=e)
 
-                # check if we have spent too much time in this loop
-                if datetime.now() - t > timedelta(seconds=5):
-                    break
+                    # check if we have spent too much time in this loop
+                    if datetime.now() - t > timedelta(seconds=5):
+                        break
 
             # wait a bit before checking for expired jobs again
             await asyncio.sleep(30)

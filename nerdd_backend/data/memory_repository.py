@@ -1,7 +1,7 @@
 import time
 from asyncio import Lock
 from datetime import datetime
-from typing import AsyncIterable, List, Optional, Tuple
+from typing import AsyncGenerator, AsyncIterable, List, Optional, Tuple
 
 from nerdd_link.utils import ObservableList
 
@@ -163,7 +163,7 @@ class MemoryRepository(Repository):
             ):
                 yield await self.get_job_by_id(job.id)
 
-    async def get_expired_jobs(self, deadline: datetime) -> AsyncIterable[JobInternal]:
+    async def get_expired_jobs(self, deadline: datetime) -> AsyncGenerator[JobInternal, None]:
         for job in self.jobs.get_items():
             if job.created_at < deadline:
                 yield job
@@ -191,7 +191,7 @@ class MemoryRepository(Repository):
             source = await self.get_source_by_id(id)
             self.sources.remove(source)
 
-    async def get_expired_sources(self, deadline: datetime) -> AsyncIterable[Source]:
+    async def get_expired_sources(self, deadline: datetime) -> AsyncGenerator[Source, None]:
         for source in self.sources.get_items():
             if source.created_at < deadline:
                 yield source

@@ -187,6 +187,17 @@ class RethinkDbRepository(Repository):
                 if not str(e).startswith("Index `ip_address` already exists"):
                     logger.exception("Failed to create index", exc_info=e)
 
+            # create an index on created_at in sources table
+            try:
+                await self.r.table("sources").index_create("created_at").run(connection)
+            except ReqlOpFailedError as e:
+                if not str(e).startswith("Index `created_at` already exists"):
+                    logger.exception("Failed to create index", exc_info=e)
+                    raise
+
+            # wait even when another backend instance created the index
+            await self.r.table("sources").index_wait("created_at").run(connection)
+
     #
     # MODULES
     #
@@ -444,13 +455,16 @@ class RethinkDbRepository(Repository):
         async for item in cursor:
             yield JobWithResults(**item)
 
-    async def get_expired_jobs(self, deadline: datetime) -> AsyncIterable[JobInternal]:
+    async def get_expired_jobs(self, deadline: datetime) -> AsyncGenerator[JobInternal, None]:
         cursor = await self._run(
             self.r.table("jobs").filter(lambda job: job["created_at"] < deadline)
         )
 
-        async for item in cursor:
-            yield JobInternal(**item)
+        try:
+            async for item in cursor:
+                yield JobInternal(**item)
+        finally:
+            await cursor.close()
 
     #
     # SOURCES
@@ -488,13 +502,16 @@ class RethinkDbRepository(Repository):
     async def delete_source_by_id(self, source_id: str) -> None:
         await self._run(self.r.table("sources").get(source_id).delete())
 
-    async def get_expired_sources(self, deadline: datetime) -> AsyncIterable[Source]:
+    async def get_expired_sources(self, deadline: datetime) -> AsyncGenerator[Source, None]:
         cursor = await self._run(
-            self.r.table("sources").filter(lambda source: source["created_at"] < deadline)
+            self.r.table("sources").between(self.r.minval, deadline, index="created_at")
         )
 
-        async for item in cursor:
-            yield Source(**item)
+        try:
+            async for item in cursor:
+                yield Source(**item)
+        finally:
+            await cursor.close()
 
     #
     # RESULTS
