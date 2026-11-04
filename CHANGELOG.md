@@ -1,6 +1,23 @@
 # CHANGELOG
 
 
+## v0.5.73 (2026-11-04)
+
+### Fixes
+
+* fix: Simplify code for logging hydra config ([`3ce6486`](https://github.com/molinfo-vienna/nerdd-backend/commit/3ce6486857dd7cde3d7b1f1106c7b01a39ca4f4a))
+
+* fix: Mark sensitive fields in dataclasses ([`0f7dda2`](https://github.com/molinfo-vienna/nerdd-backend/commit/0f7dda2ad1c2960817d42f137cbc0440981a9d0d))
+
+* fix: Mask passwords when logging hydra config ([`4cb7f6f`](https://github.com/molinfo-vienna/nerdd-backend/commit/4cb7f6f4072211e2e15502bab025d44170819df8))
+
+### Unknown
+
+* Merge pull request #128 from shirte/main
+
+Mask passwords when logging hydra config ([`92dbeda`](https://github.com/molinfo-vienna/nerdd-backend/commit/92dbedaa8c8665533ea53000800346b03142b9f7))
+
+
 ## v0.5.72 (2026-11-03)
 
 ### Fixes
