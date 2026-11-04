@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## v0.5.75 (2026-11-04)
+
+### Fixes
+
+* fix: Adapt UpdateJobSize to SaveResultCheckpointToDb ([`b2bdc57`](https://github.com/molinfo-vienna/nerdd-backend/commit/b2bdc570cb42cf7df15c5b2c558cf05bf558d948))
+
+* fix: Conditionally update job status in SaveResultCheckpointToDb ([`6b609e7`](https://github.com/molinfo-vienna/nerdd-backend/commit/6b609e7c16960b4630822167ae83db83857b8f04))
+
+### Unknown
+
+* Merge pull request #130 from shirte/main
+
+Conditionally update job status in SaveResultCheckpointToDb ([`0ddde24`](https://github.com/molinfo-vienna/nerdd-backend/commit/0ddde2414494fa1aa818afa53f435cb559a85b37))
+
+
 ## v0.5.74 (2026-11-04)
 
 ### Fixes
