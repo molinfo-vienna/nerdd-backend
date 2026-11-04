@@ -53,7 +53,8 @@ class UpdateJobSize(ActionWithContext[LogMessage]):
             checkpoints = await self.repository.get_result_checkpoints_by_job_id(job_id)
 
             if (
-                job.num_checkpoints_total is not None
+                job.status == "processing"
+                and job.num_checkpoints_total is not None
                 and len(checkpoints) == job.num_checkpoints_total
             ):
                 await self.channel.logs_topic().send(

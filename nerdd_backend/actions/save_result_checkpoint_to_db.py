@@ -22,12 +22,15 @@ class SaveResultCheckpointToDb(ActionWithContext[ResultCheckpointMessage]):
         logger.info(f"Received result checkpoint {checkpoint_id} for job {job_id}")
 
         try:
-            # update job status
-            job = await self.repository.update_job(JobUpdate(id=job_id, status="processing"))
+            job = await self.repository.get_job_by_id(job_id)
         except RecordNotFoundError:
             # the job might not exist anymore, e.g., if it was deleted
             logger.warning(f"Job {job_id} not found, skipping checkpoint processing")
             return
+
+        if job.status == "created":
+            # update job status
+            job = await self.repository.update_job(JobUpdate(id=job_id, status="processing"))
 
         # create result checkpoint
         try:
@@ -50,7 +53,11 @@ class SaveResultCheckpointToDb(ActionWithContext[ResultCheckpointMessage]):
         job = await self.repository.get_job_by_id(job_id)
         checkpoints = await self.repository.get_result_checkpoints_by_job_id(job_id)
 
-        if job.num_checkpoints_total is not None and len(checkpoints) == job.num_checkpoints_total:
+        if (
+            job.status == "processing"
+            and job.num_checkpoints_total is not None
+            and len(checkpoints) == job.num_checkpoints_total
+        ):
             await self.channel.logs_topic().send(
                 LogMessage(job_id=job_id, message_type="all_checkpoints_processed")
             )
