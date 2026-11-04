@@ -1,6 +1,27 @@
 # CHANGELOG
 
 
+## v0.5.76 (2026-11-04)
+
+### Fixes
+
+* fix: Adapt return type of Repository.get_expired_jobs and .get_expired_sources ([`29aa04c`](https://github.com/molinfo-vienna/nerdd-backend/commit/29aa04cba082a33a55f682a5ef03173f5f9ff488))
+
+* fix: Close cursors in DeleteExpiredResources ([`0d8f2b8`](https://github.com/molinfo-vienna/nerdd-backend/commit/0d8f2b8f2a2132db52a5dde093a63856d12169ae))
+
+* fix: Close cursor of get_expired_jobs queries ([`a366187`](https://github.com/molinfo-vienna/nerdd-backend/commit/a366187c51b64e8589a331c6806475346917f47f))
+
+* fix: Improve query performance for get_expired_sources ([`2a3ed4a`](https://github.com/molinfo-vienna/nerdd-backend/commit/2a3ed4ac1bbbbbcb032464f225093ef6b0b09857))
+
+* fix: Create an index on sources.created_at ([`75e1977`](https://github.com/molinfo-vienna/nerdd-backend/commit/75e1977b23daac895975b0d5296eb31d09a2fec9))
+
+### Unknown
+
+* Merge pull request #131 from shirte/main
+
+Improve query performance for get_expired_sources ([`3f216aa`](https://github.com/molinfo-vienna/nerdd-backend/commit/3f216aacdb145b21f96034fdb8c58387beced1a4))
+
+
 ## v0.5.75 (2026-11-04)
 
 ### Fixes
