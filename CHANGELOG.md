@@ -1,6 +1,29 @@
 # CHANGELOG
 
 
+## v0.5.74 (2026-11-04)
+
+### Fixes
+
+* fix: Update nerdd-link ([`85ac051`](https://github.com/molinfo-vienna/nerdd-backend/commit/85ac051af9129d4083a2d6f1afbe228701423f2e))
+
+### Testing
+
+* test: Set pytest fixture loop scope to function ([`e51c1d1`](https://github.com/molinfo-vienna/nerdd-backend/commit/e51c1d198b850fdd68d90e36738cadabbc8c4f93))
+
+* test: Update pytest and related testing packages ([`cb4bdec`](https://github.com/molinfo-vienna/nerdd-backend/commit/cb4bdec3eaaa6ebdbec1f24fc329084782a9ecc8))
+
+* test: Use new docstring variable for pytest-bdd fixtures ([`f5d0e25`](https://github.com/molinfo-vienna/nerdd-backend/commit/f5d0e2537b4d0dfd62df042a7721b9e7377392c6))
+
+* test: Make sure that no background workers are running in maintenance mode ([`858c472`](https://github.com/molinfo-vienna/nerdd-backend/commit/858c472b8fbdb346b1dd15176c6a3b4ca0dda108))
+
+### Unknown
+
+* Merge pull request #129 from shirte/main
+
+Update pytest and related testing packages ([`578ed2b`](https://github.com/molinfo-vienna/nerdd-backend/commit/578ed2b95386217b3b46b814126333e3b3fbcd9c))
+
+
 ## v0.5.73 (2026-11-04)
 
 ### Fixes
