@@ -1,7 +1,7 @@
 import time
 from asyncio import Lock
 from datetime import datetime
-from typing import AsyncGenerator, AsyncIterable, List, Optional, Tuple
+from typing import AsyncGenerator, List, Optional, Tuple
 
 from nerdd_link.utils import ObservableList
 
@@ -51,7 +51,7 @@ class MemoryRepository(Repository):
     #
     async def get_module_changes(
         self,
-    ) -> AsyncIterable[Tuple[Optional[ModuleInternal], Optional[ModuleInternal]]]:
+    ) -> AsyncGenerator[Tuple[Optional[ModuleInternal], Optional[ModuleInternal]], None]:
         async for change in self.modules.changes():
             yield change
 
@@ -85,7 +85,7 @@ class MemoryRepository(Repository):
     #
     async def get_job_changes(
         self, job_id: str
-    ) -> AsyncIterable[Tuple[Optional[JobInternal], Optional[JobInternal]]]:
+    ) -> AsyncGenerator[Tuple[Optional[JobInternal], Optional[JobInternal]], None]:
         async for old, new in self.jobs.changes():
             if (old is not None and old.id == job_id) or (new is not None and new.id == job_id):
                 yield (old, new)
@@ -152,7 +152,7 @@ class MemoryRepository(Repository):
         module_id: str,
         status: List[JobStatus] | JobStatus,
         deadline: Optional[datetime] = None,
-    ) -> AsyncIterable[JobWithResults]:
+    ) -> AsyncGenerator[JobWithResults, None]:
         if isinstance(status, str):
             status = [status]
         for job in self.jobs.get_items():
@@ -204,7 +204,7 @@ class MemoryRepository(Repository):
         job_id: str,
         start_mol_id: Optional[int] = None,
         end_mol_id: Optional[int] = None,
-    ) -> AsyncIterable[Tuple[Optional[Result], Optional[Result]]]:
+    ) -> AsyncGenerator[Tuple[Optional[Result], Optional[Result]], None]:
         start_mol_id_val = start_mol_id if start_mol_id is not None else float("-inf")
         end_mol_id_val = end_mol_id if end_mol_id is not None else float("inf")
 

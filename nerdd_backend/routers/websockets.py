@@ -1,3 +1,5 @@
+from contextlib import aclosing
+
 from fastapi import APIRouter, Query, WebSocketException, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.websockets import WebSocket, WebSocketDisconnect, WebSocketState
@@ -22,12 +24,13 @@ async def get_job_ws(websocket: WebSocket, job_id: str) -> None:
     try:
         await websocket.accept()
 
-        async for _, internal_job in repository.get_job_with_result_changes(job_id):
-            if internal_job is None:
-                break
+        async with aclosing(repository.get_job_with_result_changes(job_id)) as job_changes:
+            async for _, internal_job in job_changes:
+                if internal_job is None:
+                    break
 
-            job = augment_job(websocket, internal_job)
-            await websocket.send_json(jsonable_encoder(job))
+                job = augment_job(websocket, internal_job)
+                await websocket.send_json(jsonable_encoder(job))
 
         if websocket.application_state != WebSocketState.DISCONNECTED:
             await websocket.close(code=status.WS_1000_NORMAL_CLOSURE)
@@ -78,9 +81,12 @@ async def get_results_ws(websocket: WebSocket, job_id: str, page: int = Query())
         first_mol_id = page_zero_based * page_size
         last_mol_id = int(min(first_mol_id + page_size, num_entries) - 1)
 
-        async for _, new in repository.get_result_changes(job_id, first_mol_id, last_mol_id):
-            if new is not None:
-                await websocket.send_json(jsonable_encoder(new))
+        async with aclosing(
+            repository.get_result_changes(job_id, first_mol_id, last_mol_id)
+        ) as result_changes:
+            async for _, new in result_changes:
+                if new is not None:
+                    await websocket.send_json(jsonable_encoder(new))
 
         if websocket.application_state != WebSocketState.DISCONNECTED:
             await websocket.close(code=status.WS_1000_NORMAL_CLOSURE)

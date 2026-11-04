@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from contextlib import aclosing
 
 from fastapi import FastAPI
 from inhouse import MemoryStore
@@ -24,23 +25,24 @@ class InvalidateModuleCacheLifespan(AbstractLifespan):
         cache: MemoryStore = self.app.state.cache_store
 
         try:
-            async for old, new in repository.get_module_changes():
-                if (
-                    old is not None
-                    and new is not None
-                    and augment_module(None, old) == augment_module(None, new)
-                ):
-                    continue
+            async with aclosing(repository.get_module_changes()) as module_changes:
+                async for old, new in module_changes:
+                    if (
+                        old is not None
+                        and new is not None
+                        and augment_module(None, old) == augment_module(None, new)
+                    ):
+                        continue
 
-                logger.info("Module change detected")
+                    logger.info("Module change detected")
 
-                keys = {"modules"}
-                if old is not None:
-                    keys.add(f"module:{old.id}")
-                if new is not None:
-                    keys.add(f"module:{new.id}")
-                for key in keys:
-                    cache.delete(key)
+                    keys = {"modules"}
+                    if old is not None:
+                        keys.add(f"module:{old.id}")
+                    if new is not None:
+                        keys.add(f"module:{new.id}")
+                    for key in keys:
+                        cache.delete(key)
         except asyncio.CancelledError:
             logger.info("Cancelled InvalidateModuleCacheLifespan")
             raise

@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from contextlib import aclosing
 
 from fastapi import FastAPI
 
@@ -22,29 +23,32 @@ class CreateModuleLifespan(AbstractLifespan):
         logger.info("Starting CreateModuleLifespan")
         repository = self.app.state.repository
 
-        async for old, new in repository.get_module_changes():
-            try:
-                if old is None:
-                    module = new
-                    logger.info(f"Creating module {module.name}")
+        async with aclosing(repository.get_module_changes()) as module_changes:
+            async for old, new in module_changes:
+                try:
+                    if old is None:
+                        module = new
+                        logger.info(f"Creating module {module.name}")
 
-                    new_router = get_dynamic_router(module)
-                    paths = [route.path for route in new_router.routes if hasattr(route, "path")]
+                        new_router = get_dynamic_router(module)
+                        paths = [
+                            route.path for route in new_router.routes if hasattr(route, "path")
+                        ]
 
-                    # delete old routes
-                    self.app.router.routes = [
-                        route
-                        for route in self.app.router.routes
-                        if getattr(route, "path", None) not in paths
-                    ]
+                        # delete old routes
+                        self.app.router.routes = [
+                            route
+                            for route in self.app.router.routes
+                            if getattr(route, "path", None) not in paths
+                        ]
 
-                    self.app.include_router(new_router)
+                        self.app.include_router(new_router)
 
-                    # reload the routing table
-                    self.app.openapi_schema = None
-            except asyncio.CancelledError:
-                logger.info("Cancelled CreateModuleLifespan")
-            except Exception as e:
-                logger.error(e)
+                        # reload the routing table
+                        self.app.openapi_schema = None
+                except asyncio.CancelledError:
+                    logger.info("Cancelled CreateModuleLifespan")
+                except Exception as e:
+                    logger.error(e)
 
         logger.info("Stopping CreateModuleLifespan")

@@ -1,5 +1,6 @@
 import logging
 import math
+from contextlib import aclosing
 from typing import Annotated, Optional
 from uuid import uuid4
 
@@ -290,18 +291,19 @@ async def get_job_queue(request: Request, job_id: str) -> QueueStats:
     horizon = 100
     job_sizes = []
     estimate = "upper_bound"
-    async for earlier_job in repository.get_jobs_by_status(
-        module_id, ["created", "processing"], deadline=job.created_at
-    ):
-        job_sizes.append(
-            max(earlier_job.num_entries_total - earlier_job.num_entries_processed, 0)
-            if earlier_job.num_entries_total is not None
-            else 10
-        )
+    async with aclosing(
+        repository.get_jobs_by_status(module_id, ["created", "processing"], deadline=job.created_at)
+    ) as earlier_jobs:
+        async for earlier_job in earlier_jobs:
+            job_sizes.append(
+                max(earlier_job.num_entries_total - earlier_job.num_entries_processed, 0)
+                if earlier_job.num_entries_total is not None
+                else 10
+            )
 
-        if len(job_sizes) >= horizon:
-            estimate = "lower_bound"
-            break
+            if len(job_sizes) >= horizon:
+                estimate = "lower_bound"
+                break
 
     # the waiting time is still an approximation, because it doesn't consider the number of
     # available workers

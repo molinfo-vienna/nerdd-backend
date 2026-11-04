@@ -3,7 +3,7 @@ import copy
 import logging
 from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import Any, AsyncGenerator, AsyncIterable, List, Optional, Tuple
+from typing import Any, AsyncGenerator, List, Optional, Tuple
 
 from rethinkdb import RethinkDB
 from rethinkdb.errors import ReqlDriverError, ReqlOpFailedError
@@ -203,22 +203,25 @@ class RethinkDbRepository(Repository):
     #
     async def get_module_changes(
         self,
-    ) -> AsyncIterable[Tuple[Optional[ModuleInternal], Optional[ModuleInternal]]]:
+    ) -> AsyncGenerator[Tuple[Optional[ModuleInternal], Optional[ModuleInternal]], None]:
         async with self._get_connection() as connection:
             cursor = await self.r.table("modules").changes(include_initial=True).run(connection)
 
-            async for change in cursor:
-                if "old_val" not in change or change["old_val"] is None:
-                    old_module = None
-                else:
-                    old_module = ModuleInternal(**change["old_val"])
+            try:
+                async for change in cursor:
+                    if "old_val" not in change or change["old_val"] is None:
+                        old_module = None
+                    else:
+                        old_module = ModuleInternal(**change["old_val"])
 
-                if "new_val" not in change or change["new_val"] is None:
-                    new_module = None
-                else:
-                    new_module = ModuleInternal(**change["new_val"])
+                    if "new_val" not in change or change["new_val"] is None:
+                        new_module = None
+                    else:
+                        new_module = ModuleInternal(**change["new_val"])
 
-                yield old_module, new_module
+                    yield old_module, new_module
+            finally:
+                await cursor.close()
 
     async def get_all_modules(self) -> List[ModuleInternal]:
         cursor = await self._run(self.r.table("modules"))
@@ -272,7 +275,7 @@ class RethinkDbRepository(Repository):
     #
     async def get_job_with_result_changes(
         self, job_id: str
-    ) -> AsyncIterable[Tuple[Optional[JobWithResults], Optional[JobWithResults]]]:
+    ) -> AsyncGenerator[Tuple[Optional[JobWithResults], Optional[JobWithResults]], None]:
         async with self._get_connection() as connection:
             cursor = (
                 await self.r
@@ -289,38 +292,41 @@ class RethinkDbRepository(Repository):
                 .run(connection)
             )
 
-            job: Optional[JobWithResults] = await self.get_job_by_id(job_id)
+            try:
+                job: Optional[JobWithResults] = await self.get_job_by_id(job_id)
 
-            yield None, job
+                yield None, job
 
-            async for change in cursor:
-                assert job is not None
+                async for change in cursor:
+                    assert job is not None
 
-                if "new_val" not in change or change["new_val"] is None:
-                    new_job = None
-                elif "mol_id" in change["new_val"]:
-                    # result entries change
-                    entries_processed = copy.deepcopy(job.entries_processed)
-                    entries_processed.add(change["new_val"]["mol_id"])
-                    new_job = JobWithResults(**{
-                        **job.model_dump(),
-                        "entries_processed": entries_processed,
-                    })
-                else:
-                    # job change (status, num_entries_total, etc.)
-                    new_job = JobWithResults(
-                        **change["new_val"], entries_processed=job.entries_processed
-                    )
+                    if "new_val" not in change or change["new_val"] is None:
+                        new_job = None
+                    elif "mol_id" in change["new_val"]:
+                        # result entries change
+                        entries_processed = copy.deepcopy(job.entries_processed)
+                        entries_processed.add(change["new_val"]["mol_id"])
+                        new_job = JobWithResults(**{
+                            **job.model_dump(),
+                            "entries_processed": entries_processed,
+                        })
+                    else:
+                        # job change (status, num_entries_total, etc.)
+                        new_job = JobWithResults(
+                            **change["new_val"], entries_processed=job.entries_processed
+                        )
 
-                yield job, new_job
-                job = new_job
+                    yield job, new_job
+                    job = new_job
 
-                if job is None or job.is_done():
-                    break
+                    if job is None or job.is_done():
+                        break
+            finally:
+                await cursor.close()
 
     async def get_job_changes(
         self, job_id: str
-    ) -> AsyncIterable[Tuple[Optional[JobInternal], Optional[JobInternal]]]:
+    ) -> AsyncGenerator[Tuple[Optional[JobInternal], Optional[JobInternal]], None]:
         async with self._get_connection() as connection:
             cursor = (
                 await self.r
@@ -330,21 +336,24 @@ class RethinkDbRepository(Repository):
                 .run(connection)
             )
 
-            async for change in cursor:
-                if change["old_val"] is None:
-                    old_job = None
-                else:
-                    old_job = JobInternal(**change["old_val"])
+            try:
+                async for change in cursor:
+                    if change["old_val"] is None:
+                        old_job = None
+                    else:
+                        old_job = JobInternal(**change["old_val"])
 
-                if change["new_val"] is None:
-                    new_job = None
-                else:
-                    new_job = JobInternal(**change["new_val"])
+                    if change["new_val"] is None:
+                        new_job = None
+                    else:
+                        new_job = JobInternal(**change["new_val"])
 
-                yield old_job, new_job
+                    yield old_job, new_job
 
-                if new_job is None:
-                    break
+                    if new_job is None:
+                        break
+            finally:
+                await cursor.close()
 
     async def create_jobs_table(self) -> None:
         try:
@@ -429,7 +438,7 @@ class RethinkDbRepository(Repository):
         module_id: str,
         status: List[JobStatus] | JobStatus,
         deadline: Optional[datetime] = None,
-    ) -> AsyncIterable[JobWithResults]:
+    ) -> AsyncGenerator[JobWithResults, None]:
         if isinstance(status, str):
             status = [status]
 
@@ -452,8 +461,11 @@ class RethinkDbRepository(Repository):
             )
         )
 
-        async for item in cursor:
-            yield JobWithResults(**item)
+        try:
+            async for item in cursor:
+                yield JobWithResults(**item)
+        finally:
+            await cursor.close()
 
     async def get_expired_jobs(self, deadline: datetime) -> AsyncGenerator[JobInternal, None]:
         cursor = await self._run(
@@ -567,7 +579,7 @@ class RethinkDbRepository(Repository):
         job_id: str,
         start_mol_id: Optional[int] = None,
         end_mol_id: Optional[int] = None,
-    ) -> AsyncIterable[Tuple[Optional[Result], Optional[Result]]]:
+    ) -> AsyncGenerator[Tuple[Optional[Result], Optional[Result]], None]:
         start_condition = (
             (self.r.row["mol_id"] >= start_mol_id) if start_mol_id is not None else True
         )
@@ -583,18 +595,21 @@ class RethinkDbRepository(Repository):
                 .run(connection)
             )
 
-            async for change in cursor:
-                if "old_val" not in change or change["old_val"] is None:
-                    old_result = None
-                else:
-                    old_result = Result(**change["old_val"])
+            try:
+                async for change in cursor:
+                    if "old_val" not in change or change["old_val"] is None:
+                        old_result = None
+                    else:
+                        old_result = Result(**change["old_val"])
 
-                if "new_val" not in change or change["new_val"] is None:
-                    new_result = None
-                else:
-                    new_result = Result(**change["new_val"])
+                    if "new_val" not in change or change["new_val"] is None:
+                        new_result = None
+                    else:
+                        new_result = Result(**change["new_val"])
 
-                yield old_result, new_result
+                    yield old_result, new_result
+            finally:
+                await cursor.close()
 
     async def delete_results_by_job_id(self, job_id: str) -> None:
         await self._run(self.r.table("results").get_all(job_id, index="job_id").delete())
