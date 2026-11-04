@@ -1,6 +1,29 @@
 # CHANGELOG
 
 
+## v0.5.77 (2026-11-04)
+
+### Fixes
+
+* fix: Explicitly close cursor in websocket endpoints ([`eb6467b`](https://github.com/molinfo-vienna/nerdd-backend/commit/eb6467b3390c4e5583d046004d86486c21293abc))
+
+* fix: Explicitly close cursor in get_module_queue ([`89764b4`](https://github.com/molinfo-vienna/nerdd-backend/commit/89764b4f8ac6dfbcb06e6a738997207077662533))
+
+* fix: Explicitly close cursor in get_job_queue ([`3bb381f`](https://github.com/molinfo-vienna/nerdd-backend/commit/3bb381f4dd4e83e4d43fe8655e88f04151423e46))
+
+* fix: Explicitly close cursor in InvalidateModuleCacheLifespan ([`cc3e3e2`](https://github.com/molinfo-vienna/nerdd-backend/commit/cc3e3e204aaeae068fd63475ebf26987b04a4d88))
+
+* fix: Explicitly close cursor in CreateModuleLifespan ([`ea33b7a`](https://github.com/molinfo-vienna/nerdd-backend/commit/ea33b7ac4d2166628ac0745bec5c133010ae30c2))
+
+* fix: Always close cursors in RethinkDbRepository ([`1159b29`](https://github.com/molinfo-vienna/nerdd-backend/commit/1159b294fbf5731748fe9bd0ed58831c9b75fb99))
+
+### Unknown
+
+* Merge pull request #132 from shirte/main
+
+Close cursors in RethinkDbRepository ([`b59fb56`](https://github.com/molinfo-vienna/nerdd-backend/commit/b59fb568918e1c7c89b3b3d860a468d8a28851a9))
+
+
 ## v0.5.76 (2026-11-04)
 
 ### Fixes
