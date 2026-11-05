@@ -1,6 +1,39 @@
 # CHANGELOG
 
 
+## v0.5.78 (2026-11-05)
+
+### Fixes
+
+* fix: Improve MemoryRepository.create_result_checkpoint ([`6eab75e`](https://github.com/molinfo-vienna/nerdd-backend/commit/6eab75e05226732caeb4f630f8eb69dad42b15a6))
+
+* fix: Close generator in Repository._drain_iterator ([`1807bb6`](https://github.com/molinfo-vienna/nerdd-backend/commit/1807bb65bdc8e58be2a407af8355021561bffb7c))
+
+* fix: Simplify MemoryRepository.create_job ([`226a7b9`](https://github.com/molinfo-vienna/nerdd-backend/commit/226a7b97dc04e727a1d6fbc97c212be73db44b81))
+
+* fix: Update job checkpoints in SaveResultCheckpointToDb ([`49ac4b7`](https://github.com/molinfo-vienna/nerdd-backend/commit/49ac4b7ce4dee66d08611eadaf50d18d958f6d11))
+
+* fix: Implement adding new checkpoints in update_job ([`7104157`](https://github.com/molinfo-vienna/nerdd-backend/commit/7104157adff5a0e7f4a0f5285686b29cb894f458))
+
+* fix: Speed up queue operations by using estimated number of entries ([`db4debe`](https://github.com/molinfo-vienna/nerdd-backend/commit/db4debe4caadda111b8ac4917214b60dd7868cfe))
+
+* fix: Differentiate between .get_job_by_id and .get_job_with_results ([`3225c9c`](https://github.com/molinfo-vienna/nerdd-backend/commit/3225c9c84a2c5c9149efdfb68a2947ca773ec6f5))
+
+* fix: Let Repository.get_jobs_by_status return JobInternal without results ([`f5248a1`](https://github.com/molinfo-vienna/nerdd-backend/commit/f5248a18f92411adc14a076c56447add088af30a))
+
+* fix: Introduce Repository.get_job_with_results and make .get_job_by_id cheaper ([`f5fa5fd`](https://github.com/molinfo-vienna/nerdd-backend/commit/f5fa5fdc4a405087cce7886b32549983cfba9c42))
+
+* fix: Allow adding checkpoints via JobUpdate ([`1f93e8a`](https://github.com/molinfo-vienna/nerdd-backend/commit/1f93e8ac17cd69cb6f83af5bdc46c81666ce2c24))
+
+* fix: Add checkpoints_processed field to JobInternal ([`d49b361`](https://github.com/molinfo-vienna/nerdd-backend/commit/d49b36113ad2899526fb7951f841ed21601a2abf))
+
+### Unknown
+
+* Merge pull request #133 from shirte/main
+
+Speed up queue operations by using estimated number of entries ([`02361e0`](https://github.com/molinfo-vienna/nerdd-backend/commit/02361e0ea0557a480b665649802c840d78e4d67a))
+
+
 ## v0.5.77 (2026-11-04)
 
 ### Fixes
