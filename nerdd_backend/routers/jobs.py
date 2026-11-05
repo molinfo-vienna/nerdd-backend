@@ -258,7 +258,7 @@ async def get_job(request: Request, job_id: str) -> JobPublic:
     repository = app.state.repository
 
     try:
-        job = await repository.get_job_by_id(job_id)
+        job = await repository.get_job_with_results(job_id)
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail="Job not found") from e
 
@@ -296,7 +296,7 @@ async def get_job_queue(request: Request, job_id: str) -> QueueStats:
     ) as earlier_jobs:
         async for earlier_job in earlier_jobs:
             job_sizes.append(
-                max(earlier_job.num_entries_total - earlier_job.num_entries_processed, 0)
+                max(earlier_job.num_entries_total - earlier_job.num_estimated_entries_processed, 0)
                 if earlier_job.num_entries_total is not None
                 else 10
             )

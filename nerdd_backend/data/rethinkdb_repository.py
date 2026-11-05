@@ -23,6 +23,7 @@ from ..models import (
     User,
     UserType,
 )
+from ..util import CompressedSet
 from .exceptions import RecordAlreadyExistsError, RecordNotFoundError
 from .repository import Repository
 
@@ -293,7 +294,7 @@ class RethinkDbRepository(Repository):
             )
 
             try:
-                job: Optional[JobWithResults] = await self.get_job_by_id(job_id)
+                job: Optional[JobWithResults] = await self.get_job_with_results(job_id)
 
                 yield None, job
 
@@ -390,6 +391,13 @@ class RethinkDbRepository(Repository):
             update_set["output_formats"] = self.r.row["output_formats"].set_union(
                 job_update.new_output_formats
             )
+        if job_update.new_checkpoint_processed is not None:
+            update_set["checkpoints_processed"] = (
+                self.r
+                .row["checkpoints_processed"]
+                .default([])
+                .set_insert(job_update.new_checkpoint_processed)
+            )
 
         # update the job in the database
         changes = await self._run(
@@ -403,7 +411,22 @@ class RethinkDbRepository(Repository):
 
         return JobInternal(**updated_job)
 
-    async def get_job_by_id(self, job_id: str) -> JobWithResults:
+    async def get_job_by_id(self, job_id: str) -> JobInternal:
+        result = await self._run(self.r.table("jobs").get(job_id))
+
+        if result is None:
+            raise RecordNotFoundError(Job, job_id)
+
+        return JobInternal(**result)
+
+    async def get_job_with_results(self, job_id: str) -> JobWithResults:
+        job = await self.get_job_by_id(job_id)
+        if job.status == "completed" and job.num_entries_total is not None:
+            return JobWithResults(
+                **job.model_dump(),
+                entries_processed=CompressedSet([(0, job.num_entries_total)]),
+            )
+
         result = await self._run(
             self.r
             .table("jobs")
@@ -438,7 +461,7 @@ class RethinkDbRepository(Repository):
         module_id: str,
         status: List[JobStatus] | JobStatus,
         deadline: Optional[datetime] = None,
-    ) -> AsyncGenerator[JobWithResults, None]:
+    ) -> AsyncGenerator[JobInternal, None]:
         if isinstance(status, str):
             status = [status]
 
@@ -448,22 +471,11 @@ class RethinkDbRepository(Repository):
             .get_all(*status, index="status")
             .filter(self.r.row["job_type"] == module_id)
             .filter((self.r.row["created_at"] < deadline) if deadline is not None else True)
-            .map(
-                lambda job: job.merge({
-                    "entries_processed": self.r
-                    .table("results")
-                    .get_all(job["id"], index="job_id")
-                    .pluck("mol_id")
-                    .map(lambda row: row["mol_id"])
-                    .distinct()
-                    .coerce_to("array")
-                })
-            )
         )
 
         try:
             async for item in cursor:
-                yield JobWithResults(**item)
+                yield JobInternal(**item)
         finally:
             await cursor.close()
 

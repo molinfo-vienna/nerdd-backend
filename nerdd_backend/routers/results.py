@@ -19,7 +19,7 @@ async def get_results(
     page_zero_based = page - 1
 
     try:
-        job = await repository.get_job_by_id(job_id)
+        job = await repository.get_job_with_results(job_id)
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail="Job not found") from e
 

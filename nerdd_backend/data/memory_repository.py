@@ -97,10 +97,7 @@ class MemoryRepository(Repository):
                 raise RecordAlreadyExistsError(JobInternal, job.id)
             except RecordNotFoundError:
                 self.jobs.append(job)
-                return JobWithResults(
-                    **job.model_dump(),
-                    entries_processed=CompressedSet(),
-                )
+                return JobWithResults(**job.model_dump())
 
     async def update_job(self, job_update: JobUpdate) -> JobInternal:
         async with self.transaction_lock:
@@ -121,26 +118,36 @@ class MemoryRepository(Repository):
                 modified_job.num_checkpoints_total = job_update.num_checkpoints_total
             if job_update.new_output_formats is not None:
                 modified_job.output_formats.extend(job_update.new_output_formats)
+            if (
+                job_update.new_checkpoint_processed is not None
+                and job_update.new_checkpoint_processed not in modified_job.checkpoints_processed
+            ):
+                modified_job.checkpoints_processed.append(job_update.new_checkpoint_processed)
+                modified_job.checkpoints_processed.sort()
 
             # update the job in the observable list
             self.jobs.update(existing_job, modified_job)
             return await self.get_job_by_id(job_update.id)
 
-    async def get_job_by_id(self, id: str) -> JobWithResults:
-        # fetch all corresponding results
-        results = await self.get_results_by_job_id(id)
-        entries_processed = CompressedSet([result.mol_id for result in results]).to_intervals()
-
+    async def get_job_by_id(self, id: str) -> JobInternal:
         try:
             return next(
-                (
-                    JobWithResults(**job.model_dump(), entries_processed=entries_processed)
-                    for job in self.jobs.get_items()
-                    if job.id == id
-                )
+                (JobInternal(**job.model_dump()) for job in self.jobs.get_items() if job.id == id)
             )
         except StopIteration as e:
             raise RecordNotFoundError(Job, id) from e
+
+    async def get_job_with_results(self, id: str) -> JobWithResults:
+        job = await self.get_job_by_id(id)
+        if job.status == "completed" and job.num_entries_total is not None:
+            return JobWithResults(
+                **job.model_dump(),
+                entries_processed=CompressedSet([(0, job.num_entries_total)]),
+            )
+
+        results = await self.get_results_by_job_id(id)
+        entries_processed = CompressedSet([result.mol_id for result in results])
+        return JobWithResults(**job.model_dump(), entries_processed=entries_processed)
 
     async def delete_job_by_id(self, id: str) -> None:
         async with self.transaction_lock:
@@ -152,7 +159,7 @@ class MemoryRepository(Repository):
         module_id: str,
         status: List[JobStatus] | JobStatus,
         deadline: Optional[datetime] = None,
-    ) -> AsyncGenerator[JobWithResults, None]:
+    ) -> AsyncGenerator[JobInternal, None]:
         if isinstance(status, str):
             status = [status]
         for job in self.jobs.get_items():
@@ -161,7 +168,7 @@ class MemoryRepository(Repository):
                 and job.job_type == module_id
                 and (deadline is None or job.created_at <= deadline)
             ):
-                yield await self.get_job_by_id(job.id)
+                yield JobInternal(**job.model_dump())
 
     async def get_expired_jobs(self, deadline: datetime) -> AsyncGenerator[JobInternal, None]:
         for job in self.jobs.get_items():
@@ -266,12 +273,11 @@ class MemoryRepository(Repository):
     #
     async def create_result_checkpoint(self, checkpoint: ResultCheckpoint) -> ResultCheckpoint:
         async with self.transaction_lock:
-            try:
-                await self.get_result_checkpoints_by_job_id(checkpoint.job_id)
-                raise RecordAlreadyExistsError(ResultCheckpoint, checkpoint.job_id)
-            except RecordNotFoundError:
-                self.checkpoints.append(checkpoint)
-                return checkpoint
+            if any(existing.id == checkpoint.id for existing in self.checkpoints.get_items()):
+                raise RecordAlreadyExistsError(ResultCheckpoint, checkpoint.id)
+
+            self.checkpoints.append(checkpoint)
+            return checkpoint
 
     async def update_result_checkpoint(self, checkpoint: ResultCheckpoint) -> ResultCheckpoint:
         async with self.transaction_lock:

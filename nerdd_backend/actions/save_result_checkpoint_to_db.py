@@ -44,6 +44,11 @@ class SaveResultCheckpointToDb(ActionWithContext[ResultCheckpointMessage]):
                 f"Result checkpoint {checkpoint_id} for job {job_id} already exists, skipping"
             )
 
+        if job.status == "processing":
+            job = await self.repository.update_job(
+                JobUpdate(id=job_id, new_checkpoint_processed=checkpoint_id)
+            )
+
         #
         # check if all checkpoints have been processed
         # TODO: this completion check is duplicated in UpdateJobSize
