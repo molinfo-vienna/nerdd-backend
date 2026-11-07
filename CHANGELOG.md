@@ -1,6 +1,23 @@
 # CHANGELOG
 
 
+## v0.5.79 (2026-11-07)
+
+### Fixes
+
+* fix: Require all output formats for completion in ProcessSerializationResult ([`63f3c1a`](https://github.com/molinfo-vienna/nerdd-backend/commit/63f3c1aa27e14eb1f94f63afef79ac1de9a9d2de))
+
+* fix: Restructure ProcessSerializationResult ([`7fe34b1`](https://github.com/molinfo-vienna/nerdd-backend/commit/7fe34b138045413433a7bc9cf97a3f7d402f6b6b))
+
+* fix: Avoid early return in StartSerialization ([`dbd3721`](https://github.com/molinfo-vienna/nerdd-backend/commit/dbd372194684bae964fd2411ef2aeb58884d9fe8))
+
+### Unknown
+
+* Merge pull request #134 from shirte/main
+
+Avoid early return in StartSerialization ([`b1ad37b`](https://github.com/molinfo-vienna/nerdd-backend/commit/b1ad37b4fc9271a23898e76f6908db917e643c01))
+
+
 ## v0.5.78 (2026-11-05)
 
 ### Fixes
